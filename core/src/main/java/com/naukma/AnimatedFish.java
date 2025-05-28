@@ -14,9 +14,14 @@ public class AnimatedFish {
     private float width, height;
     private float rotation;
     private float speed;
+    private int frameCount;
     private boolean isActive;
     private final boolean isLookingLeft;
     private boolean movingRight;
+    private float targetY;
+    private float yChangeTimer;
+    private static final float Y_CHANGE_INTERVAL = 3f; // секунди між змінами Y координати
+
 
 
     public AnimatedFish(String framesPath, int framesCount, boolean isLookingLeft,
@@ -24,7 +29,7 @@ public class AnimatedFish {
         this.isLookingLeft = isLookingLeft;
         this.speed = speed;
         this.frameDuration = frameDuration;
-
+        this.frameCount = framesCount;
         frames = new Array<>();
         // Завантажуємо всі кадри
         for (int i = 0; i < framesCount; i++) {
@@ -48,6 +53,8 @@ public class AnimatedFish {
 
         rotation = 0;
         isActive = true;
+        targetY = y;
+        yChangeTimer = 0;
     }
 
 
@@ -57,10 +64,22 @@ public class AnimatedFish {
         if (!isActive) return;
 
         stateTime += delta;
+        yChangeTimer += delta;
 
+        // Random Y movement
+        if (yChangeTimer >= Y_CHANGE_INTERVAL) {
+            targetY = MathUtils.random(height, Gdx.graphics.getHeight() - height);
+            yChangeTimer = 0;
+        }
+
+        // Smooth Y movement
+        float yDiff = targetY - y;
+        if (Math.abs(yDiff) > 1) {
+            y += Math.signum(yDiff) * speed * 0.5f * delta;
+        }
+
+        // X movement
         float dirX = movingRight ? 1 : -1;
-        float dirY = 0; // рівно пливе по X
-
         x += dirX * speed * delta;
 
         if (x < -width * 2 || x > Gdx.graphics.getWidth() + width * 2) {
@@ -102,5 +121,9 @@ public class AnimatedFish {
 
     public boolean isActive() {
         return isActive;
+    }
+
+    public int getFrameCount() {
+        return frameCount;
     }
 }
