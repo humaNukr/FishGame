@@ -2,7 +2,6 @@ package com.naukma;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -10,36 +9,22 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.GL20;
 
 public class Main extends ApplicationAdapter {
-    private SpriteBatch batch;
-    private Texture background;
-    private Texture fish;
-
-    private float fishX, fishY;
-    private float fishWidth, fishHeight;
-    private float speed = 200; // пікселів за секунду
-
-    private BitmapFont font;
-    private int score = 0;
-    private int lives = 3;
 
     @Override
     public void create() {
-        Gdx.graphics.setForegroundFPS(Gdx.graphics.getDisplayMode().refreshRate);
-        Gdx.graphics.setVSync(true);
-        Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
         batch = new SpriteBatch();
         background = new Texture(Gdx.files.internal("background.jpg"));
         fish = new Texture(Gdx.files.internal("sprite_0.png"));
 
-        fishWidth = fish.getWidth()*0.3f;
-        fishHeight = fish.getHeight()*0.3f;
+        fishWidth = fish.getWidth()*0.25f;
+        fishHeight = fish.getHeight()*0.25f;
 
         // Початкова позиція по центру
         fishX = (Gdx.graphics.getWidth() - fishWidth) / 2f;
         fishY = (Gdx.graphics.getHeight() - fishHeight) / 2f;
 
-        font = new BitmapFont(); // системний шрифт
-        font.getData().setScale(2); // збільшення розміру
+        font = new BitmapFont();
+        font.getData().setScale(2);
         font.setColor(Color.WHITE);
     }
 
@@ -52,25 +37,40 @@ public class Main extends ApplicationAdapter {
 
         batch.begin();
         batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        batch.draw(fish, fishX, fishY);
-
+        batch.draw(fish, fishX, fishY, fishWidth/2, fishHeight/2,
+            fishWidth, fishHeight, 1, 1, rotation,
+            0, 0, fish.getWidth(), fish.getHeight(),
+            true,  rotation > 90 && rotation < 270);
         drawHUD();
 
         batch.end();
     }
 
     private void handleInput(float delta) {
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            fishY += speed * delta;
+        float mouseX = Gdx.input.getX();
+        float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
+
+        float dirX = mouseX - (fishX + fishWidth/2);
+        float dirY = mouseY - (fishY + fishHeight/2);
+
+        // Розраховуємо кут в градусах (-180 до 180)
+        float newRotation = (float)Math.atan2(dirY, dirX) * 180f / (float)Math.PI;
+
+
+        if (newRotation < 0) {
+            newRotation += 360;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-            fishY -= speed * delta;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            fishX -= speed * delta;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            fishX += speed * delta;
+
+        rotation = newRotation;
+
+        float distance = (float)Math.sqrt(dirX * dirX + dirY * dirY);
+
+        if (distance > 10) {
+            float moveX = dirX / distance * speed * delta;
+            float moveY = dirY / distance * speed * delta;
+
+            fishX += moveX;
+            fishY += moveY;
         }
 
         // Обмеження межами екрану
@@ -84,8 +84,8 @@ public class Main extends ApplicationAdapter {
         String scoreText = "Score: " + score;
         String livesText = "Lives: " + lives;
 
-        font.draw(batch, scoreText, 20, Gdx.graphics.getHeight() - 20); // зверху зліва
-        font.draw(batch, livesText, Gdx.graphics.getWidth() - 150, Gdx.graphics.getHeight() - 20); // зверху справа
+        font.draw(batch, scoreText, 20, Gdx.graphics.getHeight() - 20);
+        font.draw(batch, livesText, Gdx.graphics.getWidth() - 150, Gdx.graphics.getHeight() - 20);
     }
 
 
@@ -96,4 +96,17 @@ public class Main extends ApplicationAdapter {
         fish.dispose();
         font.dispose();
     }
+
+    private SpriteBatch batch;
+    private Texture background;
+    private Texture fish;
+
+    private float fishX, fishY;
+    private float fishWidth, fishHeight;
+    private float speed = 200;
+    private float rotation = 0f;
+
+    private BitmapFont font;
+    private int score = 0;
+    private int lives = 3;
 }
