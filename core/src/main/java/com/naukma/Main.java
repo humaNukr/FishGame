@@ -177,7 +177,12 @@ public class Main extends ApplicationAdapter {
             if (distance < EATING_DISTANCE && fishScale < SHARK_SCALE) {
                 animatedShark.startEating();
                 // Додаємо ефект крові
-                bloodEffect.spawn(fishCenterX, fishCenterY);
+                Timer.schedule(new Timer.Task() {
+                    @Override
+                    public void run() {
+                        bloodEffect.spawn(fishCenterX, fishCenterY);
+                    }
+                }, BLOOD_EFFECT_DELAY);
 
                 Timer.schedule(new Timer.Task() {
                     @Override
@@ -303,6 +308,8 @@ public class Main extends ApplicationAdapter {
     private float sharkWidth, sharkHeight;
     private float sharkSpeed = 200;
     private float rotation = 0f;
+
+    private static final float BLOOD_EFFECT_DELAY = 0.55f; // Тривалість ефекту крові
     private static final int MAX_FISH = 10;
     private static final float MAX_FISH_SPEED = 250;
     private static final float MIN_FISH_SPEED = 50;
@@ -310,7 +317,7 @@ public class Main extends ApplicationAdapter {
     private static final float MAX_FISH_SCALE = 1f;
     private static final float SHARK_SCALE = 0.5f;
     private static final float EATING_DISTANCE = 50f; // Відстань на якій акула почне їсти
-    private static final float EATING_FRAME_DELAY = 0.2f; // Затримка перед з'їданням риби
+    private static final float EATING_FRAME_DELAY = 0.2f;// Затримка перед з'їданням риби
 
 
     private BitmapFont font;
