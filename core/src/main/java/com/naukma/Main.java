@@ -22,6 +22,7 @@ public class Main extends ApplicationAdapter {
         pauseMenu = new PauseMenu();
         fishes = new Array<>();
         animatedShark = new AnimatedShark();
+        bloodEffect = new BloodEffect();
 
         for (int i = 0; i < MAX_FISH; i++) {
             // Випадково обираємо тип рибки
@@ -55,14 +56,14 @@ public class Main extends ApplicationAdapter {
     private void createFish(String path, int frameCount) {
         float speed = MathUtils.random(MIN_FISH_SPEED, MAX_FISH_SPEED);
         float scale = MathUtils.random(MIN_FISH_SCALE, MAX_FISH_SCALE);
-
+        float frameDuration = MathUtils.random(0.02f, 0.05f);
         AnimatedFish fish = new AnimatedFish(
             path,
             frameCount,
             true,
             speed,
             scale,
-            0.05f
+            frameDuration
         );
         fishes.add(fish);
     }
@@ -76,6 +77,7 @@ public class Main extends ApplicationAdapter {
         if (!isPaused) {
             handleInput(Gdx.graphics.getDeltaTime());
             animatedShark.update(Gdx.graphics.getDeltaTime());
+            bloodEffect.update(Gdx.graphics.getDeltaTime());
             checkCollisions();
             // Update all fish
             for (AnimatedFish fish : fishes) {
@@ -125,10 +127,12 @@ public class Main extends ApplicationAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
+
         batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         for (AnimatedFish fish : fishes) {
             fish.render(batch);
         }
+        bloodEffect.render(batch);
         Texture currentSharkTexture = animatedShark.getCurrentTexture();
         batch.draw(currentSharkTexture,
             sharkX, sharkY,
@@ -156,7 +160,6 @@ public class Main extends ApplicationAdapter {
         for (AnimatedFish fish : fishes) {
             if (!fish.isActive()) continue;
 
-            // Get fish position and size
             float fishX = fish.getX();
             float fishY = fish.getY();
             float fishWidth = fish.getWidth();
@@ -166,16 +169,16 @@ public class Main extends ApplicationAdapter {
             float fishCenterX = fishX + fishWidth/2;
             float fishCenterY = fishY + fishHeight/2;
 
-            // Calculate distance
             float distance = (float) Math.sqrt(
                 Math.pow(sharkCenterX - fishCenterX, 2) +
                     Math.pow(sharkCenterY - fishCenterY, 2)
             );
 
-            // If fish is close enough and smaller than shark
             if (distance < EATING_DISTANCE && fishScale < SHARK_SCALE) {
                 animatedShark.startEating();
-                // Schedule fish removal
+                // Додаємо ефект крові
+                bloodEffect.spawn(fishCenterX, fishCenterY);
+
                 Timer.schedule(new Timer.Task() {
                     @Override
                     public void run() {
@@ -284,6 +287,7 @@ public class Main extends ApplicationAdapter {
         font.dispose();
         pauseMenu.dispose();
         animatedShark.dispose();
+        bloodEffect.dispose();
     }
 
     private SpriteBatch batch;
@@ -291,6 +295,7 @@ public class Main extends ApplicationAdapter {
     private Texture shark;
     private Array<AnimatedFish> fishes;
     private AnimatedShark animatedShark;
+    private BloodEffect bloodEffect;
 
 
 

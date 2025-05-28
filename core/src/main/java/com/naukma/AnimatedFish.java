@@ -31,7 +31,7 @@ public class AnimatedFish {
         this.frameDuration = frameDuration;
         this.frameCount = framesCount;
         frames = new Array<>();
-        // Завантажуємо всі кадри
+
         for (int i = 0; i < framesCount; i++) {
             frames.add(new Texture(Gdx.files.internal(framesPath +"sprite_0"+ i + ".png")));
         }
@@ -41,7 +41,7 @@ public class AnimatedFish {
     }
 
     public void respawn() {
-        movingRight = MathUtils.randomBoolean(); // true = пливе вправо
+        movingRight = MathUtils.randomBoolean();
 
         y = MathUtils.random(height, Gdx.graphics.getHeight() - height);
 
@@ -66,19 +66,16 @@ public class AnimatedFish {
         stateTime += delta;
         yChangeTimer += delta;
 
-        // Random Y movement
         if (yChangeTimer >= Y_CHANGE_INTERVAL) {
             targetY = MathUtils.random(height, Gdx.graphics.getHeight() - height);
             yChangeTimer = 0;
         }
 
-        // Smooth Y movement
         float yDiff = targetY - y;
         if (Math.abs(yDiff) > 1) {
             y += Math.signum(yDiff) * speed * 0.5f * delta;
         }
 
-        // X movement
         float dirX = movingRight ? 1 : -1;
         x += dirX * speed * delta;
 
