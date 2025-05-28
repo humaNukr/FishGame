@@ -14,14 +14,23 @@ public class Main extends ApplicationAdapter {
     public void create() {
         batch = new SpriteBatch();
         background = new Texture(Gdx.files.internal("background.jpg"));
-        fish = new Texture(Gdx.files.internal("sprite_0.png"));
+        shark = new Texture(Gdx.files.internal("sprite_0.png"));
 
-        fishWidth = fish.getWidth()*0.25f;
-        fishHeight = fish.getHeight()*0.25f;
+        sharkWidth = shark.getWidth()*0.25f;
+        sharkHeight = shark.getHeight()*0.25f;
+
+        fish1 = new AnimatedFish(
+            "first_fish/",  // шлях до кадрів в папці fish1
+            15,            // кількість кадрів
+            true,          // спрайт дивиться вліво
+            1000,           // швидкість
+            0.2f,         // масштаб
+            0.05f         // тривалість кадру
+        );
 
         // Початкова позиція по центру
-        fishX = (Gdx.graphics.getWidth() - fishWidth) / 2f;
-        fishY = (Gdx.graphics.getHeight() - fishHeight) / 2f;
+        sharkX = (Gdx.graphics.getWidth() - sharkWidth) / 2f;
+        sharkY = (Gdx.graphics.getHeight() - sharkHeight) / 2f;
 
         font = new BitmapFont();
         font.getData().setScale(2);
@@ -32,17 +41,22 @@ public class Main extends ApplicationAdapter {
     public void render() {
         handleInput(Gdx.graphics.getDeltaTime());
 
+        fish1.update(Gdx.graphics.getDeltaTime());
+        if (!fish1.isActive()) {
+            fish1.respawn();
+        }
+
         Gdx.gl.glClearColor(0, 0, 0.2f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
         batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        batch.draw(fish, fishX, fishY, fishWidth/2, fishHeight/2,
-            fishWidth, fishHeight, 1, 1, rotation,
-            0, 0, fish.getWidth(), fish.getHeight(),
-            true,  rotation > 90 && rotation < 270);
+        fish1.render(batch);
+        batch.draw(shark, sharkX, sharkY, sharkWidth/2, sharkHeight/2,
+            sharkWidth, sharkHeight, 1, 1, rotation,
+            0, 0, shark.getWidth(), shark.getHeight(),
+            true, rotation > 90 && rotation < 270);
         drawHUD();
-
         batch.end();
     }
 
@@ -50,8 +64,8 @@ public class Main extends ApplicationAdapter {
         float mouseX = Gdx.input.getX();
         float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
 
-        float dirX = mouseX - (fishX + fishWidth/2);
-        float dirY = mouseY - (fishY + fishHeight/2);
+        float dirX = mouseX - (sharkX + sharkWidth /2);
+        float dirY = mouseY - (sharkY + sharkHeight /2);
 
         // Розраховуємо кут в градусах (-180 до 180)
         float newRotation = (float)Math.atan2(dirY, dirX) * 180f / (float)Math.PI;
@@ -69,15 +83,15 @@ public class Main extends ApplicationAdapter {
             float moveX = dirX / distance * speed * delta;
             float moveY = dirY / distance * speed * delta;
 
-            fishX += moveX;
-            fishY += moveY;
+            sharkX += moveX;
+            sharkY += moveY;
         }
 
         // Обмеження межами екрану
-        if (fishX < 0) fishX = 0;
-        if (fishY < 0) fishY = 0;
-        if (fishX > Gdx.graphics.getWidth() - fishWidth) fishX = Gdx.graphics.getWidth() - fishWidth;
-        if (fishY > Gdx.graphics.getHeight() - fishHeight) fishY = Gdx.graphics.getHeight() - fishHeight;
+        if (sharkX < 0) sharkX = 0;
+        if (sharkY < 0) sharkY = 0;
+        if (sharkX > Gdx.graphics.getWidth() - sharkWidth) sharkX = Gdx.graphics.getWidth() - sharkWidth;
+        if (sharkY > Gdx.graphics.getHeight() - sharkHeight) sharkY = Gdx.graphics.getHeight() - sharkHeight;
     }
 
     private void drawHUD() {
@@ -93,16 +107,18 @@ public class Main extends ApplicationAdapter {
     public void dispose() {
         batch.dispose();
         background.dispose();
-        fish.dispose();
+        shark.dispose();
+        fish1.dispose();
         font.dispose();
     }
 
     private SpriteBatch batch;
     private Texture background;
-    private Texture fish;
+    private Texture shark;
+    private AnimatedFish fish1;
 
-    private float fishX, fishY;
-    private float fishWidth, fishHeight;
+    private float sharkX, sharkY;
+    private float sharkWidth, sharkHeight;
     private float speed = 200;
     private float rotation = 0f;
 
