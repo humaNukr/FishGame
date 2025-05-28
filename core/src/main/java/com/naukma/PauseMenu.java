@@ -18,7 +18,7 @@ public class PauseMenu {
     private final GlyphLayout layout;
 
     public PauseMenu() {
-        menuBackground = new Texture(Gdx.files.internal("menu-bg.jfif")); // піратський свиток
+        menuBackground = new Texture(Gdx.files.internal("menu-bg.jfif"));
         titleFont = new BitmapFont();
         menuFont = new BitmapFont();
 

@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Timer;
 
 public class Main extends ApplicationAdapter {
 
@@ -20,6 +21,7 @@ public class Main extends ApplicationAdapter {
         shark = new Texture(Gdx.files.internal("sprite_0.png"));
         pauseMenu = new PauseMenu();
         fishes = new Array<>();
+        animatedShark = new AnimatedShark();
 
         for (int i = 0; i < MAX_FISH; i++) {
             // Випадково обираємо тип рибки
@@ -37,8 +39,8 @@ public class Main extends ApplicationAdapter {
             }
         }
 
-        sharkWidth = shark.getWidth()*0.25f;
-        sharkHeight = shark.getHeight()*0.25f;
+        sharkWidth = shark.getWidth()*SHARK_SCALE;
+        sharkHeight = shark.getHeight()*SHARK_SCALE;
 
 
         // Початкова позиція по центру
@@ -73,11 +75,13 @@ public class Main extends ApplicationAdapter {
 
         if (!isPaused) {
             handleInput(Gdx.graphics.getDeltaTime());
+            animatedShark.update(Gdx.graphics.getDeltaTime());
+            checkCollisions();
             // Update all fish
             for (AnimatedFish fish : fishes) {
                 fish.update(Gdx.graphics.getDeltaTime());
                 if (!fish.isActive() && fishes.size < MAX_FISH) {
-                    // Choose random fish type and corresponding frame count
+
                     String randomPath;
                     int frameCount;
                     int fishType = MathUtils.random(2);
@@ -125,17 +129,62 @@ public class Main extends ApplicationAdapter {
         for (AnimatedFish fish : fishes) {
             fish.render(batch);
         }
-        batch.draw(shark, sharkX, sharkY, sharkWidth/2, sharkHeight/2,
-            sharkWidth, sharkHeight, 1, 1, rotation,
-            0, 0, shark.getWidth(), shark.getHeight(),
+        Texture currentSharkTexture = animatedShark.getCurrentTexture();
+        batch.draw(currentSharkTexture,
+            sharkX, sharkY,
+            sharkWidth/2, sharkHeight/2,
+            sharkWidth, sharkHeight,
+            1, 1,
+            rotation,
+            0, 0,
+            currentSharkTexture.getWidth(), currentSharkTexture.getHeight(),
             true, rotation > 90 && rotation < 270);
-        drawHUD();
 
+        drawHUD();
         if (isPaused) {
             pauseMenu.render(batch);
         }
-
         batch.end();
+    }
+
+    private void checkCollisions() {
+        if (animatedShark.isEating()) return;
+
+        float sharkCenterX = sharkX + sharkWidth/2;
+        float sharkCenterY = sharkY + sharkHeight/2;
+
+        for (AnimatedFish fish : fishes) {
+            if (!fish.isActive()) continue;
+
+            // Get fish position and size
+            float fishX = fish.getX();
+            float fishY = fish.getY();
+            float fishWidth = fish.getWidth();
+            float fishHeight = fish.getHeight();
+            float fishScale = fish.getScale();
+
+            float fishCenterX = fishX + fishWidth/2;
+            float fishCenterY = fishY + fishHeight/2;
+
+            // Calculate distance
+            float distance = (float) Math.sqrt(
+                Math.pow(sharkCenterX - fishCenterX, 2) +
+                    Math.pow(sharkCenterY - fishCenterY, 2)
+            );
+
+            // If fish is close enough and smaller than shark
+            if (distance < EATING_DISTANCE && fishScale < SHARK_SCALE) {
+                animatedShark.startEating();
+                // Schedule fish removal
+                Timer.schedule(new Timer.Task() {
+                    @Override
+                    public void run() {
+                        fish.setActive(false);
+                        score += 10;
+                    }
+                }, EATING_FRAME_DELAY);
+            }
+        }
     }
 
     private void handleInput(float delta) {
@@ -234,12 +283,14 @@ public class Main extends ApplicationAdapter {
         }
         font.dispose();
         pauseMenu.dispose();
+        animatedShark.dispose();
     }
 
     private SpriteBatch batch;
     private Texture background;
     private Texture shark;
     private Array<AnimatedFish> fishes;
+    private AnimatedShark animatedShark;
 
 
 
@@ -252,6 +303,10 @@ public class Main extends ApplicationAdapter {
     private static final float MIN_FISH_SPEED = 50;
     private static final float MIN_FISH_SCALE = 0.1f;
     private static final float MAX_FISH_SCALE = 1f;
+    private static final float SHARK_SCALE = 0.5f;
+    private static final float EATING_DISTANCE = 50f; // Відстань на якій акула почне їсти
+    private static final float EATING_FRAME_DELAY = 0.2f; // Затримка перед з'їданням риби
+
 
     private BitmapFont font;
     private int score = 0;

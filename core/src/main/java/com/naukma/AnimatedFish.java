@@ -123,7 +123,12 @@ public class AnimatedFish {
         return isActive;
     }
 
-    public int getFrameCount() {
-        return frameCount;
-    }
+
+    public float getX() { return x; }
+    public float getY() { return y; }
+    public float getWidth() { return width; }
+    public float getHeight() { return height; }
+    public float getScale() { return width / frames.get(0).getWidth(); }
+    public void setActive(boolean active) { this.isActive = active; }
+
 }
