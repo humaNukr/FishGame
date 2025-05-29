@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Timer;
 
@@ -17,15 +18,15 @@ public class Main extends ApplicationAdapter {
     @Override
     public void create() {
         batch = new SpriteBatch();
-        background = new Texture(Gdx.files.internal("background.jpg"));
+        scrollingBackground = new ScrollingBackground("background.jpg");
         shark = new Texture(Gdx.files.internal("sprite_0.png"));
         pauseMenu = new PauseMenu();
         fishes = new Array<>();
         animatedShark = new AnimatedShark();
         bloodEffect = new BloodEffect();
 
+        // Створюємо рибок у світових координатах
         for (int i = 0; i < MAX_FISH; i++) {
-            // Випадково обираємо тип рибки
             int fishType = MathUtils.random(2);
             switch(fishType) {
                 case 0:
@@ -40,23 +41,26 @@ public class Main extends ApplicationAdapter {
             }
         }
 
-        sharkWidth = shark.getWidth()*SHARK_SCALE;
-        sharkHeight = shark.getHeight()*SHARK_SCALE;
+        sharkWidth = shark.getWidth() * SHARK_SCALE;
+        sharkHeight = shark.getHeight() * SHARK_SCALE;
 
-
-        // Початкова позиція по центру
-        sharkX = (Gdx.graphics.getWidth() - sharkWidth) / 2f;
-        sharkY = (Gdx.graphics.getHeight() - sharkHeight) / 2f;
+        // Початкова позиція акули в світових координатах (центр світу)
+        sharkX = (scrollingBackground.getWorldWidth() - sharkWidth) / 2f;
+        sharkY = (scrollingBackground.getWorldHeight() - sharkHeight) / 2f;
 
         font = new BitmapFont();
         font.getData().setScale(2);
         font.setColor(Color.WHITE);
+
+        // Вектор для перетворення координат
+        tempVector = new Vector3();
     }
 
     private void createFish(String path, int frameCount) {
         float speed = MathUtils.random(MIN_FISH_SPEED, MAX_FISH_SPEED);
         float scale = MathUtils.random(MIN_FISH_SCALE, MAX_FISH_SCALE);
         float frameDuration = MathUtils.random(0.02f, 0.05f);
+
         AnimatedFish fish = new AnimatedFish(
             path,
             frameCount,
@@ -65,6 +69,10 @@ public class Main extends ApplicationAdapter {
             scale,
             frameDuration
         );
+
+        // ВАЖЛИВО: встановлюємо розміри світу для риби
+        fish.setWorldBounds(scrollingBackground.getWorldWidth(), scrollingBackground.getWorldHeight());
+
         fishes.add(fish);
     }
 
@@ -78,12 +86,17 @@ public class Main extends ApplicationAdapter {
             handleInput(Gdx.graphics.getDeltaTime());
             animatedShark.update(Gdx.graphics.getDeltaTime());
             bloodEffect.update(Gdx.graphics.getDeltaTime());
+
+            // Оновлюємо камеру відносно позиції акули
+            scrollingBackground.updateCamera(sharkX, sharkY, sharkWidth, sharkHeight);
+
             checkCollisions();
-            // Update all fish
+
+            // Оновлюємо всіх рибок
             for (AnimatedFish fish : fishes) {
                 fish.update(Gdx.graphics.getDeltaTime());
-                if (!fish.isActive() && fishes.size < MAX_FISH) {
 
+                if (!fish.isActive() && fishes.size < MAX_FISH) {
                     String randomPath;
                     int frameCount;
                     int fishType = MathUtils.random(2);
@@ -105,6 +118,7 @@ public class Main extends ApplicationAdapter {
                 }
             }
 
+            // Видаляємо неактивних рибок
             for (int i = fishes.size - 1; i >= 0; i--) {
                 if (!fishes.get(i).isActive()) {
                     fishes.removeIndex(i);
@@ -122,17 +136,23 @@ public class Main extends ApplicationAdapter {
             }
         }
 
-        // Rendering
+        // Рендеринг
         Gdx.gl.glClearColor(0, 0, 0.2f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
 
-        batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        // Малюємо скролінговий фон (він встановлює свою проекційну матрицю)
+        scrollingBackground.render(batch);
+
+        // Малюємо рибок у світових координатах
         for (AnimatedFish fish : fishes) {
-            fish.render(batch);
+            if (scrollingBackground.isInView(fish.getX(), fish.getY(), fish.getWidth(), fish.getHeight())) {
+                fish.renderAt(batch, fish.getX(), fish.getY());
+            }
         }
-        bloodEffect.render(batch);
+
+        // Малюємо акулу в світових координатах
         Texture currentSharkTexture = animatedShark.getCurrentTexture();
         batch.draw(currentSharkTexture,
             sharkX, sharkY,
@@ -144,10 +164,17 @@ public class Main extends ApplicationAdapter {
             currentSharkTexture.getWidth(), currentSharkTexture.getHeight(),
             true, rotation > 90 && rotation < 270);
 
+        // Ефект крові у світових координатах
+        bloodEffect.render(batch);
+
+        // Перемикаємося на стандартну проекцію для HUD та меню
+        batch.setProjectionMatrix(batch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+
         drawHUD();
         if (isPaused) {
             pauseMenu.render(batch);
         }
+
         batch.end();
     }
 
@@ -176,11 +203,15 @@ public class Main extends ApplicationAdapter {
 
             if (distance < EATING_DISTANCE && fishScale < SHARK_SCALE) {
                 animatedShark.startEating();
-                // Додаємо ефект крові
+
+                // Використовуємо світові координати для ефекту крові
+                final float bloodX = fishCenterX;
+                final float bloodY = fishCenterY;
+
                 Timer.schedule(new Timer.Task() {
                     @Override
                     public void run() {
-                        bloodEffect.spawn(fishCenterX, fishCenterY);
+                        bloodEffect.spawn(bloodX, bloodY);
                     }
                 }, BLOOD_EFFECT_DELAY);
 
@@ -195,16 +226,20 @@ public class Main extends ApplicationAdapter {
         }
     }
 
+
     private void handleInput(float delta) {
-        float mouseX = Gdx.input.getX();
-        float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
+        // Конвертуємо координати миші в світові координати через камеру
+        tempVector.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+        scrollingBackground.getCamera().unproject(tempVector);
+
+        float mouseX = tempVector.x;
+        float mouseY = tempVector.y;
 
         float dirX = mouseX - (sharkX + sharkWidth /2);
         float dirY = mouseY - (sharkY + sharkHeight /2);
 
-        // Розраховуємо кут в градусах (-180 до 180)
+        // Розраховуємо кут
         float newRotation = (float)Math.atan2(dirY, dirX) * 180f / (float)Math.PI;
-
 
         if (newRotation < 0) {
             newRotation += 360;
@@ -222,11 +257,16 @@ public class Main extends ApplicationAdapter {
             sharkY += moveY;
         }
 
-        // Обмеження межами екрану
+        // Обмеження межами світу
+        // Горизонтальні межі - не можна виїжджати за межі екрану
         if (sharkX < 0) sharkX = 0;
+        if (sharkX > scrollingBackground.getWorldWidth() - sharkWidth)
+            sharkX = scrollingBackground.getWorldWidth() - sharkWidth;
+
+        // Вертикальні межі - можна рухатися по всьому світу
         if (sharkY < 0) sharkY = 0;
-        if (sharkX > Gdx.graphics.getWidth() - sharkWidth) sharkX = Gdx.graphics.getWidth() - sharkWidth;
-        if (sharkY > Gdx.graphics.getHeight() - sharkHeight) sharkY = Gdx.graphics.getHeight() - sharkHeight;
+        if (sharkY > scrollingBackground.getWorldHeight() - sharkHeight)
+            sharkY = scrollingBackground.getWorldHeight() - sharkHeight;
     }
 
     private void handleMenuSelection() {
@@ -243,7 +283,6 @@ public class Main extends ApplicationAdapter {
                 break;
         }
     }
-
 
     private void drawHUD() {
         String scoreText = "Score: " + score;
@@ -276,15 +315,15 @@ public class Main extends ApplicationAdapter {
 
         score = 0;
         lives = 3;
-        sharkX = (Gdx.graphics.getWidth() - sharkWidth) / 2f;
-        sharkY = (Gdx.graphics.getHeight() - sharkHeight) / 2f;
+        sharkX = (scrollingBackground.getWorldWidth() - sharkWidth) / 2f;
+        sharkY = (scrollingBackground.getWorldHeight() - sharkHeight) / 2f;
         rotation = 0f;
     }
 
     @Override
     public void dispose() {
         batch.dispose();
-        background.dispose();
+        scrollingBackground.dispose();
         shark.dispose();
         for (AnimatedFish fish : fishes) {
             fish.dispose();
@@ -295,30 +334,28 @@ public class Main extends ApplicationAdapter {
         bloodEffect.dispose();
     }
 
+
     private SpriteBatch batch;
-    private Texture background;
+    private ScrollingBackground scrollingBackground;
     private Texture shark;
     private Array<AnimatedFish> fishes;
     private AnimatedShark animatedShark;
     private BloodEffect bloodEffect;
-
-
 
     private float sharkX, sharkY;
     private float sharkWidth, sharkHeight;
     private float sharkSpeed = 200;
     private float rotation = 0f;
 
-    private static final float BLOOD_EFFECT_DELAY = 0.55f; // Тривалість ефекту крові
-    private static final int MAX_FISH = 10;
+    private static final float BLOOD_EFFECT_DELAY = 0.55f;
+    private static final int MAX_FISH = 15;
     private static final float MAX_FISH_SPEED = 250;
     private static final float MIN_FISH_SPEED = 50;
     private static final float MIN_FISH_SCALE = 0.1f;
     private static final float MAX_FISH_SCALE = 1f;
     private static final float SHARK_SCALE = 0.5f;
-    private static final float EATING_DISTANCE = 50f; // Відстань на якій акула почне їсти
-    private static final float EATING_FRAME_DELAY = 0.2f;// Затримка перед з'їданням риби
-
+    private static final float EATING_DISTANCE = 50f;
+    private static final float EATING_FRAME_DELAY = 0.2f;
 
     private BitmapFont font;
     private int score = 0;
@@ -326,4 +363,7 @@ public class Main extends ApplicationAdapter {
 
     private PauseMenu pauseMenu;
     private boolean isPaused = false;
+
+    // Додаткові змінні для роботи з камерою
+    private Vector3 tempVector;
 }

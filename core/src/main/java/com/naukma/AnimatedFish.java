@@ -20,9 +20,10 @@ public class AnimatedFish {
     private boolean movingRight;
     private float targetY;
     private float yChangeTimer;
-    private static final float Y_CHANGE_INTERVAL = 3f; // секунди між змінами Y координати
+    private static final float Y_CHANGE_INTERVAL = 3f;
 
-
+    // Додаємо посилання на світ для правильних координат
+    private float worldWidth, worldHeight;
 
     public AnimatedFish(String framesPath, int framesCount, boolean isLookingLeft,
                         float speed, float scale, float frameDuration) {
@@ -37,28 +38,39 @@ public class AnimatedFish {
         }
         width = frames.get(0).getWidth() * scale;
         height = frames.get(0).getHeight() * scale;
+
+        // Отримуємо розміри світу
+        worldWidth = Gdx.graphics.getWidth();
+        worldHeight = Gdx.graphics.getHeight() * 3.0f;
+
+        isActive = true;
+    }
+
+    // Метод для встановлення розмірів світу
+    public void setWorldBounds(float worldWidth, float worldHeight) {
+        this.worldWidth = worldWidth;
+        this.worldHeight = worldHeight;
+
         respawn();
     }
 
     public void respawn() {
         movingRight = MathUtils.randomBoolean();
 
-        y = MathUtils.random(height, Gdx.graphics.getHeight() - height);
+        // Випадковий Y по всій висоті світу
+        y = MathUtils.random(height, worldHeight - height);
 
         if (movingRight) {
-            x = -width;
+            x = -width * 2;
         } else {
-            x = Gdx.graphics.getWidth() + width;
+            x = worldWidth + width * 2;
         }
 
         rotation = 0;
         isActive = true;
         targetY = y;
-        yChangeTimer = 0;
+        yChangeTimer = MathUtils.random(0, Y_CHANGE_INTERVAL);
     }
-
-
-
 
     public void update(float delta) {
         if (!isActive) return;
@@ -67,35 +79,44 @@ public class AnimatedFish {
         yChangeTimer += delta;
 
         if (yChangeTimer >= Y_CHANGE_INTERVAL) {
-            targetY = MathUtils.random(height, Gdx.graphics.getHeight() - height);
+            targetY = MathUtils.random(height, worldHeight - height);
             yChangeTimer = 0;
         }
 
         float yDiff = targetY - y;
         if (Math.abs(yDiff) > 1) {
-            y += Math.signum(yDiff) * speed * 0.5f * delta;
+            y += Math.signum(yDiff) * speed * 0.3f * delta;
         }
 
-        float dirX = movingRight ? 1 : -1;
-        x += dirX * speed * delta;
+        if (movingRight) {
+            x += speed * delta;
+        } else {
+            x -= speed * delta;
+        }
 
-        if (x < -width * 2 || x > Gdx.graphics.getWidth() + width * 2) {
+        if ((movingRight && x > worldWidth + width * 2) ||
+            (!movingRight && x < -width * 2)) {
             isActive = false;
         }
     }
 
-
-    public void render(SpriteBatch batch) {
+    public void renderAt(SpriteBatch batch, float worldX, float worldY) {
         if (!isActive) return;
 
         int frameIndex = (int)(stateTime / frameDuration) % frames.size;
         Texture currentFrame = frames.get(frameIndex);
 
-        boolean flipX = movingRight; // дзеркалимо по X, якщо пливе вправо
+
+        boolean flipX;
+        if (isLookingLeft) {
+            flipX = movingRight;
+        } else {
+            flipX = !movingRight;
+        }
         boolean flipY = false;
 
         batch.draw(currentFrame,
-            x, y,
+            worldX, worldY,
             width / 2, height / 2,
             width, height,
             1, 1,
@@ -104,11 +125,6 @@ public class AnimatedFish {
             currentFrame.getWidth(), currentFrame.getHeight(),
             flipX, flipY);
     }
-
-
-
-
-
 
     public void dispose() {
         for (Texture frame : frames) {
@@ -120,6 +136,10 @@ public class AnimatedFish {
         return isActive;
     }
 
+    public void setPosition(float x, float y) {
+        this.x = x;
+        this.y = y;
+    }
 
     public float getX() { return x; }
     public float getY() { return y; }
@@ -127,5 +147,4 @@ public class AnimatedFish {
     public float getHeight() { return height; }
     public float getScale() { return width / frames.get(0).getWidth(); }
     public void setActive(boolean active) { this.isActive = active; }
-
 }
