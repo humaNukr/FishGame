@@ -6,26 +6,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 
-public class AnimatedFish {
-    private final Array<Texture> frames;
-    private float stateTime;
-    private float frameDuration = 0.05f;
-    private float x, y;
-    private float width, height;
-    private float rotation;
-    private float speed;
-    private int frameCount;
-    private boolean isActive;
-    private final boolean isLookingLeft;
-    private boolean movingRight;
-    private float targetY;
-    private float yChangeTimer;
-    private static final float Y_CHANGE_INTERVAL = 3f;
+public class SwimmingFish {
 
-    // Додаємо посилання на світ для правильних координат
-    private float worldWidth, worldHeight;
-
-    public AnimatedFish(String framesPath, int framesCount, boolean isLookingLeft,
+    public SwimmingFish(String framesPath, int framesCount, boolean isLookingLeft,
                         float speed, float scale, float frameDuration) {
         this.isLookingLeft = isLookingLeft;
         this.speed = speed;
@@ -141,10 +124,31 @@ public class AnimatedFish {
         this.y = y;
     }
 
+    public Texture getFrame(int index) {
+        return frames.get(index);
+    }
+
     public float getX() { return x; }
     public float getY() { return y; }
     public float getWidth() { return width; }
     public float getHeight() { return height; }
     public float getScale() { return width / frames.get(0).getWidth(); }
     public void setActive(boolean active) { this.isActive = active; }
+
+    private final Array<Texture> frames;
+    private float stateTime;
+    private float frameDuration = 0.05f;
+    private float x, y;
+    private float width, height;
+    private float rotation;
+    private float speed;
+    private int frameCount;
+    private boolean isActive;
+    private final boolean isLookingLeft;
+    private boolean movingRight;
+    private float targetY;
+    private float yChangeTimer;
+    private static final float Y_CHANGE_INTERVAL = 3f;
+
+    private float worldWidth, worldHeight;
 }

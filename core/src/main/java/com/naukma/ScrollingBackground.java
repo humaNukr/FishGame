@@ -7,12 +7,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 
 public class ScrollingBackground {
-    private Texture backgroundTexture;
-    private OrthographicCamera camera;
-    private float worldWidth, worldHeight;
-
-
-    private static final float WORLD_SCALE = 1.5f;
 
     public ScrollingBackground(String texturePath) {
         backgroundTexture = new Texture(Gdx.files.internal(texturePath));
@@ -97,4 +91,11 @@ public class ScrollingBackground {
     public void dispose() {
         backgroundTexture.dispose();
     }
+
+    private Texture backgroundTexture;
+    private OrthographicCamera camera;
+    private float worldWidth, worldHeight;
+
+
+    private static final float WORLD_SCALE = 1.5f;
 }

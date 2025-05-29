@@ -8,14 +8,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 
 public class PauseMenu {
-    private Texture menuBackground;
-    private BitmapFont titleFont;
-    private BitmapFont menuFont;
-    private final String[] menuItems = {"Resume", "Restart", "Exit"};
-    private int selectedItem = 0;
-    private float menuX, menuY;
-    private float menuWidth, menuHeight;
-    private final GlyphLayout layout;
 
     public PauseMenu() {
         menuBackground = new Texture(Gdx.files.internal("menu-bg.jfif"));
@@ -79,4 +71,13 @@ public class PauseMenu {
     public int getSelectedItem() {
         return selectedItem;
     }
+
+    private Texture menuBackground;
+    private BitmapFont titleFont;
+    private BitmapFont menuFont;
+    private final String[] menuItems = {"Resume", "Restart", "Exit"};
+    private int selectedItem = 0;
+    private float menuX, menuY;
+    private float menuWidth, menuHeight;
+    private final GlyphLayout layout;
 }

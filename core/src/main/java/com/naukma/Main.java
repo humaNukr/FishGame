@@ -19,15 +19,16 @@ public class Main extends ApplicationAdapter {
     public void create() {
         batch = new SpriteBatch();
         scrollingBackground = new ScrollingBackground("background.jpg");
-        shark = new Texture(Gdx.files.internal("sprite_0.png"));
+        shark = new Texture(Gdx.files.internal("shark/sprite_0.png"));
         pauseMenu = new PauseMenu();
         fishes = new Array<>();
-        animatedShark = new AnimatedShark();
+        eatingShark = new EatingShark();
+        swimmingShark = new SwimmingShark();
         bloodEffect = new BloodEffect();
 
         // Створюємо рибок у світових координатах
         for (int i = 0; i < MAX_FISH; i++) {
-            int fishType = MathUtils.random(2);
+            int fishType = MathUtils.random(3);
             switch(fishType) {
                 case 0:
                     createFish("first_fish/", 15);
@@ -37,6 +38,9 @@ public class Main extends ApplicationAdapter {
                     break;
                 case 2:
                     createFish("third_fish/", 7);
+                    break;
+                case 3:
+                    createFish("fourth_fish/", 15);
                     break;
             }
         }
@@ -61,7 +65,7 @@ public class Main extends ApplicationAdapter {
         float scale = MathUtils.random(MIN_FISH_SCALE, MAX_FISH_SCALE);
         float frameDuration = MathUtils.random(0.02f, 0.05f);
 
-        AnimatedFish fish = new AnimatedFish(
+        SwimmingFish fish = new SwimmingFish(
             path,
             frameCount,
             true,
@@ -84,7 +88,7 @@ public class Main extends ApplicationAdapter {
 
         if (!isPaused) {
             handleInput(Gdx.graphics.getDeltaTime());
-            animatedShark.update(Gdx.graphics.getDeltaTime());
+            eatingShark.update(Gdx.graphics.getDeltaTime());
             bloodEffect.update(Gdx.graphics.getDeltaTime());
 
             // Оновлюємо камеру відносно позиції акули
@@ -93,13 +97,13 @@ public class Main extends ApplicationAdapter {
             checkCollisions();
 
             // Оновлюємо всіх рибок
-            for (AnimatedFish fish : fishes) {
+            for (SwimmingFish fish : fishes) {
                 fish.update(Gdx.graphics.getDeltaTime());
 
                 if (!fish.isActive() && fishes.size < MAX_FISH) {
                     String randomPath;
                     int frameCount;
-                    int fishType = MathUtils.random(2);
+                    int fishType = MathUtils.random(3);
                     switch(fishType) {
                         case 0:
                             randomPath = "first_fish/";
@@ -109,9 +113,13 @@ public class Main extends ApplicationAdapter {
                             randomPath = "second_fish/";
                             frameCount = 8;
                             break;
-                        default:
+                        case 2:
                             randomPath = "third_fish/";
                             frameCount = 7;
+                            break;
+                        default:
+                            randomPath = "fourth_fish/";
+                            frameCount = 15;
                             break;
                     }
                     createFish(randomPath, frameCount);
@@ -146,23 +154,27 @@ public class Main extends ApplicationAdapter {
         scrollingBackground.render(batch);
 
         // Малюємо рибок у світових координатах
-        for (AnimatedFish fish : fishes) {
+        for (SwimmingFish fish : fishes) {
             if (scrollingBackground.isInView(fish.getX(), fish.getY(), fish.getWidth(), fish.getHeight())) {
                 fish.renderAt(batch, fish.getX(), fish.getY());
             }
         }
 
         // Малюємо акулу в світових координатах
-        Texture currentSharkTexture = animatedShark.getCurrentTexture();
-        batch.draw(currentSharkTexture,
-            sharkX, sharkY,
-            sharkWidth/2, sharkHeight/2,
-            sharkWidth, sharkHeight,
-            1, 1,
-            rotation,
-            0, 0,
-            currentSharkTexture.getWidth(), currentSharkTexture.getHeight(),
-            true, rotation > 90 && rotation < 270);
+        if (eatingShark.isEating()) {
+            Texture currentSharkTexture = eatingShark.getCurrentTexture();
+            batch.draw(currentSharkTexture,
+                sharkX, sharkY,
+                sharkWidth/2, sharkHeight/2,
+                sharkWidth, sharkHeight,
+                1, 1,
+                rotation,
+                0, 0,
+                currentSharkTexture.getWidth(), currentSharkTexture.getHeight(),
+                true, rotation > 90 && rotation < 270);
+        } else {
+            swimmingShark.renderAt(batch, sharkX, sharkY, rotation);
+        }
 
         // Ефект крові у світових координатах
         bloodEffect.render(batch);
@@ -179,12 +191,12 @@ public class Main extends ApplicationAdapter {
     }
 
     private void checkCollisions() {
-        if (animatedShark.isEating()) return;
+        if (eatingShark.isEating()) return;
 
         float sharkCenterX = sharkX + sharkWidth/2;
         float sharkCenterY = sharkY + sharkHeight/2;
 
-        for (AnimatedFish fish : fishes) {
+        for (SwimmingFish fish : fishes) {
             if (!fish.isActive()) continue;
 
             float fishX = fish.getX();
@@ -202,7 +214,7 @@ public class Main extends ApplicationAdapter {
             );
 
             if (distance < EATING_DISTANCE && fishScale < SHARK_SCALE) {
-                animatedShark.startEating();
+                eatingShark.startEating();
 
                 // Використовуємо світові координати для ефекту крові
                 final float bloodX = fishCenterX;
@@ -293,13 +305,13 @@ public class Main extends ApplicationAdapter {
     }
 
     private void resetGame() {
-        for (AnimatedFish fish : fishes) {
+        for (SwimmingFish fish : fishes) {
             fish.dispose();
         }
         fishes.clear();
 
         for (int i = 0; i < MAX_FISH; i++) {
-            int fishType = MathUtils.random(2);
+            int fishType = MathUtils.random(3);
             switch(fishType) {
                 case 0:
                     createFish("first_fish/", 15);
@@ -309,6 +321,9 @@ public class Main extends ApplicationAdapter {
                     break;
                 case 2:
                     createFish("third_fish/", 7);
+                    break;
+                case 3:
+                    createFish("fourth_fish/", 15);
                     break;
             }
         }
@@ -325,12 +340,12 @@ public class Main extends ApplicationAdapter {
         batch.dispose();
         scrollingBackground.dispose();
         shark.dispose();
-        for (AnimatedFish fish : fishes) {
+        for (SwimmingFish fish : fishes) {
             fish.dispose();
         }
         font.dispose();
         pauseMenu.dispose();
-        animatedShark.dispose();
+        eatingShark.dispose();
         bloodEffect.dispose();
     }
 
@@ -338,8 +353,9 @@ public class Main extends ApplicationAdapter {
     private SpriteBatch batch;
     private ScrollingBackground scrollingBackground;
     private Texture shark;
-    private Array<AnimatedFish> fishes;
-    private AnimatedShark animatedShark;
+    private Array<SwimmingFish> fishes;
+    private EatingShark eatingShark;
+    private SwimmingShark swimmingShark;
     private BloodEffect bloodEffect;
 
     private float sharkX, sharkY;

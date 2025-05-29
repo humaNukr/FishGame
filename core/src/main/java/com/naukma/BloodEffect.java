@@ -6,13 +6,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class BloodEffect {
-    private Texture bloodTexture;
-    private float x, y;
-    private float alpha;
-    private boolean isActive;
-    private float scale;
-    private static final float FADE_SPEED = 2f;
-    private Color color;
 
     public BloodEffect() {
         bloodTexture = new Texture(Gdx.files.internal("blood.png"));
@@ -57,4 +50,12 @@ public class BloodEffect {
     public void dispose() {
         bloodTexture.dispose();
     }
+
+    private Texture bloodTexture;
+    private float x, y;
+    private float alpha;
+    private boolean isActive;
+    private float scale;
+    private static final float FADE_SPEED = 2f;
+    private Color color;
 }
