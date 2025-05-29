@@ -6,17 +6,17 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 public class SwimmingShark extends SwimmingFish {
     public SwimmingShark() {
         super(
-            "shark_moving/",  // шлях до папки з кадрами
-            11,               // кількість кадрів
-            false,          // не дивиться вліво
-            200f,          // швидкість
-            SHARK_SCALE,    // масштаб
-            0.1f           // тривалість кадру
+            "shark_moving/",
+            11,
+            false,
+            200f,
+            SHARK_SCALE,
+            0.1f
         );
     }
 
     public void renderAt(SpriteBatch batch, float x, float y, float rotation) {
-        Texture currentTexture = getFrameTexture(); // використовуємо getFrameTexture замість getCurrentTexture
+        Texture currentTexture = getFrameTexture();
         float width = currentTexture.getWidth() * getScale();
         float height = currentTexture.getHeight() * getScale();
 
@@ -35,7 +35,7 @@ public class SwimmingShark extends SwimmingFish {
     }
 
     private Texture getFrameTexture() {
-        int frameIndex = (int)(System.currentTimeMillis() / 100 % 8); // анімація з 8 кадрів
+        int frameIndex = (int)(System.currentTimeMillis() / 100 % 11);
         return super.getFrame(frameIndex);
     }
 

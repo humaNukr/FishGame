@@ -29,7 +29,7 @@ public class Main extends ApplicationAdapter {
         // Створюємо рибок у світових координатах
         for (int i = 0; i < MAX_FISH; i++) {
             int fishType = MathUtils.random(3);
-            switch(fishType) {
+            switch (fishType) {
                 case 0:
                     createFish("first_fish/", 15);
                     break;
@@ -63,7 +63,24 @@ public class Main extends ApplicationAdapter {
     private void createFish(String path, int frameCount) {
         float speed = MathUtils.random(MIN_FISH_SPEED, MAX_FISH_SPEED);
         float scale = MathUtils.random(MIN_FISH_SCALE, MAX_FISH_SCALE);
-        float frameDuration = MathUtils.random(0.02f, 0.05f);
+        float frameDuration;
+
+        switch (path) {
+            case "first_fish/":
+                frameDuration = 0.05f;
+                break;
+            case "second_fish/":
+                frameDuration = 0.13f;
+                break;
+            case "third_fish/":
+                frameDuration = 0.16f;
+                break;
+            case "fourth_fish/":
+                frameDuration = 0.05f;
+                break;
+            default:
+                frameDuration = 0.1f;
+        }
 
         SwimmingFish fish = new SwimmingFish(
             path,
@@ -74,9 +91,7 @@ public class Main extends ApplicationAdapter {
             frameDuration
         );
 
-        // ВАЖЛИВО: встановлюємо розміри світу для риби
         fish.setWorldBounds(scrollingBackground.getWorldWidth(), scrollingBackground.getWorldHeight());
-
         fishes.add(fish);
     }
 
@@ -104,7 +119,7 @@ public class Main extends ApplicationAdapter {
                     String randomPath;
                     int frameCount;
                     int fishType = MathUtils.random(3);
-                    switch(fishType) {
+                    switch (fishType) {
                         case 0:
                             randomPath = "first_fish/";
                             frameCount = 15;
@@ -165,7 +180,7 @@ public class Main extends ApplicationAdapter {
             Texture currentSharkTexture = eatingShark.getCurrentTexture();
             batch.draw(currentSharkTexture,
                 sharkX, sharkY,
-                sharkWidth/2, sharkHeight/2,
+                sharkWidth / 2, sharkHeight / 2,
                 sharkWidth, sharkHeight,
                 1, 1,
                 rotation,
@@ -193,8 +208,12 @@ public class Main extends ApplicationAdapter {
     private void checkCollisions() {
         if (eatingShark.isEating()) return;
 
-        float sharkCenterX = sharkX + sharkWidth/2;
-        float sharkCenterY = sharkY + sharkHeight/2;
+        double rotationRad = Math.toRadians(rotation);
+        float sharkCenterX = sharkX + sharkWidth / 2;
+        float sharkCenterY = sharkY + sharkHeight / 2;
+        float headDistance = sharkWidth / 2;
+        float sharkHeadX = sharkCenterX + (float) (Math.cos(rotationRad) * headDistance);
+        float sharkHeadY = sharkCenterY + (float) (Math.sin(rotationRad) * headDistance);
 
         for (SwimmingFish fish : fishes) {
             if (!fish.isActive()) continue;
@@ -203,22 +222,19 @@ public class Main extends ApplicationAdapter {
             float fishY = fish.getY();
             float fishWidth = fish.getWidth();
             float fishHeight = fish.getHeight();
-            float fishScale = fish.getScale();
+            float fishFrontX = fish.isMovingRight() ? fishX + fishWidth * 0.75f : fishX + fishWidth * 0.25f;
+            float fishFrontY = fishY + fishHeight / 2;
 
-            float fishCenterX = fishX + fishWidth/2;
-            float fishCenterY = fishY + fishHeight/2;
+            float distance = (float) Math.sqrt(Math.pow(sharkHeadX - fishFrontX, 2) + Math.pow(sharkHeadY - fishFrontY, 2));
+            float sharkSize = sharkWidth * sharkHeight;
+            float fishSize = fishWidth * fishHeight;
+            float SIZE_RATIO_THRESHOLD = 0.3f;
 
-            float distance = (float) Math.sqrt(
-                Math.pow(sharkCenterX - fishCenterX, 2) +
-                    Math.pow(sharkCenterY - fishCenterY, 2)
-            );
-
-            if (distance < EATING_DISTANCE && fishScale < SHARK_SCALE) {
+            if (distance < EATING_DISTANCE && fishSize < sharkSize * SIZE_RATIO_THRESHOLD) {
                 eatingShark.startEating();
 
-                // Використовуємо світові координати для ефекту крові
-                final float bloodX = fishCenterX;
-                final float bloodY = fishCenterY;
+                final float bloodX = fishFrontX;
+                final float bloodY = fishFrontY;
 
                 Timer.schedule(new Timer.Task() {
                     @Override
@@ -247,11 +263,11 @@ public class Main extends ApplicationAdapter {
         float mouseX = tempVector.x;
         float mouseY = tempVector.y;
 
-        float dirX = mouseX - (sharkX + sharkWidth /2);
-        float dirY = mouseY - (sharkY + sharkHeight /2);
+        float dirX = mouseX - (sharkX + sharkWidth / 2);
+        float dirY = mouseY - (sharkY + sharkHeight / 2);
 
         // Розраховуємо кут
-        float newRotation = (float)Math.atan2(dirY, dirX) * 180f / (float)Math.PI;
+        float newRotation = (float) Math.atan2(dirY, dirX) * 180f / (float) Math.PI;
 
         if (newRotation < 0) {
             newRotation += 360;
@@ -259,7 +275,7 @@ public class Main extends ApplicationAdapter {
 
         rotation = newRotation;
 
-        float distance = (float)Math.sqrt(dirX * dirX + dirY * dirY);
+        float distance = (float) Math.sqrt(dirX * dirX + dirY * dirY);
 
         if (distance > 10) {
             float moveX = dirX / distance * sharkSpeed * delta;
@@ -282,7 +298,7 @@ public class Main extends ApplicationAdapter {
     }
 
     private void handleMenuSelection() {
-        switch(pauseMenu.getSelectedItem()) {
+        switch (pauseMenu.getSelectedItem()) {
             case 0: // Resume
                 isPaused = false;
                 break;
@@ -312,7 +328,7 @@ public class Main extends ApplicationAdapter {
 
         for (int i = 0; i < MAX_FISH; i++) {
             int fishType = MathUtils.random(3);
-            switch(fishType) {
+            switch (fishType) {
                 case 0:
                     createFish("first_fish/", 15);
                     break;
@@ -364,13 +380,13 @@ public class Main extends ApplicationAdapter {
     private float rotation = 0f;
 
     private static final float BLOOD_EFFECT_DELAY = 0.55f;
-    private static final int MAX_FISH = 15;
+    private static final int MAX_FISH = 20;
     private static final float MAX_FISH_SPEED = 250;
     private static final float MIN_FISH_SPEED = 50;
     private static final float MIN_FISH_SCALE = 0.1f;
     private static final float MAX_FISH_SCALE = 1f;
     private static final float SHARK_SCALE = 0.5f;
-    private static final float EATING_DISTANCE = 50f;
+    private static final float EATING_DISTANCE = 75f;
     private static final float EATING_FRAME_DELAY = 0.2f;
 
     private BitmapFont font;

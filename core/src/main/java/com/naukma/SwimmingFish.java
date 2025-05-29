@@ -128,6 +128,10 @@ public class SwimmingFish {
         return frames.get(index);
     }
 
+    public boolean isMovingRight() {
+        return movingRight;
+    }
+
     public float getX() { return x; }
     public float getY() { return y; }
     public float getWidth() { return width; }
@@ -137,7 +141,7 @@ public class SwimmingFish {
 
     private final Array<Texture> frames;
     private float stateTime;
-    private float frameDuration = 0.05f;
+    private float frameDuration = 0.10f;
     private float x, y;
     private float width, height;
     private float rotation;
