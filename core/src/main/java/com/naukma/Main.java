@@ -18,7 +18,10 @@ public class Main extends ApplicationAdapter {
     @Override
     public void create() {
         batch = new SpriteBatch();
-        scrollingBackground = new ScrollingBackground("background.jpg");
+
+        mainMenu = new MainMenu();
+
+        scrollingBackground = new ScrollingBackground("output.jpg");
         shark = new Texture(Gdx.files.internal("shark/sprite_0.png"));
         pauseMenu = new PauseMenu();
         fishes = new Array<>();
@@ -97,9 +100,36 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void render() {
+        // Перевіряємо чи показуємо меню
+        if (showingMenu) {
+            mainMenu.handleInput();
+
+            if (!mainMenu.isActive()) {
+                showingMenu = false; // Переходимо до гри
+            }
+
+            // Рендеринг меню
+            Gdx.gl.glClearColor(0, 0, 0.2f, 1);
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+            batch.begin();
+            mainMenu.render(batch);
+            batch.end();
+
+            return; // Не виконуємо ігрову логіку
+        }
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             isPaused = !isPaused;
+            pauseMenu.setActive(true);
+            return;
         }
+
+//        if (Gdx.input.isKeyJustPressed(Input.Keys.M) && !isPaused) {
+//            showingMenu = true;
+//            mainMenu.setActive(true);
+//            return;
+//        }
 
         if (!isPaused) {
             handleInput(Gdx.graphics.getDeltaTime());
@@ -148,15 +178,16 @@ public class Main extends ApplicationAdapter {
                 }
             }
         } else {
-            if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-                pauseMenu.moveUp();
-            }
-            if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
-                pauseMenu.moveDown();
-            }
-            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-                handleMenuSelection();
-            }
+            pauseMenu.handleInput();
+//            if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+//                pauseMenu.moveUp();
+//            }
+//            if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+//                pauseMenu.moveDown();
+//            }
+//            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+//                handleMenuSelection();
+//            }
         }
 
         // Рендеринг
@@ -315,9 +346,11 @@ public class Main extends ApplicationAdapter {
     private void drawHUD() {
         String scoreText = "Score: " + score;
         String livesText = "Lives: " + lives;
+        String menuHint = "Esc - Menu";
 
         font.draw(batch, scoreText, 20, Gdx.graphics.getHeight() - 20);
         font.draw(batch, livesText, Gdx.graphics.getWidth() - 150, Gdx.graphics.getHeight() - 20);
+        font.draw(batch, menuHint, 20, Gdx.graphics.getHeight() - 60);
     }
 
     private void resetGame() {
@@ -363,6 +396,11 @@ public class Main extends ApplicationAdapter {
         pauseMenu.dispose();
         eatingShark.dispose();
         bloodEffect.dispose();
+
+        // Очищуємо головне меню
+        if (mainMenu != null) {
+            mainMenu.dispose();
+        }
     }
 
 
@@ -398,4 +436,8 @@ public class Main extends ApplicationAdapter {
 
     // Додаткові змінні для роботи з камерою
     private Vector3 tempVector;
+
+    // Змінні для головного меню
+    private MainMenu mainMenu;
+    private boolean showingMenu = true;
 }
