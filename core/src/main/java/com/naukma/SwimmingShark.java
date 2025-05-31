@@ -7,7 +7,7 @@ public class SwimmingShark extends SwimmingFish {
     public SwimmingShark() {
         super(
             "shark_moving/",
-            11,
+            SHARK_FRAMES,
             false,
             200f,
             SHARK_SCALE,
@@ -35,9 +35,10 @@ public class SwimmingShark extends SwimmingFish {
     }
 
     private Texture getFrameTexture() {
-        int frameIndex = (int)(System.currentTimeMillis() / 100 % 11);
+        int frameIndex = (int)(System.currentTimeMillis() / 100 % SHARK_FRAMES);
         return super.getFrame(frameIndex);
     }
 
+    private static final int SHARK_FRAMES = 7;
     private static final float SHARK_SCALE = 0.5f;
 }

@@ -22,7 +22,7 @@ public class Main extends ApplicationAdapter {
         mainMenu = new MainMenu();
 
         scrollingBackground = new ScrollingBackground("output.jpg");
-        shark = new Texture(Gdx.files.internal("shark/sprite_0.png"));
+        shark = new Texture(Gdx.files.internal("shark/frame_00.png"));
         pauseMenu = new PauseMenu();
         fishes = new Array<>();
         eatingShark = new EatingShark();
@@ -30,20 +30,35 @@ public class Main extends ApplicationAdapter {
         bloodEffect = new BloodEffect();
 
         // Створюємо рибок у світових координатах
-        for (int i = 0; i < MAX_FISH; i++) {
-            int fishType = MathUtils.random(3);
+        for (int i = 0; i < MAX_FISH_COUNT; i++) {
+            int fishType = MathUtils.random(TOTAL_FISH_TYPES-1);
             switch (fishType) {
                 case 0:
-                    createFish("first_fish/", 15);
+                    createFish("fish_01/", 15);
                     break;
                 case 1:
-                    createFish("second_fish/", 8);
+                    createFish("fish_02/", 15);
                     break;
                 case 2:
-                    createFish("third_fish/", 7);
+                    createFish("fish_03/", 15);
                     break;
                 case 3:
-                    createFish("fourth_fish/", 15);
+                    createFish("fish_04/", 15);
+                    break;
+                case 4:
+                    createFish("fish_05/", 15);
+                    break;
+                case 5:
+                    createFish("fish_06/", 15);
+                    break;
+                case 6:
+                    createFish("fish_07/", 15);
+                    break;
+                case 7:
+                    createFish("fish_08/", 15);
+                    break;
+                case 8:
+                    createFish("fish_09/", 15);
                     break;
             }
         }
@@ -69,20 +84,36 @@ public class Main extends ApplicationAdapter {
         float frameDuration;
 
         switch (path) {
-            case "first_fish/":
+            case "fish_01/":
                 frameDuration = 0.05f;
                 break;
-            case "second_fish/":
-                frameDuration = 0.13f;
+            case "fish_02/":
+                frameDuration = 0.05f;
                 break;
-            case "third_fish/":
+            case "fish_03/":
                 frameDuration = 0.16f;
                 break;
-            case "fourth_fish/":
+            case "fish_04/":
+                frameDuration = 0.05f;
+                break;
+            case "fish_05/":
+                frameDuration = 0.05f;
+                break;
+            case "fish_06/":
+                frameDuration = 0.05f;
+                break;
+            case "fish_07/":
+                frameDuration = 0.05f;
+                break;
+            case "fish_08/":
+                frameDuration = 0.05f;
+                break;
+            case "fish_09/":
                 frameDuration = 0.05f;
                 break;
             default:
                 frameDuration = 0.1f;
+                break;
         }
 
         SwimmingFish fish = new SwimmingFish(
@@ -139,25 +170,45 @@ public class Main extends ApplicationAdapter {
             for (SwimmingFish fish : fishes) {
                 fish.update(Gdx.graphics.getDeltaTime());
 
-                if (!fish.isActive() && fishes.size < MAX_FISH) {
+                if (!fish.isActive() && fishes.size < MAX_FISH_COUNT) {
                     String randomPath;
                     int frameCount;
-                    int fishType = MathUtils.random(3);
+                    int fishType = MathUtils.random(TOTAL_FISH_TYPES-1);
                     switch (fishType) {
                         case 0:
-                            randomPath = "first_fish/";
+                            randomPath = "fish_01/";
                             frameCount = 15;
                             break;
                         case 1:
-                            randomPath = "second_fish/";
-                            frameCount = 8;
+                            randomPath = "fish_02/";
+                            frameCount = 15;
                             break;
                         case 2:
-                            randomPath = "third_fish/";
-                            frameCount = 7;
+                            randomPath = "fish_03/";
+                            frameCount = 15;
+                            break;
+                        case 3:
+                            randomPath = "fish_04/";
+                            frameCount = 15;
+                            break;
+                        case 4:
+                            randomPath = "fish_05/";
+                            frameCount = 15;
+                            break;
+                        case 5:
+                            randomPath = "fish_06/";
+                            frameCount = 15;
+                            break;
+                        case 6:
+                            randomPath = "fish_07/";
+                            frameCount = 15;
+                            break;
+                        case 7:
+                            randomPath = "fish_08/";
+                            frameCount = 15;
                             break;
                         default:
-                            randomPath = "fourth_fish/";
+                            randomPath = "fish_09/";
                             frameCount = 15;
                             break;
                     }
@@ -364,20 +415,35 @@ public class Main extends ApplicationAdapter {
         }
         fishes.clear();
 
-        for (int i = 0; i < MAX_FISH; i++) {
-            int fishType = MathUtils.random(3);
+        for (int i = 0; i < MAX_FISH_COUNT; i++) {
+            int fishType = MathUtils.random(TOTAL_FISH_TYPES-1);
             switch (fishType) {
                 case 0:
-                    createFish("first_fish/", 15);
+                    createFish("fish_01/", 15);
                     break;
                 case 1:
-                    createFish("second_fish/", 8);
+                    createFish("fish_02/", 15);
                     break;
                 case 2:
-                    createFish("third_fish/", 7);
+                    createFish("fish_03/", 15);
                     break;
                 case 3:
-                    createFish("fourth_fish/", 15);
+                    createFish("fish_04/", 15);
+                    break;
+                case 4:
+                    createFish("fish_05/", 15);
+                    break;
+                case 5:
+                    createFish("fish_06/", 15);
+                    break;
+                case 6:
+                    createFish("fish_07/", 15);
+                    break;
+                case 7:
+                    createFish("fish_08/", 15);
+                    break;
+                case 8:
+                    createFish("fish_09/", 15);
                     break;
             }
         }
@@ -422,8 +488,9 @@ public class Main extends ApplicationAdapter {
     private float sharkSpeed = 200;
     private float rotation = 0f;
 
+    private static final int TOTAL_FISH_TYPES = 8; // Всього типів риб
     private static final float BLOOD_EFFECT_DELAY = 0.55f;
-    private static final int MAX_FISH = 20;
+    private static final int MAX_FISH_COUNT = 20;
     private static final float MAX_FISH_SPEED = 250;
     private static final float MIN_FISH_SPEED = 50;
     private static final float MIN_FISH_SCALE = 0.1f;

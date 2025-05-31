@@ -17,10 +17,15 @@ public class SwimmingFish {
         frames = new Array<>();
 
         for (int i = 0; i < framesCount; i++) {
-            frames.add(new Texture(Gdx.files.internal(framesPath +"sprite_0"+ i + ".png")));
+            if(i < 10)
+                frames.add(new Texture(Gdx.files.internal(framesPath + "frame_0" + i + ".png")));
+            else {
+                frames.add(new Texture(Gdx.files.internal(framesPath + "frame_" + i + ".png")));
+            }
         }
         width = frames.get(0).getWidth() * scale;
         height = frames.get(0).getHeight() * scale;
+
 
         // Отримуємо розміри світу
         worldWidth = Gdx.graphics.getWidth();

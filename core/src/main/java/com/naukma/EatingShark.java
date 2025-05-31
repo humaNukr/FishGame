@@ -8,9 +8,9 @@ public class EatingShark {
 
     public EatingShark() {
         frames = new Array<>();
-        frames.add(new Texture(Gdx.files.internal("shark/sprite_0.png")));
+        frames.add(new Texture(Gdx.files.internal("shark/frame_00.png")));
         for (int i = 0; i < EATING_FRAMES; i++) {
-            frames.add(new Texture(Gdx.files.internal("shark/sprite_" + i + ".png")));
+            frames.add(new Texture(Gdx.files.internal("shark/frame_0" + i + ".png")));
         }
 
         Texture baseTexture = frames.get(0);
@@ -58,7 +58,7 @@ public class EatingShark {
     private float stateTime;
     private float frameDuration = 0.1f;
     private boolean isEating = false;
-    private static final int EATING_FRAMES = 8;
+    private static final int EATING_FRAMES = 7;
     private int currentFrame = 0;
     private float width, height;
 }
