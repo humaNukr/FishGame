@@ -23,6 +23,7 @@ public class PauseMenu {
     private int selectedItem = 0;
     private boolean isActive = false;
     private boolean shouldReturnToMainMenu = false;
+    private boolean shouldRestart = false;
 
     private float menuX, menuY;
     private float menuWidth, menuHeight;
@@ -146,7 +147,7 @@ public class PauseMenu {
                 isActive = false;
                 break;
             case 1: // Restart
-                // Логіка перезапуску гри буде оброблена в Main
+                shouldRestart = true;
                 isActive = false;
                 break;
             case 2: // Exit Game
@@ -239,6 +240,7 @@ public class PauseMenu {
         if (active) {
             selectedItem = 0; // Скидаємо на першу позицію при відкритті
             shouldReturnToMainMenu = false; // Скидаємо флаг
+            shouldRestart = false; // Скидаємо флаг рестарту
             initializeButtonBounds(); // Оновлюємо межі кнопок
         }
     }
@@ -247,8 +249,16 @@ public class PauseMenu {
         return shouldReturnToMainMenu;
     }
 
+    public boolean shouldRestart() {
+        return shouldRestart;
+    }
+
     public void resetReturnFlag() {
         shouldReturnToMainMenu = false;
+    }
+
+    public void resetRestartFlag() {
+        shouldRestart = false;
     }
 
     public void show() {
@@ -267,5 +277,4 @@ public class PauseMenu {
         if (buttonHoverTexture != null) buttonHoverTexture.dispose();
         if (overlayTexture != null) overlayTexture.dispose();
     }
-
 }

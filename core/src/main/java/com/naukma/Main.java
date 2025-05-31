@@ -121,15 +121,9 @@ public class Main extends ApplicationAdapter {
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             isPaused = !isPaused;
-            pauseMenu.setActive(true);
+            pauseMenu.setActive(isPaused); // Встановлюємо активність меню паузи
             return;
         }
-
-//        if (Gdx.input.isKeyJustPressed(Input.Keys.M) && !isPaused) {
-//            showingMenu = true;
-//            mainMenu.setActive(true);
-//            return;
-//        }
 
         if (!isPaused) {
             handleInput(Gdx.graphics.getDeltaTime());
@@ -178,16 +172,27 @@ public class Main extends ApplicationAdapter {
                 }
             }
         } else {
+            // Обробляємо ввід для меню паузи
             pauseMenu.handleInput();
-//            if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-//                pauseMenu.moveUp();
-//            }
-//            if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
-//                pauseMenu.moveDown();
-//            }
-//            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-//                handleMenuSelection();
-//            }
+
+            // ОСНОВНІ ЗМІНИ: Перевіряємо стан меню паузи після обробки вводу
+            if (!pauseMenu.isActive()) {
+                // Якщо меню паузи стало неактивним, це означає що натиснули "Resume"
+                isPaused = false;
+            }
+
+            if (pauseMenu.shouldRestart()) {
+                resetGame();
+                isPaused = false;
+                pauseMenu.resetRestartFlag();
+            }
+
+            if (pauseMenu.shouldReturnToMainMenu()) {
+                showingMenu = true;
+                mainMenu.setActive(true);
+                isPaused = false;
+                pauseMenu.resetReturnFlag();
+            }
         }
 
         // Рендеринг
