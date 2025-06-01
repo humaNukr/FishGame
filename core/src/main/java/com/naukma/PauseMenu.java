@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.Rectangle;
 
 public class PauseMenu {
@@ -30,13 +31,25 @@ public class PauseMenu {
     private GlyphLayout glyphLayout;
 
     public PauseMenu() {
-        titleFont = new BitmapFont();
-        titleFont.getData().setScale(3);
-        titleFont.setColor(Color.GOLDENROD);
 
-        menuFont = new BitmapFont();
-        menuFont.getData().setScale(2);
-        menuFont.setColor(Color.BROWN);
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/HennyPenny.ttf"));
+        FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+
+        // Налаштування для заголовка
+        parameter.size = 48; // Трохи менше для кращої пропорції
+        parameter.color = Color.CYAN;
+        parameter.borderWidth = 2;
+        parameter.borderColor = Color.BLACK;
+        titleFont = generator.generateFont(parameter);
+
+        // Налаштування для меню
+        parameter.size = 24; // Збільшено для кращої читабельності
+        parameter.color = Color.WHITE;
+        parameter.borderWidth = 1;
+        menuFont = generator.generateFont(parameter);
+
+        // ВАЖЛИВО: Звільняємо генератор після використання
+        generator.dispose();
 
         glyphLayout = new GlyphLayout();
 
@@ -210,13 +223,11 @@ public class PauseMenu {
 
         // Інструкції внизу меню
         menuFont.setColor(Color.LIGHT_GRAY);
-        menuFont.getData().setScale(1.2f);
         String instruction = "ESC/Mouse/Keys + ENTER";
         glyphLayout.setText(menuFont, instruction);
         float instrX = menuX + (menuWidth - glyphLayout.width) / 2;
         float instrY = menuY + 30;
         menuFont.draw(batch, instruction, instrX, instrY);
-        menuFont.getData().setScale(2f);
     }
 
     public void moveUp() {
