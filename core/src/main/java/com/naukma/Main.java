@@ -76,6 +76,9 @@ public class Main extends ApplicationAdapter {
 
         // Вектор для перетворення координат
         tempVector = new Vector3();
+
+        // Ініціалізуємо таймер
+        gameTimer = GAME_TIME_SECONDS;
     }
 
     private void createFish(String path, int frameCount) {
@@ -137,6 +140,9 @@ public class Main extends ApplicationAdapter {
 
             if (!mainMenu.isActive()) {
                 showingMenu = false; // Переходимо до гри
+                // Скидаємо таймер при старті нової гри
+                gameTimer = GAME_TIME_SECONDS;
+                gameEnded = false;
             }
 
             // Рендеринг меню
@@ -156,7 +162,18 @@ public class Main extends ApplicationAdapter {
             return;
         }
 
-        if (!isPaused) {
+        if (!isPaused && !gameEnded) {
+            // Оновлюємо таймер
+            gameTimer -= Gdx.graphics.getDeltaTime();
+
+            // Перевіряємо чи закінчився час
+            if (gameTimer <= 0) {
+                gameTimer = 0;
+                gameEnded = true;
+                // Тут можна додати логіку завершення гри
+                // Наприклад, показати екран результатів або повернутися до головного меню
+            }
+
             handleInput(Gdx.graphics.getDeltaTime());
             eatingShark.update(Gdx.graphics.getDeltaTime());
             bloodEffect.update(Gdx.graphics.getDeltaTime());
@@ -222,7 +239,7 @@ public class Main extends ApplicationAdapter {
                     fishes.removeIndex(i);
                 }
             }
-        } else {
+        } else if (isPaused) {
             // Обробляємо ввід для меню паузи
             pauseMenu.handleInput();
 
@@ -373,7 +390,7 @@ public class Main extends ApplicationAdapter {
         }
 
         // Обмеження межами світу
-        // Горизонтальні межі - не можна виїжджати за межі екрану
+        // Горизонтальні межі - не можна виїжджати за межі екрману
         if (sharkX < 0) sharkX = 0;
         if (sharkX > scrollingBackground.getWorldWidth() - sharkWidth)
             sharkX = scrollingBackground.getWorldWidth() - sharkWidth;
@@ -407,6 +424,43 @@ public class Main extends ApplicationAdapter {
         font.draw(batch, scoreText, 20, Gdx.graphics.getHeight() - 20);
         font.draw(batch, livesText, Gdx.graphics.getWidth() - 150, Gdx.graphics.getHeight() - 20);
         font.draw(batch, menuHint, 20, Gdx.graphics.getHeight() - 60);
+
+        // Малюємо таймер
+        drawTimer();
+    }
+
+    private void drawTimer() {
+        // Форматуємо час у хвилини:секунди
+        int minutes = (int) (gameTimer / 60);
+        int seconds = (int) (gameTimer % 60);
+        String timeText = String.format("%02d:%02d", minutes, seconds);
+
+        // Визначаємо колір таймера
+        Color originalColor = font.getColor();
+        if (gameTimer <= 5 && gameTimer > 0) {
+            // Останні 5 секунд - червоний колір
+            font.setColor(Color.RED);
+        } else if (gameTimer <= 0) {
+            // Час вийшов - яскравий червоний
+            font.setColor(Color.SCARLET);
+            timeText = "00:00";
+        } else {
+            // Звичайний білий колір
+            font.setColor(Color.WHITE);
+        }
+
+        // Розраховуємо позицію для центрування внизу екрану
+        // Використовуємо GlyphLayout для вимірювання тексту
+        com.badlogic.gdx.graphics.g2d.GlyphLayout layout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
+        layout.setText(font, timeText);
+        float textWidth = layout.width;
+        float x = (Gdx.graphics.getWidth() - textWidth) / 2;
+        float y = 50; // Відступ від низу екрану
+
+        font.draw(batch, timeText, x, y);
+
+        // Відновлюємо оригінальний колір
+        font.setColor(originalColor);
     }
 
     private void resetGame() {
@@ -453,6 +507,10 @@ public class Main extends ApplicationAdapter {
         sharkX = (scrollingBackground.getWorldWidth() - sharkWidth) / 2f;
         sharkY = (scrollingBackground.getWorldHeight() - sharkHeight) / 2f;
         rotation = 0f;
+
+        // Скидаємо таймер при рестарті
+        gameTimer = GAME_TIME_SECONDS;
+        gameEnded = false;
     }
 
     @Override
@@ -498,6 +556,7 @@ public class Main extends ApplicationAdapter {
     private static final float SHARK_SCALE = 0.5f;
     private static final float EATING_DISTANCE = 75f;
     private static final float EATING_FRAME_DELAY = 0.2f;
+    private static final float GAME_TIME_SECONDS = 30f; // 2 хвилини
 
     private BitmapFont font;
     private int score = 0;
@@ -512,4 +571,8 @@ public class Main extends ApplicationAdapter {
     // Змінні для головного меню
     private MainMenu mainMenu;
     private boolean showingMenu = true;
+
+    // Змінні для таймера
+    private float gameTimer;
+    private boolean gameEnded = false;
 }
