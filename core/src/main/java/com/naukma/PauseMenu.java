@@ -18,7 +18,7 @@ public class PauseMenu {
     private Texture buttonHoverTexture;
     private Texture overlayTexture;
 
-    private String[] menuItems = {"Resume", "Restart", "Exit Game"};
+    private String[] menuItems = {"Resume", "Restart", "Main Menu"};
     private Rectangle[] buttonBounds;
     private int selectedItem = 0;
     private boolean isActive = false;

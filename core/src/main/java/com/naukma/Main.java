@@ -20,7 +20,7 @@ public class Main extends ApplicationAdapter {
         batch = new SpriteBatch();
 
         mainMenu = new MainMenu();
-
+        gameHUD = new GameHUD();
         scrollingBackground = new ScrollingBackground("output.jpg");
         shark = new Texture(Gdx.files.internal("shark/frame_00.png"));
         pauseMenu = new PauseMenu();
@@ -31,7 +31,7 @@ public class Main extends ApplicationAdapter {
 
         // Створюємо рибок у світових координатах
         for (int i = 0; i < MAX_FISH_COUNT; i++) {
-            int fishType = MathUtils.random(TOTAL_FISH_TYPES-1);
+            int fishType = MathUtils.random(TOTAL_FISH_TYPES - 1);
             switch (fishType) {
                 case 0:
                     createFish("fish_01/", 15);
@@ -173,7 +173,7 @@ public class Main extends ApplicationAdapter {
                 if (!fish.isActive() && fishes.size < MAX_FISH_COUNT) {
                     String randomPath;
                     int frameCount;
-                    int fishType = MathUtils.random(TOTAL_FISH_TYPES-1);
+                    int fishType = MathUtils.random(TOTAL_FISH_TYPES - 1);
                     switch (fishType) {
                         case 0:
                             randomPath = "fish_01/";
@@ -284,11 +284,12 @@ public class Main extends ApplicationAdapter {
         // Перемикаємося на стандартну проекцію для HUD та меню
         batch.setProjectionMatrix(batch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
 
-        drawHUD();
         if (isPaused) {
             pauseMenu.render(batch);
+        }else{
+            gameHUD.update(Gdx.graphics.getDeltaTime());
         }
-
+        gameHUD.render(batch);
         batch.end();
     }
 
@@ -317,8 +318,13 @@ public class Main extends ApplicationAdapter {
             float fishSize = fishWidth * fishHeight;
             float SIZE_RATIO_THRESHOLD = 0.3f;
 
-            if (distance < EATING_DISTANCE && fishSize < sharkSize * SIZE_RATIO_THRESHOLD) {
+            boolean collision = distance < EATING_DISTANCE && fishSize < sharkSize * SIZE_RATIO_THRESHOLD;
+
+            if (collision) {
                 eatingShark.startEating();
+                fish.setActive(false);
+                gameHUD.addScore(10); // Add points when fish is eaten
+                gameHUD.addFishEaten(); // Додаємо рибку для прогресу рівня
 
                 final float bloodX = fishFrontX;
                 final float bloodY = fishFrontY;
@@ -334,7 +340,8 @@ public class Main extends ApplicationAdapter {
                     @Override
                     public void run() {
                         fish.setActive(false);
-                        score += 10;
+                        gameHUD.addScore(10); // Add points
+
                     }
                 }, EATING_FRAME_DELAY);
             }
@@ -399,15 +406,6 @@ public class Main extends ApplicationAdapter {
         }
     }
 
-    private void drawHUD() {
-        String scoreText = "Score: " + score;
-        String livesText = "Lives: " + lives;
-        String menuHint = "Esc - Menu";
-
-        font.draw(batch, scoreText, 20, Gdx.graphics.getHeight() - 20);
-        font.draw(batch, livesText, Gdx.graphics.getWidth() - 150, Gdx.graphics.getHeight() - 20);
-        font.draw(batch, menuHint, 20, Gdx.graphics.getHeight() - 60);
-    }
 
     private void resetGame() {
         for (SwimmingFish fish : fishes) {
@@ -416,7 +414,7 @@ public class Main extends ApplicationAdapter {
         fishes.clear();
 
         for (int i = 0; i < MAX_FISH_COUNT; i++) {
-            int fishType = MathUtils.random(TOTAL_FISH_TYPES-1);
+            int fishType = MathUtils.random(TOTAL_FISH_TYPES - 1);
             switch (fishType) {
                 case 0:
                     createFish("fish_01/", 15);
@@ -467,6 +465,8 @@ public class Main extends ApplicationAdapter {
         pauseMenu.dispose();
         eatingShark.dispose();
         bloodEffect.dispose();
+        gameHUD.dispose();
+        swimmingShark.dispose();
 
         // Очищуємо головне меню
         if (mainMenu != null) {
@@ -482,6 +482,7 @@ public class Main extends ApplicationAdapter {
     private EatingShark eatingShark;
     private SwimmingShark swimmingShark;
     private BloodEffect bloodEffect;
+    private GameHUD gameHUD;
 
     private float sharkX, sharkY;
     private float sharkWidth, sharkHeight;
