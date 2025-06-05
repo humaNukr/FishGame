@@ -9,6 +9,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 
 public class MainMenu {
     private BitmapFont titleFont;
@@ -32,17 +34,41 @@ public class MainMenu {
     private GlyphLayout glyphLayout;
 
     public MainMenu() {
-        titleFont = new BitmapFont();
-        titleFont.getData().setScale(4);
-        titleFont.setColor(Color.CYAN);
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/HennyPenny.ttf"));
+        FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 
-        menuFont = new BitmapFont();
-        menuFont.getData().setScale(2.5f);
-        menuFont.setColor(Color.WHITE);
+        // Налаштування для заголовка
+        parameter.size = 64; // розмір шрифта
+        parameter.color = Color.CYAN;
+        parameter.borderWidth = 2;
+        parameter.borderColor = Color.BLACK;
+        titleFont = generator.generateFont(parameter);
 
-        levelFont = new BitmapFont();
-        levelFont.getData().setScale(2f);
-        levelFont.setColor(Color.WHITE);
+        // Налаштування для меню
+        parameter.size = 15;
+        parameter.color = Color.WHITE;
+        parameter.borderWidth = 1;
+        menuFont = generator.generateFont(parameter);
+
+        // Налаштування для рівнів
+        parameter.size = 32;
+        parameter.color = Color.WHITE;
+        parameter.borderWidth = 1;
+        levelFont = generator.generateFont(parameter);
+
+        generator.dispose();
+
+//        titleFont = new BitmapFont();
+//        titleFont.getData().setScale(4);
+//        titleFont.setColor(Color.CYAN);
+//
+//        menuFont = new BitmapFont();
+//        menuFont.getData().setScale(2.5f);
+//        menuFont.setColor(Color.WHITE);
+//
+//        levelFont = new BitmapFont();
+//        levelFont.getData().setScale(2f);
+//        levelFont.setColor(Color.WHITE);
 
         glyphLayout = new GlyphLayout();
 
@@ -199,7 +225,7 @@ public class MainMenu {
 
     private void handleSelection(int itemIndex) {
         switch (itemIndex) {
-            case 0: // START GAME
+            case 0:
                 if (selectedLevel >= 0) { // Перевіряємо, чи обрано рівень
                     isActive = false;
                 }
@@ -231,7 +257,7 @@ public class MainMenu {
         String levelTitle = "CHOOSE LEVEL:";
         glyphLayout.setText(levelFont, levelTitle);
         float levelTitleX = (Gdx.graphics.getWidth() - glyphLayout.width) / 2;
-        float levelTitleY = Gdx.graphics.getHeight() / 2 + 180;
+        float levelTitleY = Gdx.graphics.getHeight() / 2 + 190;
         levelFont.draw(batch, levelTitle, levelTitleX, levelTitleY);
 
         // Малюємо кнопки рівнів

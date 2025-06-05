@@ -128,6 +128,16 @@ public class SwimmingFish {
         this.x = x;
         this.y = y;
     }
+    private String fishType;
+
+
+    public void setFishType(String fishType) {
+        this.fishType = fishType;
+    }
+
+    public String getFishType() {
+        return fishType;
+    }
 
     public Texture getFrame(int index) {
         return frames.get(index);
