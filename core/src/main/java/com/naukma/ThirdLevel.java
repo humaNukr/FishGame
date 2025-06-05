@@ -5,13 +5,14 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 public class ThirdLevel extends BasicLevel {
 
     public ThirdLevel() {
-        super(3, "Глибокий океан", "Третій рівень - найвища складність");
+        super(3, "Глибокий океан");
     }
 
     @Override
     protected void initializeLevel() {
         timeLimit = 60f; // Найменше часу
         targetScore = 500; // Найбільше очок
+        targetFishCount = 35; // Ціль для третього рівня
         maxFishCount = 30; // Найбільше рибок на екрані
         sharkSpeed = 250f; // Найшвидша акула
         minFishSpeed = 120f;
@@ -20,19 +21,14 @@ public class ThirdLevel extends BasicLevel {
         maxFishScale = 1.0f;
 
         // Найскладніші рибки
-        
+
         // Дуже маленькі надшвидкі рибки (дуже важко зловити)
         availableFish.add(new FishSpawnData("fish_08/", 15, 0.05f, 6, 0.1f, 8, 250f, 0.15f));
-        
-        // Маленькі швидкі рибки
-        availableFish.add(new FishSpawnData("fish_09/", 15, 0.05f, 10, 0.1f, 6, 200f, 0.3f));
-        
-        // Середні дуже швидкі рибки  
-        availableFish.add(new FishSpawnData("fish_04/", 15, 0.05f, 15, 0.1f, 8, 180f, 0.4f));
-        
+
+
         // Великі швидкі рибки (складно зловити, але дають багато очок)
         availableFish.add(new FishSpawnData("fish_05/", 15, 0.05f, 25, 0.1f, 3, 160f, 0.7f));
-        
+
         // Гігантські рибки (найважчі для з'їдання, але найбільше очок)
         availableFish.add(new FishSpawnData("fish_03/", 15, 0.16f, 35, 0.1f, 1, 120f, 1.0f));
     }
@@ -65,4 +61,4 @@ public class ThirdLevel extends BasicLevel {
         // - Частинки у воді
         // - Спеціальні візуальні ефекти
     }
-} 
+}

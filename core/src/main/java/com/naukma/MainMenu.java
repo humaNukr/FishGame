@@ -166,7 +166,7 @@ public class MainMenu {
                     return; // Якщо клікнули на рівень, більше нічого не робимо
                 }
             }
-            
+
             // Потім перевіряємо основні кнопки меню
             for (int i = 0; i < buttonBounds.length; i++) {
                 if (buttonBounds[i].contains(mouseX, mouseY)) {
@@ -317,13 +317,13 @@ public class MainMenu {
         }
 
         // Інструкції внизу
-        menuFont.setColor(Color.LIGHT_GRAY);
-        menuFont.getData().setScale(1.5f);
-        String instruction = "Mouse/Keys + ENTER";
-        glyphLayout.setText(menuFont, instruction);
-        float instrX = (Gdx.graphics.getWidth() - glyphLayout.width) / 2;
-        menuFont.draw(batch, instruction, instrX, 50);
-        menuFont.getData().setScale(2.5f);
+//        menuFont.setColor(Color.LIGHT_GRAY);
+//        menuFont.getData().setScale(1.5f);
+//        String instruction = "Mouse/Keys + ENTER";
+//        glyphLayout.setText(menuFont, instruction);
+//        float instrX = (Gdx.graphics.getWidth() - glyphLayout.width) / 2;
+//        menuFont.draw(batch, instruction, instrX, 50);
+//        menuFont.getData().setScale(2.5f);
     }
 
     public boolean isActive() {
@@ -355,7 +355,7 @@ public class MainMenu {
 
     public void dispose() {
         if (titleFont != null) titleFont.dispose();
-        if (menuFont != null) menuFont.dispose();
+//        if (menuFont != null) menuFont.dispose();
         if (levelFont != null) levelFont.dispose();
         if (backgroundTexture != null) backgroundTexture.dispose();
         if (buttonTexture != null) buttonTexture.dispose();

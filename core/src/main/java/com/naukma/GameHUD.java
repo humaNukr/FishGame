@@ -27,6 +27,8 @@ public class GameHUD {
     // Current game level and timer
     private int currentGameLevel; // Поточний рівень гри (1, 2, 3...)
     private float gameTimer; // Таймер гри в секундах
+    private float maxLevelTime; // Максимальний час для рівня
+    private int targetFishCount; // Кількість риб для перемоги
     private boolean timerActive; // Чи активний таймер
 
     // Stamina system
@@ -139,7 +141,9 @@ public class GameHUD {
 
         // Ініціалізуємо нові змінні
         currentGameLevel = 1; // За замовчуванням перший рівень
-        gameTimer = 0f; // Початковий час
+        gameTimer = 60f; // Початковий час (макс час для рівня)
+        maxLevelTime = 60f; // За замовчуванням 60 секунд
+        targetFishCount = 20; // За замовчуванням 20 риб
         timerActive = true; // Таймер активний
 
         levelUpEffectTimer = 0;
@@ -186,9 +190,33 @@ public class GameHUD {
     }
 
     private void loadFishIcons() {
+        // За замовчуванням завантажуємо перші 3 рибки (буде замінено пізніше)
         for (int i = 1; i <= MAX_SHARK_LEVEL; i++) {
             String fishPath = String.format("fish_%02d/frame_00.png", i);
             fishIcons.add(new Texture(Gdx.files.internal(fishPath)));
+        }
+    }
+
+    // Новий метод для оновлення іконок рибок з поточного рівня
+    public void updateLevelFishIcons(Array<FishSpawnData> availableFish) {
+        // Очищуємо старі іконки
+        for (Texture texture : fishIcons) {
+            texture.dispose();
+        }
+        fishIcons.clear();
+
+        // Завантажуємо нові іконки з поточного рівня (до 3 штук)
+        for (int i = 0; i < Math.min(availableFish.size, MAX_SHARK_LEVEL); i++) {
+            FishSpawnData fishData = availableFish.get(i);
+            // Витягуємо назву рибки з шляху (наприклад "fish_05/" -> "fish_05")
+            String fishName = fishData.path.replace("/", "");
+            String fishPath = fishName + "/frame_00.png";
+            fishIcons.add(new Texture(Gdx.files.internal(fishPath)));
+        }
+
+        // Якщо рибок менше 3, доповнюємо пустими текстурами
+        while (fishIcons.size < MAX_SHARK_LEVEL) {
+            fishIcons.add(new Texture(Gdx.files.internal("fish_01/frame_00.png")));
         }
     }
 
@@ -219,9 +247,12 @@ public class GameHUD {
             }
         }
 
-                // Update game timer
-        if (timerActive) {
-            gameTimer += deltaTime;
+                // Update game timer (відлік від максимального до 0)
+        if (timerActive && gameTimer > 0) {
+            gameTimer -= deltaTime;
+            if (gameTimer < 0) {
+                gameTimer = 0;
+            }
         }
 
         // Update stamina regeneration
@@ -316,6 +347,7 @@ public class GameHUD {
 
         drawTextWithOutline(batch, levelFont, levelText, levelX, levelY,
                            new Color(0f, 1f, 1f, 1f), new Color(0f, 0f, 0f, 1f)); // Ціан з чорним контуром
+
     }
 
     private void renderLevelIcons(SpriteBatch batch) {
@@ -558,7 +590,21 @@ public class GameHUD {
     }
 
     public void resetTimer() {
-        this.gameTimer = 0f;
+        this.gameTimer = maxLevelTime;
+    }
+
+    public void setLevelParameters(float timeLimit, int fishTarget) {
+        this.maxLevelTime = timeLimit;
+        this.targetFishCount = fishTarget;
+        this.gameTimer = timeLimit; // Починаємо з максимального часу
+    }
+
+    public float getTimeRemaining() {
+        return gameTimer;
+    }
+
+    public int getTargetFishCount() {
+        return targetFishCount;
     }
 
     public void setTimerActive(boolean active) {

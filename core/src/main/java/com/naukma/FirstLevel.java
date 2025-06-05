@@ -5,13 +5,14 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 public class FirstLevel extends BasicLevel {
 
     public FirstLevel() {
-        super(1, "Sunlight Reef", "Перший рівень - ознайомчий");
+        super(1, "Sunlight Reef");
     }
 
     @Override
     protected void initializeLevel() {
         timeLimit = 60f;
         targetScore = 200;
+        targetFishCount = 15; // Ціль для першого рівня
         maxFishCount = 20;
         sharkSpeed = 200f;
         minFishSpeed = 50f;
@@ -19,8 +20,7 @@ public class FirstLevel extends BasicLevel {
         minFishScale = 0.1f;
         maxFishScale = 1f;
 
-        // Налаштування рибок для першого рівня
-        
+
         // 5 середніх рибок з швидкістю 150 і розміром 0.6
         availableFish.add(new FishSpawnData("fish_05/", 15, 0.05f, 10, 0.1f, 3, 150f, 0.6f));
 

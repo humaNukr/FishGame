@@ -7,7 +7,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class Main extends ApplicationAdapter {
-    
+
     private LevelManager levelManager;
     private BasicLevel currentLevel;
     private MainMenu mainMenu;
@@ -19,8 +19,6 @@ public class Main extends ApplicationAdapter {
         batch = new SpriteBatch();
         levelManager = new LevelManager();
         mainMenu = new MainMenu();
-        
-        // За замовчуванням створюємо перший рівень
         currentLevel = levelManager.createLevel(1);
         currentLevel.create();
     }
@@ -38,7 +36,7 @@ public class Main extends ApplicationAdapter {
         // Рендеримо поточний рівень
         if (currentLevel != null) {
             currentLevel.render();
-            
+
             // Перевіряємо чи треба повернутися до головного меню з pause menu
             if (currentLevel instanceof BasicLevel) {
                 BasicLevel basicLevel = (BasicLevel) currentLevel;
@@ -49,7 +47,7 @@ public class Main extends ApplicationAdapter {
                     return;
                 }
             }
-            
+
             // Перевіряємо умови завершення рівня
             checkLevelCompletion();
         }
@@ -60,7 +58,7 @@ public class Main extends ApplicationAdapter {
 
         if (!mainMenu.isActive()) {
             showingMenu = false;
-            
+
             // Отримуємо обраний рівень з головного меню
             int selectedLevel = mainMenu.getSelectedLevel();
             if (selectedLevel >= 0) {
@@ -83,7 +81,7 @@ public class Main extends ApplicationAdapter {
         if (currentLevel != null) {
             currentLevel.dispose();
         }
-        
+
         // Створюємо новий рівень через поліморфізм
         currentLevel = levelManager.createLevel(levelNumber);
         currentLevel.create();
@@ -101,7 +99,7 @@ public class Main extends ApplicationAdapter {
                 mainMenu.setActive(true);
             }
         }
-        
+
         if (currentLevel.isFailed()) {
             // Можна додати логіку рестарту або повернення до меню
             // Поки що просто рестартуємо рівень
@@ -112,11 +110,11 @@ public class Main extends ApplicationAdapter {
     @Override
     public void dispose() {
         batch.dispose();
-        
+
         if (currentLevel != null) {
             currentLevel.dispose();
         }
-        
+
         if (mainMenu != null) {
             mainMenu.dispose();
         }
@@ -126,11 +124,11 @@ public class Main extends ApplicationAdapter {
     public BasicLevel getCurrentLevel() {
         return currentLevel;
     }
-    
+
     public LevelManager getLevelManager() {
         return levelManager;
     }
-    
+
     public boolean isShowingMenu() {
         return showingMenu;
     }

@@ -18,9 +18,9 @@ public class BasicLevel extends ApplicationAdapter {
     // Налаштування рівня
     protected int levelNumber;
     protected String levelName;
-    protected String description;
     protected float timeLimit;
     protected int targetScore;
+    protected int targetFishCount; // Кількість риб для перемоги
     protected int maxFishCount;
     protected boolean isCompleted;
     protected boolean isFailed;
@@ -66,10 +66,9 @@ public class BasicLevel extends ApplicationAdapter {
     private boolean isPaused = false;
     private Vector3 tempVector;
 
-    public BasicLevel(int levelNumber, String levelName, String description) {
+    public BasicLevel(int levelNumber, String levelName) {
         this.levelNumber = levelNumber;
         this.levelName = levelName;
-        this.description = description;
         this.availableFish = new Array<>();
         this.currentFishCounts = new ObjectMap<>();
         initializeLevel();
@@ -77,17 +76,24 @@ public class BasicLevel extends ApplicationAdapter {
 
     // Конструктор за замовчуванням для Main
     public BasicLevel() {
-        this(1, "Basic Level", "Default level");
+        this(1, "Basic Level");
     }
 
     @Override
     public void create() {
         batch = new SpriteBatch();
-        
+
         // Створюємо GameHUD з параметрами рівня
         gameHUD = new GameHUD();
         gameHUD.setCurrentGameLevel(levelNumber);
+        
+        // Встановлюємо параметри рівня в HUD
+        int targetFish = getTargetFishCount(); // Отримуємо target з checkWinCondition
+        gameHUD.setLevelParameters(timeLimit, targetFish);
         gameHUD.resetTimer();
+        
+        // Оновлюємо іконки рибок згідно з поточним рівнем
+        gameHUD.updateLevelFishIcons(availableFish);
 
         scrollingBackground = new ScrollingBackground("output.jpg");
         shark = new Texture(Gdx.files.internal("shark/frame_00.png"));
@@ -119,6 +125,7 @@ public class BasicLevel extends ApplicationAdapter {
         // За замовчуванням - базові налаштування
         timeLimit = 60f;
         targetScore = 200;
+        targetFishCount = 15; // За замовчуванням 15 риб для перемоги
         maxFishCount = 20;
         sharkSpeed = 200f;
         minFishSpeed = 50f;
@@ -156,7 +163,7 @@ public class BasicLevel extends ApplicationAdapter {
                 case 5: createFish("fish_06/", 15); break;
                 case 6: createFish("fish_07/", 15); break;
                 case 7: createFish("fish_08/", 15); break;
-                case 8: createFish("fish_09/", 15); break;
+                case 8: createFish("fish_09/", 9); break;
             }
         }
     }
@@ -412,7 +419,7 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void checkLevelConditions() {
-        float timeRemaining = timeLimit - gameHUD.getGameTimer();
+        float timeRemaining = gameHUD.getTimeRemaining(); // Тепер таймер йде до 0
 
         if (checkWinCondition(gameHUD.getScore(), timeRemaining, gameHUD.getFishEaten())) {
             isCompleted = true;
@@ -440,7 +447,9 @@ public class BasicLevel extends ApplicationAdapter {
         rotation = 0f;
 
         gameHUD.setCurrentGameLevel(levelNumber);
+        gameHUD.setLevelParameters(timeLimit, targetFishCount);
         gameHUD.resetTimer();
+        gameHUD.updateLevelFishIcons(availableFish);
         isCompleted = false;
         isFailed = false;
     }
@@ -538,7 +547,6 @@ public class BasicLevel extends ApplicationAdapter {
     // Геттери
     public int getLevelNumber() { return levelNumber; }
     public String getLevelName() { return levelName; }
-    public String getDescription() { return description; }
     public float getTimeLimit() { return timeLimit; }
     public int getTargetScore() { return targetScore; }
     public int getMaxFishCount() { return maxFishCount; }
@@ -549,14 +557,22 @@ public class BasicLevel extends ApplicationAdapter {
 
     public void setCompleted(boolean completed) { this.isCompleted = completed; }
     public void setFailed(boolean failed) { this.isFailed = failed; }
-    
+
     public boolean shouldReturnToMainMenu() {
         return pauseMenu != null && pauseMenu.shouldReturnToMainMenu();
     }
-    
+
     public void resetReturnToMainMenuFlag() {
         if (pauseMenu != null) {
             pauseMenu.resetReturnFlag();
         }
+    }
+    
+    public Array<FishSpawnData> getAvailableFish() {
+        return availableFish;
+    }
+    
+    public int getTargetFishCount() {
+        return targetFishCount;
     }
 }

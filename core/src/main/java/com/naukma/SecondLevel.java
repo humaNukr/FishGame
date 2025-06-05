@@ -5,13 +5,14 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 public class SecondLevel extends BasicLevel {
 
     public SecondLevel() {
-        super(2, "Неспокійне море", "Другий рівень - підвищена складність");
+        super(2, "Неспокійне море");
     }
 
     @Override
     protected void initializeLevel() {
         timeLimit = 75f; // Менше часу
         targetScore = 300; // Більше очок
+        targetFishCount = 25; // Ціль для другого рівня
         maxFishCount = 25; // Більше рибок на екрані
         sharkSpeed = 220f; // Швидша акула
         minFishSpeed = 80f;
@@ -20,16 +21,12 @@ public class SecondLevel extends BasicLevel {
         maxFishScale = 0.9f;
 
         // Більш складні рибки з різними характеристиками
-        
-        // Дуже маленькі швидкі рибки (важко зловити)
-        availableFish.add(new FishSpawnData("fish_04/", 15, 0.05f, 8, 0.1f, 6, 180f, 0.2f));
-        
-        // Середні рибки з помірною швидкістю  
+        // Середні рибки з помірною швидкістю
         availableFish.add(new FishSpawnData("fish_05/", 15, 0.05f, 12, 0.1f, 8, 120f, 0.5f));
-        
+
         // Швидкі середні рибки
         availableFish.add(new FishSpawnData("fish_06/", 15, 0.05f, 10, 0.1f, 4, 150f, 0.4f));
-        
+
         // Великі повільні рибки (високі очки, але важко зловити через розмір)
         availableFish.add(new FishSpawnData("fish_07/", 15, 0.05f, 20, 0.1f, 2, 80f, 0.8f));
     }
@@ -56,4 +53,4 @@ public class SecondLevel extends BasicLevel {
     protected void renderLevelSpecific(SpriteBatch batch) {
         // Можна додати спеціальні ефекти для цього рівня
     }
-} 
+}
