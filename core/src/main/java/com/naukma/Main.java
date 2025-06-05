@@ -21,6 +21,11 @@ public class Main extends ApplicationAdapter {
 
         mainMenu = new MainMenu();
         gameHUD = new GameHUD();
+        
+        // Ініціалізуємо перший рівень гри
+        gameHUD.setCurrentGameLevel(1);
+        gameHUD.resetTimer();
+        
         scrollingBackground = new ScrollingBackground("output.jpg");
         shark = new Texture(Gdx.files.internal("shark/frame_00.png"));
         pauseMenu = new PauseMenu();
@@ -137,6 +142,13 @@ public class Main extends ApplicationAdapter {
 
             if (!mainMenu.isActive()) {
                 showingMenu = false; // Переходимо до гри
+                
+                // Встановлюємо обраний рівень з головного меню
+                int selectedLevel = mainMenu.getSelectedLevel();
+                if (selectedLevel >= 0) {
+                    gameHUD.setCurrentGameLevel(selectedLevel + 1); // +1 тому що рівні починаються з 0 в меню, а показуємо з 1
+                }
+                gameHUD.resetTimer(); // Скидаємо таймер при старті гри
             }
 
             // Рендеринг меню
@@ -451,6 +463,10 @@ public class Main extends ApplicationAdapter {
         sharkX = (scrollingBackground.getWorldWidth() - sharkWidth) / 2f;
         sharkY = (scrollingBackground.getWorldHeight() - sharkHeight) / 2f;
         rotation = 0f;
+        
+        // Скидаємо рівень і таймер
+        gameHUD.setCurrentGameLevel(1);
+        gameHUD.resetTimer();
     }
 
     @Override

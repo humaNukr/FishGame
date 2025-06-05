@@ -9,7 +9,8 @@ public class  Lwjgl3Launcher {
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         config.useVsync(true);
         config.setForegroundFPS(60);
-        config.setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode());
+//        config.setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode());
+        config.setWindowedMode(1920, 1080);
         new Lwjgl3Application(new Main(), config);
     }
 }
