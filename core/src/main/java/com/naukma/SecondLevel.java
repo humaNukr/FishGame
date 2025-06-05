@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 public class SecondLevel extends BasicLevel {
 
     public SecondLevel() {
-        super(2, "Неспокійне море");
+        super(2);
     }
 
     @Override
@@ -13,7 +13,8 @@ public class SecondLevel extends BasicLevel {
         timeLimit = 75f; // Менше часу
         targetScore = 300; // Більше очок
         targetFishCount = 25; // Ціль для другого рівня
-        maxFishCount = 25; // Більше рибок на екрані
+        maxFishCount = 15; // 15 рибок на екрані
+        livesCount = 1; // 1 життя на другому рівні
         sharkSpeed = 220f; // Швидша акула
         minFishSpeed = 80f;
         maxFishSpeed = 200f; // Швидші рибки
@@ -39,8 +40,8 @@ public class SecondLevel extends BasicLevel {
 
     @Override
     public boolean checkLoseCondition(int currentScore, float timeRemaining, int lives) {
-        // Програш якщо закінчився час і не досягнуто ціль
-        return timeRemaining <= 0 && currentScore < targetScore;
+        // Програш якщо закінчився час і не досягнуто ціль або закінчились життя
+        return lives <= 0 || (timeRemaining <= 0 && currentScore < targetScore);
     }
 
     @Override

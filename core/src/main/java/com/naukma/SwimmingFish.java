@@ -57,13 +57,17 @@ public class SwimmingFish {
     public void respawn() {
         movingRight = MathUtils.randomBoolean();
 
-        // Спавн тільки у видимій області (без HUD)
+        // Спавн тільки у видимій області по Y (без HUD)
         y = MathUtils.random(visibleMinY + height, visibleMaxY - height);
 
+        // Спавн тільки справа або зліва за межами видимого поля
+        float screenWidth = Gdx.graphics.getWidth();
         if (movingRight) {
+            // Спавн зліва за межами екрану
             x = -width * 2;
         } else {
-            x = worldWidth + width * 2;
+            // Спавн справа за межами екрану
+            x = screenWidth + width * 2;
         }
 
         rotation = 0;

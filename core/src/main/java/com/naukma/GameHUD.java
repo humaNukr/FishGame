@@ -23,6 +23,7 @@ public class GameHUD {
     private float experienceProgress;
     private float displayedProgress;
     private int fishEaten; // Кількість з'їдених рибок
+    private int currentLives; // Поточні життя гравця
 
     // Current game level and timer
     private int currentGameLevel; // Поточний рівень гри (1, 2, 3...)
@@ -40,6 +41,7 @@ public class GameHUD {
     private Array<Texture> fishIcons;
     private Array<Texture> bonusIcons;
     private Array<Integer> bonusCounts; // Лічильники бонусів
+    private Texture heartIcon; // Іконка сердечка для життів
     private GlyphLayout glyphLayout;
     private Texture hudBackground;
     private Texture progressBarBg;
@@ -161,13 +163,48 @@ public class GameHUD {
         for (int i = 0; i < 3; i++) {
             bonusCounts.add(0); // Дефолт 0 замість тестових значень
         }
+
+        currentLives = 3; // За замовчуванням 3 життя
     }
 
     private void loadTextures() {
 
         hudBackground = new Texture(Gdx.files.internal("hud_background.png"));
         gameLogo = new Texture(Gdx.files.internal("game_logo.png"));
+        
+        // Завантажуємо іконку сердечка з fallback
+        try {
+            heartIcon = new Texture(Gdx.files.internal("heart_icon.png"));
+        } catch (Exception e) {
+            // Створюємо просте червоне сердечко якщо файл не знайдено
+            heartIcon = createSimpleHeartTexture();
+        }
 
+    }
+    
+    private Texture createSimpleHeartTexture() {
+        // Створюємо просте червоне сердечко 16x16 пікселів
+        Pixmap heartPixmap = new Pixmap(16, 16, Pixmap.Format.RGBA8888);
+        heartPixmap.setColor(1f, 0f, 0f, 1f); // Червоний колір
+        
+        // Малюємо просте сердечко (пікселі)
+        // Верхня частина (два кружечки)
+        heartPixmap.fillCircle(5, 6, 3);
+        heartPixmap.fillCircle(10, 6, 3);
+        
+        // Нижня частина (трикутник)
+        for (int y = 8; y < 14; y++) {
+            int width = 14 - y;
+            for (int x = 8 - width/2; x < 8 + width/2; x++) {
+                if (x >= 0 && x < 16 && y >= 0 && y < 16) {
+                    heartPixmap.drawPixel(x, y);
+                }
+            }
+        }
+        
+        Texture heart = new Texture(heartPixmap);
+        heartPixmap.dispose();
+        return heart;
     }
 
     private void createProgressBarTextures() {
@@ -278,6 +315,7 @@ public class GameHUD {
         renderBonusSection(batch);
         renderLevelUpEffect(batch);
         renderTimer(batch);
+        renderLives(batch);
     }
 
     private void renderBackground(SpriteBatch batch) {
@@ -499,6 +537,30 @@ public class GameHUD {
                            new Color(1f, 1f, 0f, 1f), new Color(0f, 0f, 0f, 1f)); // Жовтий з чорним контуром
     }
 
+    private void renderLives(SpriteBatch batch) {
+        // Розміщуємо іконки життів під score з лівого боку
+        float livesX = padding*6f;
+        float livesY = screenHeight - hudHeight/2 - padding*2f; // Під score
+
+        // Рендеримо текст "Lives:" перед сердечками
+        String livesText = "Lives:";
+        glyphLayout.setText(levelFont, livesText);
+        float textX = livesX;
+        float textY = livesY + glyphLayout.height;
+        
+        drawTextWithOutline(batch, levelFont, livesText, textX, textY,
+                           new Color(1f, 0.2f, 0.2f, 1f), new Color(0f, 0f, 0f, 1f)); // Червоний з чорним контуром
+
+        // Рендеримо сердечка
+        float heartsStartX = textX + glyphLayout.width + padding/2;
+        float heartSize = iconSize * 0.6f; // Трохи менші за рибки
+        
+        for (int i = 0; i < currentLives; i++) {
+            float heartX = heartsStartX + i * (heartSize + iconSpacing/2);
+            batch.draw(heartIcon, heartX, livesY, heartSize, heartSize);
+        }
+    }
+
     // Game logic methods
     public void addScore(int points) {
         targetScore += points;
@@ -619,6 +681,14 @@ public class GameHUD {
         return hudHeight;
     }
 
+    public void setCurrentLives(int lives) {
+        this.currentLives = lives;
+    }
+    
+    public int getCurrentLives() {
+        return currentLives;
+    }
+
     public void dispose() {
         titleFont.dispose();
         scoreFont.dispose();
@@ -627,6 +697,7 @@ public class GameHUD {
         progressBarBg.dispose();
         progressBarFill.dispose();
         gameLogo.dispose();
+        heartIcon.dispose();
 
         for (Texture icon : fishIcons) {
             icon.dispose();

@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 public class ThirdLevel extends BasicLevel {
 
     public ThirdLevel() {
-        super(3, "Глибокий океан");
+        super(3);
     }
 
     @Override
@@ -13,7 +13,8 @@ public class ThirdLevel extends BasicLevel {
         timeLimit = 60f; // Найменше часу
         targetScore = 500; // Найбільше очок
         targetFishCount = 35; // Ціль для третього рівня
-        maxFishCount = 30; // Найбільше рибок на екрані
+        maxFishCount = 15; // 15 рибок на екрані
+        livesCount = 0; // 0 життів на третьому рівні
         sharkSpeed = 250f; // Найшвидша акула
         minFishSpeed = 120f;
         maxFishSpeed = 280f; // Дуже швидкі рибки
@@ -24,7 +25,6 @@ public class ThirdLevel extends BasicLevel {
 
         // Дуже маленькі надшвидкі рибки (дуже важко зловити)
         availableFish.add(new FishSpawnData("fish_08/", 15, 0.05f, 6, 0.1f, 8, 250f, 0.15f));
-
 
         // Великі швидкі рибки (складно зловити, але дають багато очок)
         availableFish.add(new FishSpawnData("fish_05/", 15, 0.05f, 25, 0.1f, 3, 160f, 0.7f));
@@ -41,8 +41,8 @@ public class ThirdLevel extends BasicLevel {
 
     @Override
     public boolean checkLoseCondition(int currentScore, float timeRemaining, int lives) {
-        // Програш якщо закінчився час і не досягнуто ціль
-        return timeRemaining <= 0 && currentScore < targetScore;
+        // Програш якщо закінчився час і не досягнуто ціль або закінчились життя (завжди програш при отриманні урону)
+        return lives < 0 || (timeRemaining <= 0 && currentScore < targetScore);
     }
 
     @Override

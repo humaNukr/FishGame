@@ -17,11 +17,11 @@ import com.badlogic.gdx.utils.ObjectMap;
 public class BasicLevel extends ApplicationAdapter {
     // Налаштування рівня
     protected int levelNumber;
-    protected String levelName;
     protected float timeLimit;
     protected int targetScore;
     protected int targetFishCount; // Кількість риб для перемоги
     protected int maxFishCount;
+    protected int livesCount; // Кількість життів на рівні
     protected boolean isCompleted;
     protected boolean isFailed;
 
@@ -61,7 +61,7 @@ public class BasicLevel extends ApplicationAdapter {
     // Додаткові змінні
     private BitmapFont font;
     private int score = 0;
-    private int lives = 3;
+    private int lives = 3; // Поточні життя гравця
     private PauseMenu pauseMenu;
     private boolean isPaused = false;
     private Vector3 tempVector;
@@ -69,19 +69,19 @@ public class BasicLevel extends ApplicationAdapter {
     // Додаткові змінні для нової системи
     private Array<String> unlockedFishTypes; // Розблоковані типи рибок для акули
 
-    public BasicLevel(int levelNumber, String levelName) {
+    public BasicLevel(int levelNumber) {
         this.levelNumber = levelNumber;
-        this.levelName = levelName;
         this.availableFish = new Array<>();
         this.currentFishCounts = new ObjectMap<>();
         this.unlockedFishTypes = new Array<>();
         initializeLevel();
+        this.lives = this.livesCount; // Ініціалізуємо життя з налаштувань рівня
         initializeUnlockedFishTypes();
     }
 
     // Конструктор за замовчуванням для Main
     public BasicLevel() {
-        this(1, "Basic Level");
+        this(1);
     }
 
     @Override
@@ -95,6 +95,7 @@ public class BasicLevel extends ApplicationAdapter {
         // Встановлюємо параметри рівня в HUD
         int targetFish = getTargetFishCount(); // Отримуємо target з checkWinCondition
         gameHUD.setLevelParameters(timeLimit, targetFish);
+        gameHUD.setCurrentLives(lives); // Встановлюємо поточні життя
         gameHUD.resetTimer();
         
         // Оновлюємо іконки рибок згідно з поточним рівнем
@@ -138,7 +139,8 @@ public class BasicLevel extends ApplicationAdapter {
         timeLimit = 60f;
         targetScore = 200;
         targetFishCount = 15; // За замовчуванням 15 риб для перемоги
-        maxFishCount = 20;
+        maxFishCount = 15; // 15 рибок на екрані
+        livesCount = 3; // За замовчуванням 3 життя
         sharkSpeed = 200f;
         minFishSpeed = 50f;
         maxFishSpeed = 250f;
@@ -380,9 +382,6 @@ public class BasicLevel extends ApplicationAdapter {
         for (SwimmingFish fish : fishes) {
             if (!fish.isActive()) continue;
 
-            // Перевіряємо чи може акула з'їсти цей тип рибки
-            if (!canEatFishType(fish.getFishType())) continue;
-
             float fishX = fish.getX();
             float fishY = fish.getY();
             float fishWidth = fish.getWidth();
@@ -391,39 +390,77 @@ public class BasicLevel extends ApplicationAdapter {
             float fishFrontY = fishY + fishHeight / 2;
 
             float distance = (float) Math.sqrt(Math.pow(sharkHeadX - fishFrontX, 2) + Math.pow(sharkHeadY - fishFrontY, 2));
-            float sharkSize = sharkWidth * sharkHeight;
-            float fishSize = fishWidth * fishHeight;
-            float SIZE_RATIO_THRESHOLD = 0.3f;
+            
+            // Перевіряємо чи є колізія взагалі
+            boolean hasCollision = distance < EATING_DISTANCE;
+            
+            if (hasCollision) {
+                // Обчислюємо відносні розміри
+                float sharkSize = sharkWidth * sharkHeight;
+                float fishSize = fishWidth * fishHeight;
+                float sizeRatio = fishSize / sharkSize;
+                
+                // Логіка залежно від розміру рибки відносно акули
+                if (sizeRatio < 0.3f) {
+                    // МАЛЕНЬКА РИБКА - акула її їсть (тільки якщо тип розблокований)
+                    if (canEatFishType(fish.getFishType())) {
+                        eatFish(fish, fishFrontX, fishFrontY);
+                    }
+                } else if (sizeRatio > 0.7f) {
+                    // ВЕЛИКА РИБКА - віднімає життя
+                    takeDamage(fish, fishFrontX, fishFrontY);
+                }
+                // СЕРЕДНЯ РИБКА (0.3f <= sizeRatio <= 0.7f) - просто проходить повз, нічого не робимо
+            }
+        }
+    }
+    
+    private void eatFish(SwimmingFish fish, float fishX, float fishY) {
+        eatingShark.startEating();
+        fish.setActive(false);
+        gameHUD.addScore(10);
+        gameHUD.addFishEaten();
 
-            boolean collision = distance < EATING_DISTANCE && fishSize < sharkSize * SIZE_RATIO_THRESHOLD;
+        final float bloodX = fishX;
+        final float bloodY = fishY;
 
-            if (collision) {
-                eatingShark.startEating();
+        Timer.schedule(new Timer.Task() {
+            @Override
+            public void run() {
+                bloodEffect.spawn(bloodX, bloodY);
+            }
+        }, BLOOD_EFFECT_DELAY);
+
+        Timer.schedule(new Timer.Task() {
+            @Override
+            public void run() {
                 fish.setActive(false);
                 gameHUD.addScore(10);
-                gameHUD.addFishEaten();
-
-                final float bloodX = fishFrontX;
-                final float bloodY = fishFrontY;
-
-                Timer.schedule(new Timer.Task() {
-                    @Override
-                    public void run() {
-                        bloodEffect.spawn(bloodX, bloodY);
-                    }
-                }, BLOOD_EFFECT_DELAY);
-
-                Timer.schedule(new Timer.Task() {
-                    @Override
-                    public void run() {
-                        fish.setActive(false);
-                        gameHUD.addScore(10);
-                    }
-                }, EATING_FRAME_DELAY);
-                
-                // Оновлюємо розблоковані типи після з'їдання рибки
-                updateUnlockedFishTypes();
             }
+        }, EATING_FRAME_DELAY);
+        
+        // Оновлюємо розблоковані типи після з'їдання рибки
+        updateUnlockedFishTypes();
+    }
+    
+    private void takeDamage(SwimmingFish fish, float fishX, float fishY) {
+        // Віднімаємо життя
+        lives--;
+        
+        // Оновлюємо життя в HUD
+        if (gameHUD != null) {
+            gameHUD.setCurrentLives(lives);
+        }
+        
+        // Ефект крові при отриманні урону
+        bloodEffect.spawn(fishX, fishY);
+        
+        // "Відштовхуємо" рибку щоб уникнути повторного урону
+        fish.setActive(false);
+        
+        // Якщо життя закінчились - програш
+        if (lives <= 0) {
+            isFailed = true;
         }
     }
     
@@ -493,13 +530,14 @@ public class BasicLevel extends ApplicationAdapter {
         createInitialFishes();
 
         score = 0;
-        lives = 3;
+        lives = livesCount; // Скидаємо до кількості життів рівня
         sharkX = (scrollingBackground.getWorldWidth() - sharkWidth) / 2f;
         sharkY = (scrollingBackground.getWorldHeight() - sharkHeight) / 2f;
         rotation = 0f;
 
         gameHUD.setCurrentGameLevel(levelNumber);
         gameHUD.setLevelParameters(timeLimit, targetFishCount);
+        gameHUD.setCurrentLives(lives); // Оновлюємо життя в HUD
         gameHUD.resetTimer();
         gameHUD.updateLevelFishIcons(availableFish);
         
@@ -603,10 +641,11 @@ public class BasicLevel extends ApplicationAdapter {
 
     // Геттери
     public int getLevelNumber() { return levelNumber; }
-    public String getLevelName() { return levelName; }
     public float getTimeLimit() { return timeLimit; }
     public int getTargetScore() { return targetScore; }
     public int getMaxFishCount() { return maxFishCount; }
+    public int getLivesCount() { return livesCount; }
+    public int getCurrentLives() { return lives; }
     public float getSharkSpeed() { return sharkSpeed; }
     public boolean isCompleted() { return isCompleted; }
     public boolean isFailed() { return isFailed; }
