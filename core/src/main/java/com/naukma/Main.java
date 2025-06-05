@@ -82,7 +82,6 @@ public class Main extends ApplicationAdapter {
             currentLevel.dispose();
         }
 
-        // Створюємо новий рівень через поліморфізм
         currentLevel = levelManager.createLevel(levelNumber);
         currentLevel.create();
     }

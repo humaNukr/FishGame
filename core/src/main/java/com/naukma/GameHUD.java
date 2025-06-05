@@ -615,6 +615,10 @@ public class GameHUD {
         this.gameTimer = timer;
     }
 
+    public float getHudHeight() {
+        return hudHeight;
+    }
+
     public void dispose() {
         titleFont.dispose();
         scoreFont.dispose();

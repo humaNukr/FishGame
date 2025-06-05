@@ -26,10 +26,16 @@ public class SwimmingFish {
         width = frames.get(0).getWidth() * scale;
         height = frames.get(0).getHeight() * scale;
 
+        // Зберігаємо інформацію про тип рибки
+        this.fishType = framesPath;
 
         // Отримуємо розміри світу
         worldWidth = Gdx.graphics.getWidth();
         worldHeight = Gdx.graphics.getHeight() * 3.0f;
+        
+        // За замовчуванням видима область = світ
+        visibleMinY = 0;
+        visibleMaxY = worldHeight;
 
         isActive = true;
     }
@@ -41,12 +47,18 @@ public class SwimmingFish {
 
         respawn();
     }
+    
+    // Новий метод для встановлення видимих меж (без HUD)
+    public void setVisibleBounds(float minY, float maxY) {
+        this.visibleMinY = minY;
+        this.visibleMaxY = maxY;
+    }
 
     public void respawn() {
         movingRight = MathUtils.randomBoolean();
 
-        // Випадковий Y по всій висоті світу
-        y = MathUtils.random(height, worldHeight - height);
+        // Спавн тільки у видимій області (без HUD)
+        y = MathUtils.random(visibleMinY + height, visibleMaxY - height);
 
         if (movingRight) {
             x = -width * 2;
@@ -59,27 +71,65 @@ public class SwimmingFish {
         targetY = y;
         yChangeTimer = MathUtils.random(0, Y_CHANGE_INTERVAL);
     }
+    
+    // Метод для зміни типу рибки (коли вона виходить за екран)
+    public void changeType(String newFishType, int frameCount, float newSpeed, float newScale, float newFrameDuration) {
+        // Зберігаємо старі кадри для очищення
+        Array<Texture> oldFrames = new Array<>();
+        for (Texture frame : frames) {
+            oldFrames.add(frame);
+        }
+        
+        // Завантажуємо нові кадри
+        frames.clear();
+        for (int i = 0; i < frameCount; i++) {
+            if(i < 10)
+                frames.add(new Texture(Gdx.files.internal(newFishType + "frame_0" + i + ".png")));
+            else {
+                frames.add(new Texture(Gdx.files.internal(newFishType + "frame_" + i + ".png")));
+            }
+        }
+        
+        // Оновлюємо параметри
+        this.fishType = newFishType;
+        this.speed = newSpeed;
+        this.frameDuration = newFrameDuration;
+        this.frameCount = frameCount;
+        
+        // Оновлюємо розміри
+        width = frames.get(0).getWidth() * newScale;
+        height = frames.get(0).getHeight() * newScale;
+        
+        // Очищуємо старі текстури
+        for (Texture frame : oldFrames) {
+            frame.dispose();
+        }
+        
+        // Респавнимо з новими параметрами
+        respawn();
+    }
 
-    public void update(float delta) {
+    public void update(float deltaTime) {
         if (!isActive) return;
 
-        stateTime += delta;
-        yChangeTimer += delta;
+        stateTime += deltaTime;
+        yChangeTimer += deltaTime;
 
         if (yChangeTimer >= Y_CHANGE_INTERVAL) {
-            targetY = MathUtils.random(height, worldHeight - height);
+            // Обмежуємо цільовий Y видимими межами
+            targetY = MathUtils.random(visibleMinY + height, visibleMaxY - height);
             yChangeTimer = 0;
         }
 
         float yDiff = targetY - y;
         if (Math.abs(yDiff) > 1) {
-            y += Math.signum(yDiff) * speed * 0.3f * delta;
+            y += Math.signum(yDiff) * speed * 0.3f * deltaTime;
         }
 
         if (movingRight) {
-            x += speed * delta;
+            x += speed * deltaTime;
         } else {
-            x -= speed * delta;
+            x -= speed * deltaTime;
         }
 
         if ((movingRight && x > worldWidth + width * 2) ||
@@ -128,8 +178,6 @@ public class SwimmingFish {
         this.x = x;
         this.y = y;
     }
-    private String fishType;
-
 
     public void setFishType(String fishType) {
         this.fishType = fishType;
@@ -170,4 +218,6 @@ public class SwimmingFish {
     private static final float Y_CHANGE_INTERVAL = 3f;
 
     private float worldWidth, worldHeight;
+    private float visibleMinY, visibleMaxY; // Видимі межі для спавну
+    private String fishType; // Тип рибки (шлях до папки)
 }

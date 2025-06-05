@@ -20,15 +20,15 @@ public class FirstLevel extends BasicLevel {
         minFishScale = 0.1f;
         maxFishScale = 1f;
 
-
+// дуже маленькі швидкі рибки з швидкістю 200 і розміром 0.2
+        availableFish.add(new FishSpawnData("fish_04/", 15, 0.05f, 15, 0.111f, 5, 250f, 0.2f));
         // 5 середніх рибок з швидкістю 150 і розміром 0.6
         availableFish.add(new FishSpawnData("fish_05/", 15, 0.05f, 10, 0.1f, 3, 150f, 0.6f));
 
         // 2 великі рибки з швидкістю 80 і розміром 0.9 (повільні, великі, але цінні)
         availableFish.add(new FishSpawnData("fish_02/", 15, 0.16f, 20, 0.1f, 2, 80f, 0.9f));
 
-        // дуже маленькі швидкі рибки з швидкістю 200 і розміром 0.2
-        availableFish.add(new FishSpawnData("fish_04/", 15, 0.05f, 15, 0.111f, 5, 250f, 0.2f));
+        
     }
 
     @Override

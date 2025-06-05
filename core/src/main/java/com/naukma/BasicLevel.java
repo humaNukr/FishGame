@@ -65,13 +65,18 @@ public class BasicLevel extends ApplicationAdapter {
     private PauseMenu pauseMenu;
     private boolean isPaused = false;
     private Vector3 tempVector;
+    
+    // Додаткові змінні для нової системи
+    private Array<String> unlockedFishTypes; // Розблоковані типи рибок для акули
 
     public BasicLevel(int levelNumber, String levelName) {
         this.levelNumber = levelNumber;
         this.levelName = levelName;
         this.availableFish = new Array<>();
         this.currentFishCounts = new ObjectMap<>();
+        this.unlockedFishTypes = new Array<>();
         initializeLevel();
+        initializeUnlockedFishTypes();
     }
 
     // Конструктор за замовчуванням для Main
@@ -119,6 +124,13 @@ public class BasicLevel extends ApplicationAdapter {
 
         // Вектор для перетворення координат
         tempVector = new Vector3();
+
+        // Додаткові змінні для нової системи
+        unlockedFishTypes = new Array<>();
+        updateUnlockedFishTypes();
+        
+        // Встановлюємо видимі межі для всіх рибок (без HUD зверху)
+        setVisibleBoundsForAllFish();
     }
 
     protected void initializeLevel() {
@@ -144,11 +156,14 @@ public class BasicLevel extends ApplicationAdapter {
             // Якщо немає налаштованих рибок, створюємо стандартні
             createStandardFishes();
         } else {
-            // Створюємо рибок з налаштувань рівня
+            // Створюємо рибок з налаштувань рівня (тільки доступні типи)
             for (int i = 0; i < maxFishCount; i++) {
-                createRandomFish();
+                createRandomLevelFish();
             }
         }
+        
+        // Після створення рибок встановлюємо їм видимі межі
+        updateVisibleBoundsForAllFish();
     }
 
     private void createStandardFishes() {
@@ -168,14 +183,17 @@ public class BasicLevel extends ApplicationAdapter {
         }
     }
 
-    private void createRandomFish() {
-        FishSpawnData fishData = getRandomFish();
+    private void createRandomLevelFish() {
+        // Створюємо рибку тільки з доступних типів для цього рівня
+        if (availableFish.size == 0) return;
+        
+        FishSpawnData fishData = availableFish.random();
         if (fishData != null) {
-            createFishFromData(fishData);
+            createFishFromDataWithBounds(fishData);
         }
     }
 
-    private void createFishFromData(FishSpawnData fishData) {
+    private void createFishFromDataWithBounds(FishSpawnData fishData) {
         float speed = getFishSpeed(fishData);
         float scale = getFishScale(fishData);
 
@@ -189,6 +207,10 @@ public class BasicLevel extends ApplicationAdapter {
         );
 
         fish.setWorldBounds(scrollingBackground.getWorldWidth(), scrollingBackground.getWorldHeight());
+        
+        // Встановлюємо видимі межі після створення gameHUD
+        updateFishVisibleBounds(fish);
+        
         fishes.add(fish);
         addFish(fishData.path);
     }
@@ -200,6 +222,10 @@ public class BasicLevel extends ApplicationAdapter {
 
         SwimmingFish fish = new SwimmingFish(path, frameCount, true, speed, scale, frameDuration);
         fish.setWorldBounds(scrollingBackground.getWorldWidth(), scrollingBackground.getWorldHeight());
+        
+        // Встановлюємо видимі межі
+        updateFishVisibleBounds(fish);
+        
         fishes.add(fish);
     }
 
@@ -307,9 +333,11 @@ public class BasicLevel extends ApplicationAdapter {
         for (SwimmingFish fish : fishes) {
             fish.update(deltaTime);
 
+            // Якщо рибка вийшла за межі екрану, змінюємо її тип та параметри
             if (!fish.isActive() && fishes.size < maxFishCount) {
                 if (availableFish.size > 0) {
-                    createRandomFish();
+                    // Змінюємо тип рибки на випадковий з доступних для рівня
+                    changeFinishedFishToNewType(fish);
                 } else {
                     // Стандартна логіка створення рибок
                     String randomPath = "fish_0" + (MathUtils.random(8) + 1) + "/";
@@ -320,8 +348,21 @@ public class BasicLevel extends ApplicationAdapter {
 
         // Видаляємо неактивних рибок
         for (int i = fishes.size - 1; i >= 0; i--) {
-            if (!fishes.get(i).isActive()) {
-                fishes.removeIndex(i);
+            SwimmingFish fish = fishes.get(i);
+            if (!fish.isActive()) {
+                // Перевіряємо чи рибка за межами екрану та намагаємося її перетворити
+                if (fish.getX() < -fish.getWidth() * 3 || fish.getX() > scrollingBackground.getWorldWidth() + fish.getWidth() * 3) {
+                    // Змінюємо тип замість видалення
+                    if (availableFish.size > 0) {
+                        changeFinishedFishToNewType(fish);
+                    } else {
+                        fish.dispose();
+                        fishes.removeIndex(i);
+                    }
+                } else {
+                    fish.dispose();
+                    fishes.removeIndex(i);
+                }
             }
         }
     }
@@ -338,6 +379,9 @@ public class BasicLevel extends ApplicationAdapter {
 
         for (SwimmingFish fish : fishes) {
             if (!fish.isActive()) continue;
+
+            // Перевіряємо чи може акула з'їсти цей тип рибки
+            if (!canEatFishType(fish.getFishType())) continue;
 
             float fishX = fish.getX();
             float fishY = fish.getY();
@@ -376,8 +420,16 @@ public class BasicLevel extends ApplicationAdapter {
                         gameHUD.addScore(10);
                     }
                 }, EATING_FRAME_DELAY);
+                
+                // Оновлюємо розблоковані типи після з'їдання рибки
+                updateUnlockedFishTypes();
             }
         }
+    }
+    
+    // Метод для перевірки чи може акула з'їсти цей тип рибки
+    private boolean canEatFishType(String fishType) {
+        return unlockedFishTypes.contains(fishType, false);
     }
 
     private void handleInput(float delta) {
@@ -450,6 +502,11 @@ public class BasicLevel extends ApplicationAdapter {
         gameHUD.setLevelParameters(timeLimit, targetFishCount);
         gameHUD.resetTimer();
         gameHUD.updateLevelFishIcons(availableFish);
+        
+        // Оновлюємо розблоковані типи та видимі межі після ресету
+        initializeUnlockedFishTypes();
+        updateVisibleBoundsForAllFish();
+        
         isCompleted = false;
         isFailed = false;
     }
@@ -574,5 +631,69 @@ public class BasicLevel extends ApplicationAdapter {
     
     public int getTargetFishCount() {
         return targetFishCount;
+    }
+
+    private void initializeUnlockedFishTypes() {
+        // На початку акула може їсти тільки перший тип рибок рівня
+        unlockedFishTypes.clear();
+        if (availableFish.size > 0) {
+            unlockedFishTypes.add(availableFish.get(0).path);
+        }
+    }
+
+    private void updateUnlockedFishTypes() {
+        // Оновлюємо доступні типи рибок на основі рівня акули
+        unlockedFishTypes.clear();
+        
+        // Акула може їсти стільки типів, скільки у неї рівень (максимум 3)
+        int sharkLevel = gameHUD != null ? gameHUD.getSharkLevel() : 1;
+        int maxUnlockableTypes = Math.min(sharkLevel, availableFish.size);
+        
+        for (int i = 0; i < maxUnlockableTypes; i++) {
+            if (i < availableFish.size) {
+                unlockedFishTypes.add(availableFish.get(i).path);
+            }
+        }
+    }
+    
+    private void setVisibleBoundsForAllFish() {
+        // Обчислюємо видимі межі (від 0 до висоти екрану мінус HUD)
+        float screenHeight = Gdx.graphics.getHeight();
+        float visibleMinY = 0f;
+        float visibleMaxY = gameHUD != null ? screenHeight - gameHUD.getHudHeight() : screenHeight;
+        
+        // Встановлюємо межі для всіх існуючих рибок
+        for (SwimmingFish fish : fishes) {
+            fish.setVisibleBounds(visibleMinY, visibleMaxY);
+        }
+    }
+
+    private void changeFinishedFishToNewType(SwimmingFish fish) {
+        // Вибираємо випадковий тип з доступних для рівня
+        FishSpawnData newFishData = availableFish.random();
+        if (newFishData != null) {
+            float newSpeed = getFishSpeed(newFishData);
+            float newScale = getFishScale(newFishData);
+            
+            // Змінюємо тип рибки
+            fish.changeType(newFishData.path, newFishData.frameCount, newSpeed, newScale, newFishData.frameDuration);
+            
+            // Встановлюємо видимі межі
+            updateFishVisibleBounds(fish);
+        }
+    }
+
+    private void updateFishVisibleBounds(SwimmingFish fish) {
+        if (gameHUD != null) {
+            float visibleMinY = 0f;
+            float visibleMaxY = Gdx.graphics.getHeight() - gameHUD.getHudHeight();
+            fish.setVisibleBounds(visibleMinY, visibleMaxY);
+        }
+    }
+    
+    private void updateVisibleBoundsForAllFish() {
+        for (SwimmingFish fish : fishes) {
+            updateFishVisibleBounds(fish);
+        }
     }
 }
