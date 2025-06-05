@@ -225,7 +225,7 @@ public class MainMenu {
 
     private void handleSelection(int itemIndex) {
         switch (itemIndex) {
-            case 0: // START GAME
+            case 0:
                 if (selectedLevel >= 0) { // Перевіряємо, чи обрано рівень
                     isActive = false;
                 }
