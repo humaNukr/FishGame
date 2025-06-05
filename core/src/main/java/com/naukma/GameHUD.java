@@ -112,8 +112,6 @@ public class GameHUD {
     }
 
     private void initializeFonts() {
-        // Поки що використовуємо стандартний шрифт, але з більшими розмірами
-        // Для TTF потрібно додати FreeType dependency в build.gradle
 
         titleFont = new BitmapFont();
         titleFont.getData().setScale(titleFontScale * 1.2f); // Збільшуємо ще більше
