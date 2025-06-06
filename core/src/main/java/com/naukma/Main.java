@@ -46,6 +46,20 @@ public class Main extends ApplicationAdapter {
                     basicLevel.resetReturnToMainMenuFlag();
                     return;
                 }
+                
+                // Перевіряємо Game Over меню
+                if (basicLevel.shouldReturnToMainMenuFromGameOver()) {
+                    showingMenu = true;
+                    mainMenu.setActive(true);
+                    basicLevel.resetGameOverFlags();
+                    return;
+                }
+                
+                // Перевіряємо вихід з гри
+                if (basicLevel.shouldExitGameFromGameOver()) {
+                    Gdx.app.exit();
+                    return;
+                }
             }
 
             // Перевіряємо умови завершення рівня
@@ -97,12 +111,6 @@ public class Main extends ApplicationAdapter {
                 showingMenu = true;
                 mainMenu.setActive(true);
             }
-        }
-
-        if (currentLevel.isFailed()) {
-            // Можна додати логіку рестарту або повернення до меню
-            // Поки що просто рестартуємо рівень
-            currentLevel.resetGame();
         }
     }
 

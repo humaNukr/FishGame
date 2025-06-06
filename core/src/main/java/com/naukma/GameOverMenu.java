@@ -20,12 +20,13 @@ public class GameOverMenu {
     private Texture buttonHoverTexture;
     private Texture overlayTexture;
 
-    private String[] menuItems = {"Restart", "Exit Game"};
+    private String[] menuItems = {"Restart", "Main Menu", "Exit Game"};
     private Rectangle[] buttonBounds;
     private int selectedItem = 0;
     private boolean isActive = false;
     private boolean shouldReturnToMainMenu = false;
     private boolean shouldRestart = false;
+    private boolean shouldExitGame = false;
 
     private String gameOverReason = "Game Over!";
 
@@ -169,8 +170,12 @@ public class GameOverMenu {
                 shouldRestart = true;
                 isActive = false;
                 break;
-            case 1: // Exit Game
+            case 1: // Main Menu
                 shouldReturnToMainMenu = true;
+                isActive = false;
+                break;
+            case 2: // Exit Game
+                shouldExitGame = true;
                 isActive = false;
                 break;
         }
@@ -264,6 +269,7 @@ public class GameOverMenu {
             selectedItem = 0; // Скидаємо на першу позицію при відкритті
             shouldReturnToMainMenu = false; // Скидаємо флаг
             shouldRestart = false; // Скидаємо флаг рестарту
+            shouldExitGame = false; // Скидаємо флаг виходу
             initializeButtonBounds(); // Оновлюємо межі кнопок
         }
     }
@@ -276,9 +282,14 @@ public class GameOverMenu {
         return shouldRestart;
     }
 
+    public boolean shouldExitGame() {
+        return shouldExitGame;
+    }
+
     public void resetFlags() {
         shouldReturnToMainMenu = false;
         shouldRestart = false;
+        shouldExitGame = false;
     }
 
     public void setGameOverReason(String reason) {

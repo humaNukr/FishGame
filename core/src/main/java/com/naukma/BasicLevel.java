@@ -13,6 +13,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.ObjectMap;
+import com.badlogic.gdx.graphics.Pixmap;
 
 public class BasicLevel extends ApplicationAdapter {
     // Налаштування рівня
@@ -60,10 +61,16 @@ public class BasicLevel extends ApplicationAdapter {
 
     // Додаткові змінні
     private BitmapFont font;
+    private Texture whitePixel; // Білий піксель для фонів
     private int score = 0;
     private int lives = 3; // Поточні життя гравця
     private PauseMenu pauseMenu;
+    private GameOverMenu gameOverMenu;
     private boolean isPaused = false;
+    private boolean isGameOver = false;
+    private boolean showGameOverEffect = false;
+    private float gameOverEffectTimer = 0f;
+    private static final float GAME_OVER_EFFECT_DURATION = 2f; // 2 секунди
     private Vector3 tempVector;
     
     // Додаткові змінні для нової системи
@@ -104,6 +111,7 @@ public class BasicLevel extends ApplicationAdapter {
         scrollingBackground = new ScrollingBackground("output.jpg");
         shark = new Texture(Gdx.files.internal("shark/frame_00.png"));
         pauseMenu = new PauseMenu();
+        gameOverMenu = new GameOverMenu();
         fishes = new Array<>();
         eatingShark = new EatingShark();
         swimmingShark = new SwimmingShark();
@@ -122,6 +130,13 @@ public class BasicLevel extends ApplicationAdapter {
         font = new BitmapFont();
         font.getData().setScale(2);
         font.setColor(Color.WHITE);
+
+        // Створюємо білий піксель для фонів
+        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.WHITE);
+        pixmap.fill();
+        whitePixel = new Texture(pixmap);
+        pixmap.dispose();
 
         // Вектор для перетворення координат
         tempVector = new Vector3();
@@ -241,12 +256,14 @@ public class BasicLevel extends ApplicationAdapter {
     @Override
     public void render() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            isPaused = !isPaused;
-            pauseMenu.setActive(isPaused);
+            if (!isGameOver && !showGameOverEffect) {
+                isPaused = !isPaused;
+                pauseMenu.setActive(isPaused);
+            }
             return;
         }
 
-        if (!isPaused) {
+        if (!isPaused && !isGameOver && !showGameOverEffect) {
             handleInput(Gdx.graphics.getDeltaTime());
             eatingShark.update(Gdx.graphics.getDeltaTime());
             bloodEffect.update(Gdx.graphics.getDeltaTime());
@@ -258,8 +275,12 @@ public class BasicLevel extends ApplicationAdapter {
             updateFishes(Gdx.graphics.getDeltaTime());
             updateLevelLogic(Gdx.graphics.getDeltaTime(), sharkX, sharkY);
             checkLevelConditions();
-        } else {
+        } else if (isPaused) {
             handlePauseMenu();
+        } else if (showGameOverEffect) {
+            updateGameOverEffect(Gdx.graphics.getDeltaTime());
+        } else if (isGameOver) {
+            handleGameOverMenu();
         }
 
         renderGame();
@@ -322,13 +343,63 @@ public class BasicLevel extends ApplicationAdapter {
         // Перемикаємося на стандартну проекцію для HUD
         batch.setProjectionMatrix(batch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
 
-        if (isPaused) {
+        if (showGameOverEffect) {
+            renderGameOverEffect(batch);
+        } else if (isGameOver) {
+            gameOverMenu.render(batch);
+        } else if (isPaused) {
             pauseMenu.render(batch);
         } else {
             gameHUD.update(Gdx.graphics.getDeltaTime());
         }
-        gameHUD.render(batch);
+        
+        // Рендеримо HUD тільки якщо не Game Over
+        if (!showGameOverEffect && !isGameOver) {
+            gameHUD.render(batch);
+        }
+        
         batch.end();
+    }
+
+    private void renderGameOverEffect(SpriteBatch batch) {
+        // Створюємо правильний темний фон
+        batch.end(); // Закінчуємо поточний batch
+        
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        Gdx.gl.glClearColor(0f, 0f, 0f, 0.7f);
+        
+        // Малюємо напівпрозорий прямокутник поверх усього
+        batch.begin();
+        batch.setColor(0f, 0f, 0f, 0.7f);
+        // Створюємо простий прямокутник для фону
+        batch.draw(whitePixel, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        batch.setColor(Color.WHITE); // Відновлюємо колір
+        
+        // Анімований текст Game Over
+        float alpha = (float) (Math.sin(gameOverEffectTimer * 6) * 0.3f + 0.7f);
+        float scale = 1f + (float) (Math.sin(gameOverEffectTimer * 4) * 0.1f);
+
+        String gameOverText = "GAME OVER";
+        font.getData().setScale(4f * scale);
+        
+        // Обчислюємо позицію по центру екрану
+        float screenCenterX = Gdx.graphics.getWidth() / 2f;
+        float screenCenterY = Gdx.graphics.getHeight() / 2f;
+        
+        // Малюємо тінь
+        font.setColor(0f, 0f, 0f, alpha * 0.8f);
+        font.draw(batch, gameOverText, screenCenterX - 145, screenCenterY - 5);
+        
+        // Малюємо основний текст
+        font.setColor(1f, 0.2f, 0.2f, alpha);
+        font.draw(batch, gameOverText, screenCenterX - 150, screenCenterY);
+        
+        // Відновлюємо стандартний розмір шрифту
+        font.getData().setScale(2f);
+        font.setColor(Color.WHITE);
+        
+        // Логіка переходу до меню обробляється в updateGameOverEffect()
     }
 
     private void updateFishes(float deltaTime) {
@@ -458,10 +529,17 @@ public class BasicLevel extends ApplicationAdapter {
         // "Відштовхуємо" рибку щоб уникнути повторного урону
         fish.setActive(false);
         
-        // Якщо життя закінчились - програш
+        // Якщо життя закінчились - запускаємо Game Over ефект
         if (lives <= 0) {
-            isFailed = true;
+            triggerGameOver("Out of Lives!");
         }
+    }
+    
+    private void triggerGameOver(String reason) {
+        showGameOverEffect = true;
+        gameOverEffectTimer = 0f;
+        gameOverMenu.setGameOverReason(reason);
+        // Після закінчення ефекту буде показано меню
     }
     
     // Метод для перевірки чи може акула з'їсти цей тип рибки
@@ -516,8 +594,7 @@ public class BasicLevel extends ApplicationAdapter {
         }
 
         if (checkLoseCondition(gameHUD.getScore(), timeRemaining, lives)) {
-            isFailed = true;
-            // Можна додати логіку кінця гри
+            triggerGameOver("Time's Up!");
         }
     }
 
@@ -545,6 +622,12 @@ public class BasicLevel extends ApplicationAdapter {
         initializeUnlockedFishTypes();
         updateVisibleBoundsForAllFish();
         
+        // Скидаємо стани Game Over
+        isGameOver = false;
+        showGameOverEffect = false;
+        gameOverEffectTimer = 0f;
+        gameOverMenu.setActive(false);
+        
         isCompleted = false;
         isFailed = false;
     }
@@ -554,11 +637,13 @@ public class BasicLevel extends ApplicationAdapter {
         batch.dispose();
         scrollingBackground.dispose();
         shark.dispose();
+        whitePixel.dispose();
         for (SwimmingFish fish : fishes) {
             fish.dispose();
         }
         font.dispose();
         pauseMenu.dispose();
+        gameOverMenu.dispose();
         eatingShark.dispose();
         bloodEffect.dispose();
         gameHUD.dispose();
@@ -582,6 +667,25 @@ public class BasicLevel extends ApplicationAdapter {
 
     public boolean checkLoseCondition(int currentScore, float timeRemaining, int lives) {
         return timeRemaining <= 0 && currentScore < targetScore;
+    }
+    
+    // Методи для роботи з Game Over
+    public boolean isInGameOver() {
+        return isGameOver;
+    }
+    
+    public boolean shouldReturnToMainMenuFromGameOver() {
+        return gameOverMenu != null && gameOverMenu.shouldReturnToMainMenu();
+    }
+    
+    public boolean shouldExitGameFromGameOver() {
+        return gameOverMenu != null && gameOverMenu.shouldExitGame();
+    }
+    
+    public void resetGameOverFlags() {
+        if (gameOverMenu != null) {
+            gameOverMenu.resetFlags();
+        }
     }
 
     // Методи для роботи з рибками (з оригінального BasicLevel)
@@ -734,5 +838,33 @@ public class BasicLevel extends ApplicationAdapter {
         for (SwimmingFish fish : fishes) {
             updateFishVisibleBounds(fish);
         }
+    }
+
+    private void updateGameOverEffect(float deltaTime) {
+        gameOverEffectTimer += deltaTime;
+        if (gameOverEffectTimer >= GAME_OVER_EFFECT_DURATION) {
+            showGameOverEffect = false;
+            isGameOver = true;
+            gameOverMenu.setActive(true);
+            gameOverEffectTimer = 0f;
+        }
+    }
+
+    private void handleGameOverMenu() {
+        gameOverMenu.handleInput();
+
+        if (!gameOverMenu.isActive()) {
+            isGameOver = false;
+            showGameOverEffect = false;
+            resetGame();
+        }
+
+        if (gameOverMenu.shouldRestart()) {
+            resetGame();
+            isGameOver = false;
+            gameOverMenu.resetFlags();
+        }
+
+        // Логіка повернення до головного меню обробляється в Main.java
     }
 }
