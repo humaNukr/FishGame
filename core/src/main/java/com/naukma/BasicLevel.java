@@ -57,7 +57,7 @@ public class BasicLevel extends ApplicationAdapter {
     private static final float BLOOD_EFFECT_DELAY = 0.55f;
     private static final float SHARK_SCALE = 0.5f;
     private static final float EATING_DISTANCE = 75f;
-    private static final float EATING_FRAME_DELAY = 0.2f;
+    private static final float EATING_FRAME_DELAY = 0.5f;
 
     // Додаткові змінні
     private BitmapFont font;
@@ -462,28 +462,29 @@ public class BasicLevel extends ApplicationAdapter {
 
             float distance = (float) Math.sqrt(Math.pow(sharkHeadX - fishFrontX, 2) + Math.pow(sharkHeadY - fishFrontY, 2));
 
-            // Перевіряємо чи є колізія взагалі
-            boolean hasCollision = distance < EATING_DISTANCE;
+            float sharkSize = sharkWidth * sharkHeight;
+            float fishSize = fishWidth * fishHeight;
+            float sizeRatio = fishSize / sharkSize;
 
-            if (hasCollision) {
-                // Обчислюємо відносні розміри
-                float sharkSize = sharkWidth * sharkHeight;
-                float fishSize = fishWidth * fishHeight;
-                float sizeRatio = fishSize / sharkSize;
-
-                // Логіка залежно від розміру рибки відносно акули
-                if (sizeRatio < 0.3f) {
-                    // МАЛЕНЬКА РИБКА - акула її їсть (тільки якщо тип розблокований)
-                    if (canEatFishType(fish.getFishType())) {
-                        eatFish(fish, fishFrontX, fishFrontY);
-                    }
-                } else if (sizeRatio > 0.7f) {
-                    // ВЕЛИКА РИБКА - віднімає життя
+            if (sizeRatio < 0.3f) {
+                if (distance < EATING_DISTANCE && canEatFishType(fish.getFishType())) {
+                    eatFish(fish, fishFrontX, fishFrontY);
+                }
+            } else if (sizeRatio > 0.7f) {
+                if (rectsOverlap(sharkX, sharkY, sharkWidth, sharkHeight,
+                    fishX, fishY, fishWidth*0.6f, fishHeight*0.6f)) {
                     takeDamage(fish, fishFrontX, fishFrontY);
                 }
-                // СЕРЕДНЯ РИБКА (0.3f <= sizeRatio <= 0.7f) - просто проходить повз, нічого не робимо
             }
         }
+    }
+
+    private boolean rectsOverlap(float x1, float y1, float w1, float h1,
+                                 float x2, float y2, float w2, float h2) {
+        return x1 < x2 + w2 &&
+               x1 + w1 > x2 &&
+               y1 < y2 + h2 &&
+               y1 + h1 > y2;
     }
 
     private void eatFish(SwimmingFish fish, float fishX, float fishY) {
@@ -526,7 +527,7 @@ public class BasicLevel extends ApplicationAdapter {
         // Ефекти
         bloodEffect.spawn(fishX, fishY);
         fish.setActive(false);
-        
+
         // Перевіряємо чи життя стали меншими за 0 (тобто -1)
         if (lives < 0) {
             triggerGameOver("Out of Lives!");
