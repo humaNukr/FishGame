@@ -11,7 +11,6 @@ public class Lwjgl3Launcher {
         config.useVsync(true);
         config.setForegroundFPS(60);
         config.setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode());
-
         new Lwjgl3Application(new Main(), config);
     }
 }

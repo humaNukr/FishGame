@@ -28,17 +28,17 @@ public class FirstLevel extends BasicLevel {
         // 2 великі рибки з швидкістю 80 і розміром 0.9 (повільні, великі, але цінні)
         availableFish.add(new FishSpawnData("fish_02/", 15, 0.16f, 20, 0.1f, 2, 80f, 0.9f));
 
-    
+
     }
 
     @Override
     public boolean checkWinCondition(int currentScore, float timeRemaining, int fishEaten) {
-        return timeRemaining <= 0;
+        return currentScore >= targetScore;
     }
 
     @Override
     public boolean checkLoseCondition(int currentScore, float timeRemaining, int lives) {
-        return lives <= 0;
+        return lives < 0;
     }
 
     @Override

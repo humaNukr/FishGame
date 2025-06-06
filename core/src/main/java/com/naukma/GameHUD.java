@@ -171,7 +171,7 @@ public class GameHUD {
 
         hudBackground = new Texture(Gdx.files.internal("hud_background.png"));
         gameLogo = new Texture(Gdx.files.internal("game_logo.png"));
-        
+
         // Завантажуємо іконку сердечка з fallback
         try {
             heartIcon = new Texture(Gdx.files.internal("heart_icon.png"));
@@ -181,17 +181,17 @@ public class GameHUD {
         }
 
     }
-    
+
     private Texture createSimpleHeartTexture() {
         // Створюємо просте червоне сердечко 16x16 пікселів
         Pixmap heartPixmap = new Pixmap(16, 16, Pixmap.Format.RGBA8888);
         heartPixmap.setColor(1f, 0f, 0f, 1f); // Червоний колір
-        
+
         // Малюємо просте сердечко (пікселі)
         // Верхня частина (два кружечки)
         heartPixmap.fillCircle(5, 6, 3);
         heartPixmap.fillCircle(10, 6, 3);
-        
+
         // Нижня частина (трикутник)
         for (int y = 8; y < 14; y++) {
             int width = 14 - y;
@@ -201,7 +201,7 @@ public class GameHUD {
                 }
             }
         }
-        
+
         Texture heart = new Texture(heartPixmap);
         heartPixmap.dispose();
         return heart;
@@ -538,25 +538,15 @@ public class GameHUD {
     }
 
     private void renderLives(SpriteBatch batch) {
-        // Розміщуємо іконки життів під score з лівого боку
+
         float livesX = padding*6f;
-        float livesY = screenHeight - hudHeight/2 - padding*2f; // Під score
+        float livesY = screenHeight - hudHeight/2 + padding*1.3f;
 
-        // Рендеримо текст "Lives:" перед сердечками
-        String livesText = "Lives:";
-        glyphLayout.setText(levelFont, livesText);
-        float textX = livesX;
-        float textY = livesY + glyphLayout.height;
-        
-        drawTextWithOutline(batch, levelFont, livesText, textX, textY,
-                           new Color(1f, 0.2f, 0.2f, 1f), new Color(0f, 0f, 0f, 1f)); // Червоний з чорним контуром
-
-        // Рендеримо сердечка
-        float heartsStartX = textX + glyphLayout.width + padding/2;
+        // Рендеримо сердечка без тексту "Lives:"
         float heartSize = iconSize * 0.6f; // Трохи менші за рибки
-        
+
         for (int i = 0; i < currentLives; i++) {
-            float heartX = heartsStartX + i * (heartSize + iconSpacing/2);
+            float heartX = livesX + i * (heartSize + iconSpacing/2);
             batch.draw(heartIcon, heartX, livesY, heartSize, heartSize);
         }
     }
@@ -684,7 +674,7 @@ public class GameHUD {
     public void setCurrentLives(int lives) {
         this.currentLives = lives;
     }
-    
+
     public int getCurrentLives() {
         return currentLives;
     }

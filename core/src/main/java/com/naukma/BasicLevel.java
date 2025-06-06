@@ -72,7 +72,7 @@ public class BasicLevel extends ApplicationAdapter {
     private float gameOverEffectTimer = 0f;
     private static final float GAME_OVER_EFFECT_DURATION = 2f; // 2 секунди
     private Vector3 tempVector;
-    
+
     // Додаткові змінні для нової системи
     private Array<String> unlockedFishTypes; // Розблоковані типи рибок для акули
 
@@ -98,13 +98,13 @@ public class BasicLevel extends ApplicationAdapter {
         // Створюємо GameHUD з параметрами рівня
         gameHUD = new GameHUD();
         gameHUD.setCurrentGameLevel(levelNumber);
-        
+
         // Встановлюємо параметри рівня в HUD
         int targetFish = getTargetFishCount(); // Отримуємо target з checkWinCondition
         gameHUD.setLevelParameters(timeLimit, targetFish);
         gameHUD.setCurrentLives(lives); // Встановлюємо поточні життя
         gameHUD.resetTimer();
-        
+
         // Оновлюємо іконки рибок згідно з поточним рівнем
         gameHUD.updateLevelFishIcons(availableFish);
 
@@ -144,7 +144,7 @@ public class BasicLevel extends ApplicationAdapter {
         // Додаткові змінні для нової системи
         unlockedFishTypes = new Array<>();
         updateUnlockedFishTypes();
-        
+
         // Встановлюємо видимі межі для всіх рибок (без HUD зверху)
         setVisibleBoundsForAllFish();
     }
@@ -178,7 +178,7 @@ public class BasicLevel extends ApplicationAdapter {
                 createRandomLevelFish();
             }
         }
-        
+
         // Після створення рибок встановлюємо їм видимі межі
         updateVisibleBoundsForAllFish();
     }
@@ -203,7 +203,7 @@ public class BasicLevel extends ApplicationAdapter {
     private void createRandomLevelFish() {
         // Створюємо рибку тільки з доступних типів для цього рівня
         if (availableFish.size == 0) return;
-        
+
         FishSpawnData fishData = availableFish.random();
         if (fishData != null) {
             createFishFromDataWithBounds(fishData);
@@ -224,10 +224,10 @@ public class BasicLevel extends ApplicationAdapter {
         );
 
         fish.setWorldBounds(scrollingBackground.getWorldWidth(), scrollingBackground.getWorldHeight());
-        
+
         // Встановлюємо видимі межі після створення gameHUD
         updateFishVisibleBounds(fish);
-        
+
         fishes.add(fish);
         addFish(fishData.path);
     }
@@ -239,10 +239,10 @@ public class BasicLevel extends ApplicationAdapter {
 
         SwimmingFish fish = new SwimmingFish(path, frameCount, true, speed, scale, frameDuration);
         fish.setWorldBounds(scrollingBackground.getWorldWidth(), scrollingBackground.getWorldHeight());
-        
+
         // Встановлюємо видимі межі
         updateFishVisibleBounds(fish);
-        
+
         fishes.add(fish);
     }
 
@@ -352,53 +352,53 @@ public class BasicLevel extends ApplicationAdapter {
         } else {
             gameHUD.update(Gdx.graphics.getDeltaTime());
         }
-        
+
         // Рендеримо HUD тільки якщо не Game Over
         if (!showGameOverEffect && !isGameOver) {
             gameHUD.render(batch);
         }
-        
+
         batch.end();
     }
 
     private void renderGameOverEffect(SpriteBatch batch) {
         // Створюємо правильний темний фон
         batch.end(); // Закінчуємо поточний batch
-        
+
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         Gdx.gl.glClearColor(0f, 0f, 0f, 0.7f);
-        
+
         // Малюємо напівпрозорий прямокутник поверх усього
         batch.begin();
         batch.setColor(0f, 0f, 0f, 0.7f);
         // Створюємо простий прямокутник для фону
         batch.draw(whitePixel, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.setColor(Color.WHITE); // Відновлюємо колір
-        
+
         // Анімований текст Game Over
         float alpha = (float) (Math.sin(gameOverEffectTimer * 6) * 0.3f + 0.7f);
         float scale = 1f + (float) (Math.sin(gameOverEffectTimer * 4) * 0.1f);
 
         String gameOverText = "GAME OVER";
         font.getData().setScale(4f * scale);
-        
+
         // Обчислюємо позицію по центру екрану
         float screenCenterX = Gdx.graphics.getWidth() / 2f;
         float screenCenterY = Gdx.graphics.getHeight() / 2f;
-        
+
         // Малюємо тінь
         font.setColor(0f, 0f, 0f, alpha * 0.8f);
         font.draw(batch, gameOverText, screenCenterX - 145, screenCenterY - 5);
-        
+
         // Малюємо основний текст
         font.setColor(1f, 0.2f, 0.2f, alpha);
         font.draw(batch, gameOverText, screenCenterX - 150, screenCenterY);
-        
+
         // Відновлюємо стандартний розмір шрифту
         font.getData().setScale(2f);
         font.setColor(Color.WHITE);
-        
+
         // Логіка переходу до меню обробляється в updateGameOverEffect()
     }
 
@@ -461,16 +461,16 @@ public class BasicLevel extends ApplicationAdapter {
             float fishFrontY = fishY + fishHeight / 2;
 
             float distance = (float) Math.sqrt(Math.pow(sharkHeadX - fishFrontX, 2) + Math.pow(sharkHeadY - fishFrontY, 2));
-            
+
             // Перевіряємо чи є колізія взагалі
             boolean hasCollision = distance < EATING_DISTANCE;
-            
+
             if (hasCollision) {
                 // Обчислюємо відносні розміри
                 float sharkSize = sharkWidth * sharkHeight;
                 float fishSize = fishWidth * fishHeight;
                 float sizeRatio = fishSize / sharkSize;
-                
+
                 // Логіка залежно від розміру рибки відносно акули
                 if (sizeRatio < 0.3f) {
                     // МАЛЕНЬКА РИБКА - акула її їсть (тільки якщо тип розблокований)
@@ -485,7 +485,7 @@ public class BasicLevel extends ApplicationAdapter {
             }
         }
     }
-    
+
     private void eatFish(SwimmingFish fish, float fishX, float fishY) {
         eatingShark.startEating();
         fish.setActive(false);
@@ -509,39 +509,37 @@ public class BasicLevel extends ApplicationAdapter {
                 gameHUD.addScore(10);
             }
         }, EATING_FRAME_DELAY);
-        
+
         // Оновлюємо розблоковані типи після з'їдання рибки
         updateUnlockedFishTypes();
     }
-    
+
     private void takeDamage(SwimmingFish fish, float fishX, float fishY) {
-        // Віднімаємо життя
+        // Спочатку віднімаємо життя
         lives--;
-        
-        // Оновлюємо життя в HUD
+
+        // Оновлюємо HUD
         if (gameHUD != null) {
             gameHUD.setCurrentLives(lives);
         }
-        
-        // Ефект крові при отриманні урону
+
+        // Ефекти
         bloodEffect.spawn(fishX, fishY);
-        
-        // "Відштовхуємо" рибку щоб уникнути повторного урону
         fish.setActive(false);
         
-        // Якщо життя закінчились - запускаємо Game Over ефект
-        if (lives <= 0) {
+        // Перевіряємо чи життя стали меншими за 0 (тобто -1)
+        if (lives < 0) {
             triggerGameOver("Out of Lives!");
         }
     }
-    
+
     private void triggerGameOver(String reason) {
         showGameOverEffect = true;
         gameOverEffectTimer = 0f;
         gameOverMenu.setGameOverReason(reason);
         // Після закінчення ефекту буде показано меню
     }
-    
+
     // Метод для перевірки чи може акула з'їсти цей тип рибки
     private boolean canEatFishType(String fishType) {
         return unlockedFishTypes.contains(fishType, false);
@@ -590,10 +588,15 @@ public class BasicLevel extends ApplicationAdapter {
 
         if (checkWinCondition(gameHUD.getScore(), timeRemaining, gameHUD.getFishEaten())) {
             isCompleted = true;
-            // Можна додати логіку переходу на наступний рівень
+            return; // Виграш має пріоритет, виходимо до перевірки програшу
         }
 
-        if (checkLoseCondition(gameHUD.getScore(), timeRemaining, lives)) {
+        // Якщо не виграли, перевіряємо умови програшу
+        if (lives < 0) {
+            // Ця перевірка є в takeDamage, але залишаємо для надійності
+            triggerGameOver("Out of Lives!");
+        } else if (timeRemaining <= 0) {
+            // Якщо час вийшов і ми тут, значить, умова перемоги не виконана
             triggerGameOver("Time's Up!");
         }
     }
@@ -617,17 +620,17 @@ public class BasicLevel extends ApplicationAdapter {
         gameHUD.setCurrentLives(lives); // Оновлюємо життя в HUD
         gameHUD.resetTimer();
         gameHUD.updateLevelFishIcons(availableFish);
-        
+
         // Оновлюємо розблоковані типи та видимі межі після ресету
         initializeUnlockedFishTypes();
         updateVisibleBoundsForAllFish();
-        
+
         // Скидаємо стани Game Over
         isGameOver = false;
         showGameOverEffect = false;
         gameOverEffectTimer = 0f;
         gameOverMenu.setActive(false);
-        
+
         isCompleted = false;
         isFailed = false;
     }
@@ -666,22 +669,22 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     public boolean checkLoseCondition(int currentScore, float timeRemaining, int lives) {
-        return timeRemaining <= 0 && currentScore < targetScore;
+        return lives < 0 || (timeRemaining <= 0 && currentScore < targetScore);
     }
-    
+
     // Методи для роботи з Game Over
     public boolean isInGameOver() {
         return isGameOver;
     }
-    
+
     public boolean shouldReturnToMainMenuFromGameOver() {
         return gameOverMenu != null && gameOverMenu.shouldReturnToMainMenu();
     }
-    
+
     public boolean shouldExitGameFromGameOver() {
         return gameOverMenu != null && gameOverMenu.shouldExitGame();
     }
-    
+
     public void resetGameOverFlags() {
         if (gameOverMenu != null) {
             gameOverMenu.resetFlags();
@@ -767,11 +770,11 @@ public class BasicLevel extends ApplicationAdapter {
             pauseMenu.resetReturnFlag();
         }
     }
-    
+
     public Array<FishSpawnData> getAvailableFish() {
         return availableFish;
     }
-    
+
     public int getTargetFishCount() {
         return targetFishCount;
     }
@@ -787,24 +790,24 @@ public class BasicLevel extends ApplicationAdapter {
     private void updateUnlockedFishTypes() {
         // Оновлюємо доступні типи рибок на основі рівня акули
         unlockedFishTypes.clear();
-        
+
         // Акула може їсти стільки типів, скільки у неї рівень (максимум 3)
         int sharkLevel = gameHUD != null ? gameHUD.getSharkLevel() : 1;
         int maxUnlockableTypes = Math.min(sharkLevel, availableFish.size);
-        
+
         for (int i = 0; i < maxUnlockableTypes; i++) {
             if (i < availableFish.size) {
                 unlockedFishTypes.add(availableFish.get(i).path);
             }
         }
     }
-    
+
     private void setVisibleBoundsForAllFish() {
         // Обчислюємо видимі межі (від 0 до висоти екрану мінус HUD)
         float screenHeight = Gdx.graphics.getHeight();
         float visibleMinY = 0f;
         float visibleMaxY = gameHUD != null ? screenHeight - gameHUD.getHudHeight() : screenHeight;
-        
+
         // Встановлюємо межі для всіх існуючих рибок
         for (SwimmingFish fish : fishes) {
             fish.setVisibleBounds(visibleMinY, visibleMaxY);
@@ -817,10 +820,10 @@ public class BasicLevel extends ApplicationAdapter {
         if (newFishData != null) {
             float newSpeed = getFishSpeed(newFishData);
             float newScale = getFishScale(newFishData);
-            
+
             // Змінюємо тип рибки
             fish.changeType(newFishData.path, newFishData.frameCount, newSpeed, newScale, newFishData.frameDuration);
-            
+
             // Встановлюємо видимі межі
             updateFishVisibleBounds(fish);
         }
@@ -833,7 +836,7 @@ public class BasicLevel extends ApplicationAdapter {
             fish.setVisibleBounds(visibleMinY, visibleMaxY);
         }
     }
-    
+
     private void updateVisibleBoundsForAllFish() {
         for (SwimmingFish fish : fishes) {
             updateFishVisibleBounds(fish);

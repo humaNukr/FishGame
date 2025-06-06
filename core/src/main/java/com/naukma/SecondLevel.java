@@ -41,7 +41,7 @@ public class SecondLevel extends BasicLevel {
     @Override
     public boolean checkLoseCondition(int currentScore, float timeRemaining, int lives) {
         // Програш якщо закінчився час і не досягнуто ціль або закінчились життя
-        return lives <= 0 || (timeRemaining <= 0 && currentScore < targetScore);
+        return lives < 0 || (timeRemaining <= 0 && currentScore < targetScore);
     }
 
     @Override
