@@ -72,6 +72,7 @@ public class BasicLevel extends ApplicationAdapter {
     private float gameOverEffectTimer = 0f;
     private static final float GAME_OVER_EFFECT_DURATION = 2f; // 2 секунди
     private Vector3 tempVector;
+    private SharkSprintHandler sprintHandler;
 
     // Додаткові змінні для нової системи
     private Array<String> unlockedFishTypes; // Розблоковані типи рибок для акули
@@ -98,6 +99,7 @@ public class BasicLevel extends ApplicationAdapter {
         // Створюємо GameHUD з параметрами рівня
         gameHUD = new GameHUD();
         gameHUD.setCurrentGameLevel(levelNumber);
+        sprintHandler = new SharkSprintHandler(gameHUD, sharkSpeed);
 
         // Встановлюємо параметри рівня в HUD
         int targetFish = getTargetFishCount(); // Отримуємо target з checkWinCondition
@@ -350,7 +352,9 @@ public class BasicLevel extends ApplicationAdapter {
         } else if (isPaused) {
             pauseMenu.render(batch);
         } else {
+            sprintHandler.handleInput();
             gameHUD.update(Gdx.graphics.getDeltaTime());
+            sprintHandler.updateSpeed();
         }
 
         // Рендеримо HUD тільки якщо не Game Over
@@ -566,9 +570,10 @@ public class BasicLevel extends ApplicationAdapter {
 
         float distance = (float) Math.sqrt(dirX * dirX + dirY * dirY);
 
+        float sharkCurrentSpeed = sprintHandler.getCurrentSpeed();
         if (distance > 10) {
-            float moveX = dirX / distance * sharkSpeed * delta;
-            float moveY = dirY / distance * sharkSpeed * delta;
+            float moveX = dirX / distance * sharkCurrentSpeed * delta;
+            float moveY = dirY / distance * sharkCurrentSpeed * delta;
 
             sharkX += moveX;
             sharkY += moveY;

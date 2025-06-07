@@ -24,6 +24,9 @@ public class GameHUD {
     private float displayedProgress;
     private int fishEaten; // Кількість з'їдених рибок
     private int currentLives; // Поточні життя гравця
+    private boolean isSprintActive = false;
+    private boolean canSprint = true;
+
 
     // Current game level and timer
     private int currentGameLevel; // Поточний рівень гри (1, 2, 3...)
@@ -35,7 +38,6 @@ public class GameHUD {
     // Stamina system
     private float stamina;
     private float maxStamina;
-    private static final float STAMINA_REGENERATION_RATE = 20f; // відновлення в секунду
 
     // UI elements
     private Array<Texture> fishIcons;
@@ -74,6 +76,11 @@ public class GameHUD {
     private static final float PROGRESS_ANIMATION_SPEED = 120f;
     private static final float SCORE_ANIMATION_SPEED = 1000f;
     private static final float LEVEL_UP_EFFECT_DURATION = 3f;
+    private static final float SPRINT_DRAIN_TIME = 5f; // 5 seconds to drain completely
+    private static final float SPRINT_REGEN_TIME = 20f; // 20 seconds to regenerate completely
+    private static final float STAMINA_DRAIN_RATE = 100f / SPRINT_DRAIN_TIME; // 20 per second
+    private static final float STAMINA_REGENERATION_RATE = 100f / SPRINT_REGEN_TIME; // 5 per second
+    private static final float SPRINT_SPEED_MULTIPLIER = 1.3f; // 30% speed increase
 
     // Screen size ratios for adaptive design
     private static final float HUD_HEIGHT_RATIO = 0.15f;
@@ -273,7 +280,7 @@ public class GameHUD {
         // Update progress animation
         if (displayedProgress < experienceProgress) {
             displayedProgress = Math.min(displayedProgress + PROGRESS_ANIMATION_SPEED * deltaTime,
-                    experienceProgress);
+                experienceProgress);
         }
 
         // Update level up effect
@@ -284,7 +291,7 @@ public class GameHUD {
             }
         }
 
-                // Update game timer (відлік від максимального до 0)
+        // Update game timer
         if (timerActive && gameTimer > 0) {
             gameTimer -= deltaTime;
             if (gameTimer < 0) {
@@ -292,11 +299,34 @@ public class GameHUD {
             }
         }
 
-        // Update stamina regeneration
-        if (stamina < maxStamina) {
-            stamina = Math.min(maxStamina, stamina + STAMINA_REGENERATION_RATE * deltaTime);
+        // Update stamina system
+        updateStaminaSystem(deltaTime);
+    }
+
+    // New method to handle stamina system
+    private void updateStaminaSystem(float deltaTime) {
+        if (isSprintActive && stamina > 0) {
+            // Drain stamina while sprinting
+            stamina = Math.max(0, stamina - STAMINA_DRAIN_RATE * deltaTime);
+
+            // Stop sprinting if stamina runs out
+            if (stamina <= 0) {
+                isSprintActive = false;
+                canSprint = false;
+            }
+        } else {
+            // Regenerate stamina when not sprinting
+            if (stamina < maxStamina) {
+                stamina = Math.min(maxStamina, stamina + STAMINA_REGENERATION_RATE * deltaTime);
+
+                // Allow sprinting again once we have some stamina
+                if (stamina > 0) {
+                    canSprint = true;
+                }
+            }
         }
     }
+
 
     public void render(SpriteBatch batch) {
         // Check if screen size changed and update accordingly
@@ -677,6 +707,29 @@ public class GameHUD {
 
     public int getCurrentLives() {
         return currentLives;
+    }
+
+    // Methods to control sprint state
+    public void startSprint() {
+        if (canSprint && stamina > 0) {
+            isSprintActive = true;
+        }
+    }
+
+    public void stopSprint() {
+        isSprintActive = false;
+    }
+
+    public boolean isSprintActive() {
+        return isSprintActive;
+    }
+
+    public float getSpeedMultiplier() {
+        return isSprintActive ? SPRINT_SPEED_MULTIPLIER : 1.0f;
+    }
+
+    public boolean canSprint() {
+        return canSprint && stamina > 0;
     }
 
     public void dispose() {
