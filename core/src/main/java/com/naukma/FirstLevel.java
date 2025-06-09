@@ -12,7 +12,7 @@ public class FirstLevel extends BasicLevel {
     protected void initializeLevel() {
         timeLimit = 90f; // Збільшуємо час оскільки треба з'їсти більше риб
         targetScore = -1; // Відключаємо цільовий рахунок - рахунок може бути нескінченно великим
-        targetFishCount = 25; // Загалом треба з'їсти 25 риб (20+3+2)
+        targetFishCount = -1; // Не показуємо цільову кількість риб в HUD
         maxFishCount = 15; // 15 рибок на екрані
         livesCount = 3; // 3 життя на першому рівні
         sharkSpeed = 200f;
@@ -33,17 +33,37 @@ public class FirstLevel extends BasicLevel {
     }
 
     @Override
+    protected int getFishUnlockRequirement(int fishTypeIndex) {
+        // Переозначаємо вимоги для першого рівня
+        switch (fishTypeIndex) {
+            case 0: return 20; // Після 20 перших риб (fish_04/) розблоковується другий тип (fish_05/)
+            case 1: return 3;  // Після 3 других риб (fish_05/) розблоковується третій тип (fish_02/)
+            case 2: return 2;  // Після 2 третіх риб (fish_02/) - перемога
+            default: return 5;
+        }
+    }
+
+    @Override
     public boolean checkWinCondition(int currentScore, float timeRemaining, int fishEaten) {
-        // Перевіряємо кількість з'їдених риб кожного типу
-        int fish04Eaten = getEatenFishCount("fish_04/"); // Перші маленькі рибки
-        int fish05Eaten = getEatenFishCount("fish_05/"); // Середні рибки  
-        int fish02Eaten = getEatenFishCount("fish_02/"); // Великі рибки
+        // Перемога тільки коли акула досягла 3-го рівня і з'їла всіх потрібних риб
+        int sharkLevel = gameHUD != null ? gameHUD.getSharkLevel() : 1;
         
-        // Перемога тільки якщо з'їли:
-        // - 20 перших риб (fish_04/)
-        // - 3 середні риби (fish_05/)
-        // - 2 великі риби (fish_02/)
-        return fish04Eaten >= 20 && fish05Eaten >= 3 && fish02Eaten >= 2;
+        if (sharkLevel < 3) {
+            return false; // Акула ще не досягла максимального рівня
+        }
+        
+        // Перевіряємо чи всі типи риб з'їдені в достатній кількості
+        for (int i = 0; i < availableFish.size; i++) {
+            String fishPath = availableFish.get(i).path;
+            int requiredCount = getFishUnlockRequirement(i);
+            int eatenCount = getEatenFishCount(fishPath);
+            
+            if (eatenCount < requiredCount) {
+                return false; // Якщо не з'їли достатньо цього типу - ще не перемога
+            }
+        }
+        
+        return true; // Акула 3-го рівня і всі типи риб з'їдені в достатній кількості
     }
 
     @Override

@@ -108,9 +108,8 @@ public class BasicLevel extends ApplicationAdapter {
         gameHUD.setCurrentGameLevel(levelNumber);
         sprintHandler = new SharkSprintHandler(gameHUD, sharkSpeed);
 
-        // Встановлюємо параметри рівня в HUD
-        int targetFish = getTargetFishCount(); // Отримуємо target з checkWinCondition
-        gameHUD.setLevelParameters(timeLimit, targetFish);
+        // Встановлюємо параметри рівня в HUD (без targetFishCount)
+        gameHUD.setLevelParameters(timeLimit, -1); // -1 означає що не показуємо цільову кількість риб
         gameHUD.setCurrentLives(lives); // Встановлюємо поточні життя
         gameHUD.resetTimer();
 
@@ -168,7 +167,7 @@ public class BasicLevel extends ApplicationAdapter {
         // За замовчуванням - базові налаштування
         timeLimit = 60f;
         targetScore = 200;
-        targetFishCount = 15; // За замовчуванням 15 риб для перемоги
+        targetFishCount = -1; // Не показуємо цільову кількість риб
         maxFishCount = 15; // 15 рибок на екрані
         livesCount = 3; // За замовчуванням 3 життя
         sharkSpeed = 200f;
@@ -673,7 +672,7 @@ public class BasicLevel extends ApplicationAdapter {
         rotation = 0f;
 
         gameHUD.setCurrentGameLevel(levelNumber);
-        gameHUD.setLevelParameters(timeLimit, targetFishCount);
+        gameHUD.setLevelParameters(timeLimit, -1); // Не показуємо цільову кількість риб
         gameHUD.setCurrentLives(lives); // Оновлюємо життя в HUD
         gameHUD.resetTimer();
         gameHUD.updateLevelFishIcons(availableFish);
@@ -882,6 +881,17 @@ public class BasicLevel extends ApplicationAdapter {
             if (i < availableFish.size) {
                 unlockedFishTypes.add(availableFish.get(i).path);
             }
+        }
+    }
+
+    // Метод для переозначення в підкласах - скільки риб треба з'їсти для розблокування наступного типу
+    protected int getFishUnlockRequirement(int fishTypeIndex) {
+        // Базове значення - можна переозначити в підкласах
+        switch (fishTypeIndex) {
+            case 0: return 10; // Після 10 перших риб розблоковується другий тип
+            case 1: return 5;  // Після 5 других риб розблоковується третій тип
+            case 2: return 3;  // Після 3 третіх риб (якщо є 4-й тип)
+            default: return 5;
         }
     }
 
