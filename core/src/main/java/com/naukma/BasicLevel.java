@@ -213,12 +213,31 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void createRandomLevelFish() {
-        // Створюємо рибку тільки з доступних типів для цього рівня
         if (availableFish.size == 0) return;
 
-        FishSpawnData fishData = availableFish.random();
-        if (fishData != null) {
-            createFishFromDataWithBounds(fishData);
+        // Створюємо список доступних типів з урахуванням обмежень
+        Array<FishSpawnData> availableForSpawn = new Array<>();
+        for (FishSpawnData fishData : availableFish) {
+            if (canSpawnFish(fishData)) {
+                // Додаємо тип кілька разів відповідно до його ймовірності
+                int probability = Math.max(1, (int)(fishData.spawnWeight * 100));
+                for (int i = 0; i < probability; i++) {
+                    availableForSpawn.add(fishData);
+                }
+            }
+        }
+
+        // Якщо немає доступних типів, беремо найпростіший
+        if (availableForSpawn.size == 0 && availableFish.size > 0) {
+            availableForSpawn.add(availableFish.get(0));
+        }
+
+        // Створюємо рибку якщо є доступні типи
+        if (availableForSpawn.size > 0) {
+            FishSpawnData fishData = availableForSpawn.random();
+            if (fishData != null) {
+                createFishFromDataWithBounds(fishData);
+            }
         }
     }
 
@@ -854,17 +873,59 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void changeFinishedFishToNewType(SwimmingFish fish) {
-        // Вибираємо випадковий тип з доступних для рівня
-        FishSpawnData newFishData = availableFish.random();
+        // Спочатку видаляємо стару рибку з лічильника
+        String oldFishType = fish.getFishType();
+        if (oldFishType != null) {
+            removeFish(oldFishType);
+        }
+
+        // Створюємо список доступних типів з урахуванням обмежень
+        Array<FishSpawnData> availableForSpawn = new Array<>();
+        for (FishSpawnData fishData : availableFish) {
+            if (canSpawnFish(fishData)) {
+                // Додаємо тип кілька разів відповідно до його ймовірності
+                int probability = Math.max(1, (int)(fishData.spawnWeight * 100));
+                for (int i = 0; i < probability; i++) {
+                    availableForSpawn.add(fishData);
+                }
+            }
+        }
+
+        // Якщо немає доступних типів, намагаємося знайти хоча б один
+        if (availableForSpawn.size == 0) {
+            // Повертаємо найпростіший тип або перший доступний
+            if (availableFish.size > 0) {
+                availableForSpawn.add(availableFish.get(0));
+            } else {
+                // Якщо взагалі немає типів, залишаємо рибку неактивною
+                fish.setActive(false);
+                return;
+            }
+        }
+
+        // Вибираємо випадковий тип з доступних
+        FishSpawnData newFishData = availableForSpawn.random();
         if (newFishData != null) {
             float newSpeed = getFishSpeed(newFishData);
             float newScale = getFishScale(newFishData);
 
             // Змінюємо тип рибки
-            fish.changeType(newFishData.path, newFishData.frameCount, newSpeed, newScale, newFishData.frameDuration);
+            fish.changeType(
+                newFishData.path,
+                newFishData.frameCount,
+                newSpeed,
+                newScale,
+                newFishData.frameDuration
+            );
 
             // Встановлюємо видимі межі
             updateFishVisibleBounds(fish);
+
+            // Додаємо нову рибку до лічильника
+            addFish(newFishData.path);
+        } else {
+            // Якщо не вдалося створити, деактивуємо рибку
+            fish.setActive(false);
         }
     }
 

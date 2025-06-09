@@ -22,14 +22,13 @@ public class SecondLevel extends BasicLevel {
         maxFishScale = 0.9f;
 
         // Більш складні рибки з різними характеристиками
-        // Середні рибки з помірною швидкістю
-        availableFish.add(new FishSpawnData("fish_05/", 15, 0.05f, 12, 0.1f, 8, 120f, 0.5f));
+        availableFish.add(new FishSpawnData("fish_07/", 15, 0.05f, 12, 0.2f, 12, 250f, 0.2f));
 
         // Швидкі середні рибки
-        availableFish.add(new FishSpawnData("fish_06/", 15, 0.05f, 10, 0.1f, 4, 150f, 0.4f));
+        availableFish.add(new FishSpawnData("fish_10/", 15, 0.05f, 10, 0.1f, 3, 160f, 0.5f));
 
         // Великі повільні рибки (високі очки, але важко зловити через розмір)
-        availableFish.add(new FishSpawnData("fish_07/", 15, 0.05f, 20, 0.1f, 2, 80f, 0.8f));
+        availableFish.add(new FishSpawnData("fish_08/", 15, 0.05f, 20, 0.5f, 3, 120f, 0.8f));
     }
 
     @Override

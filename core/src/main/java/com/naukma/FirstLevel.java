@@ -28,7 +28,6 @@ public class FirstLevel extends BasicLevel {
         // 2 великі рибки з швидкістю 80 і розміром 0.9 (повільні, великі, але цінні)
         availableFish.add(new FishSpawnData("fish_02/", 15, 0.16f, 20, 0.1f, 2, 80f, 0.9f));
 
-
     }
 
     @Override

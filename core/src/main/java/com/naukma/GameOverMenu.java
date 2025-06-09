@@ -65,7 +65,7 @@ public class GameOverMenu {
 
         // Розмір меню
         menuWidth = Gdx.graphics.getWidth() * 0.4f;
-        menuHeight = Gdx.graphics.getHeight() * 0.6f;
+        menuHeight = Gdx.graphics.getHeight() * 0.7f;
         menuX = (Gdx.graphics.getWidth() - menuWidth) / 2;
         menuY = (Gdx.graphics.getHeight() - menuHeight) / 2;
 
