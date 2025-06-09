@@ -187,7 +187,7 @@ public class GameHUD {
 
         // Завантажуємо іконку сердечка з fallback
         try {
-            heartIcon = new Texture(Gdx.files.internal("heart_icon.png"));
+            heartIcon = new Texture(Gdx.files.internal("heart.png"));
         } catch (Exception e) {
             // Створюємо просте червоне сердечко якщо файл не знайдено
             heartIcon = createSimpleHeartTexture();
@@ -307,10 +307,10 @@ public class GameHUD {
 
         // Update stamina system
         updateStaminaSystem(deltaTime);
-        
+
         // Update bonus effects
         updateBonusEffects(deltaTime);
-        
+
         // Handle bonus activation input
         handleBonusInput();
     }
@@ -366,16 +366,16 @@ public class GameHUD {
     // Use stored bonus from inventory
     private void useStoredBonus(int bonusType) {
         if (bonusType < 0 || bonusType >= bonusCounts.size) return;
-        
+
         int currentCount = bonusCounts.get(bonusType);
         if (currentCount <= 0) return;
-        
+
         // Check if bonus can be used
         if (bonusType == 1 && scoreBonusActive) {
             // Star bonus is already active, can't use another one
             return;
         }
-        
+
         // Use the bonus
         bonusCounts.set(bonusType, currentCount - 1);
         activateBonus(bonusType);
@@ -573,19 +573,19 @@ public class GameHUD {
         if (staminaProgress > 0) {
             batch.draw(progressBarFill, staminaBarX, staminaBarY, staminaBarWidth * staminaProgress, progressBarHeight);
         }
-        
+
         // Відображаємо активний бонус зірочки
         if (scoreBonusActive) {
             String bonusText = String.format("STAR BONUS: x%.1f (%.0fs)", scoreBonusMultiplier, scoreBonusTimer);
             glyphLayout.setText(levelFont, bonusText);
-            
+
             float bonusX = staminaBarX;
             float bonusY = staminaBarY - padding * 3f; // Під стаміною
-            
+
             // Мерехтливий ефект
             float alpha = (float) (Math.sin(System.currentTimeMillis() * 0.01f) * 0.3f + 0.7f);
             Color bonusColor = new Color(1f, 1f, 0f, alpha); // Жовтий
-            
+
             drawTextWithOutline(batch, levelFont, bonusText, bonusX, bonusY, bonusColor, new Color(0f, 0f, 0f, alpha));
         }
     }
@@ -726,30 +726,6 @@ public class GameHUD {
         levelUpEffectTimer = LEVEL_UP_EFFECT_DURATION;
     }
 
-    // Методи для керування stamina
-    public void useStamina(float amount) {
-        stamina = Math.max(0, stamina - amount);
-    }
-
-    public void restoreStamina(float amount) {
-        stamina = Math.min(maxStamina, stamina + amount);
-    }
-
-    public boolean hasStamina(float amount) {
-        return stamina >= amount;
-    }
-
-    public float getStamina() {
-        return stamina;
-    }
-
-    public float getMaxStamina() {
-        return maxStamina;
-    }
-
-    public float getStaminaPercentage() {
-        return stamina / maxStamina;
-    }
 
     // Методи для керування бонусами
     public void addBonus(int bonusType, int amount) {

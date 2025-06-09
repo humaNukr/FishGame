@@ -12,10 +12,10 @@ public class BonusManager {
     private float worldWidth, worldHeight;
     private float visibleMinY, visibleMaxY;
     
-    // Spawn chances for different bonus types (для тестування - рівні шанси)
-    private static final float SHELL_SPAWN_CHANCE = 0.4f;  // 40% шанс
-    private static final float STAR_SPAWN_CHANCE = 0.3f;   // 30% шанс 
-    private static final float CLOCK_SPAWN_CHANCE = 0.3f;  // 30% шанс
+    // Spawn chances for different bonus types
+    private static final float SHELL_SPAWN_CHANCE = 0.6f;  // 60% шанс (вище оскільки 1 раз за рівень)
+    private static final float STAR_SPAWN_CHANCE = 0.25f;  // 25% шанс 
+    private static final float CLOCK_SPAWN_CHANCE = 0.15f; // 15% шанс
     
     // Spawn intervals based on level
     private static final float[] SPAWN_INTERVALS = {15f, 12f, 10f}; // Секунди між спавнами
@@ -76,8 +76,22 @@ public class BonusManager {
     }
     
     private void trySpawnBonus() {
-        // Максимум 3 бонуси одночасно
-        if (activeBonuses.size >= 3) return;
+        // Рахуємо тільки активні бонуси (ракушки без перлини не рахуються)
+        int activeBonusCount = 0;
+        for (Bonus bonus : activeBonuses) {
+            if (bonus instanceof ShellBonus) {
+                ShellBonus shell = (ShellBonus) bonus;
+                if (shell.hasPearl()) {
+                    activeBonusCount++; // Ракушка з перлиною рахується
+                }
+                // Ракушка без перлини не рахується
+            } else {
+                activeBonusCount++; // Інші бонуси завжди рахуються
+            }
+        }
+        
+        // Максимум 3 активні бонуси одночасно
+        if (activeBonusCount >= 3) return;
         
         // Випадково вибираємо тип бонусу
         float random = MathUtils.random();
@@ -125,7 +139,11 @@ public class BonusManager {
     public void collectBonus(Bonus bonus, GameHUD gameHUD) {
         if (bonus != null && activeBonuses.contains(bonus, true)) {
             bonus.onCollected(gameHUD);
-            bonus.collect();
+            
+            // Для ракушки не викликаємо collect(), щоб вона залишилася на екрані
+            if (!(bonus instanceof ShellBonus)) {
+                bonus.collect();
+            }
         }
     }
     
@@ -136,8 +154,8 @@ public class BonusManager {
         }
         activeBonuses.clear();
         
-        // Скидаємо таймер спавну
-        nextSpawnTimer = MathUtils.random(5f, spawnInterval);
+        // Скидаємо таймер спавну (швидший спавн після ресету)
+        nextSpawnTimer = MathUtils.random(2f, 5f); // Перший спавн через 2-5 секунд після ресету
         
         // Скидаємо статичні змінні для мушлі
         ShellBonus.resetForNewLevel();

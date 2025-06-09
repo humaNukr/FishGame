@@ -15,6 +15,15 @@ public class BloodEffect {
         color = new Color(1, 1, 1, 1);
     }
 
+    // Конструктор з кастомною текстурою
+    public BloodEffect(String texturePath) {
+        bloodTexture = new Texture(Gdx.files.internal(texturePath));
+        alpha = 1f;
+        isActive = false;
+        scale = 0.1f;
+        color = new Color(1, 1, 1, 1);
+    }
+
     public void spawn(float x, float y) {
         this.x = x;
         this.y = y;

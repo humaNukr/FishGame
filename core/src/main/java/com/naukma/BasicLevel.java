@@ -45,6 +45,7 @@ public class BasicLevel extends ApplicationAdapter {
     private EatingShark eatingShark;
     private SwimmingShark swimmingShark;
     private BloodEffect bloodEffect;
+    private BloodEffect bonusEffect; // Ефект для бонусів
     protected GameHUD gameHUD;
 
     // Позиція і характеристики акули
@@ -121,6 +122,7 @@ public class BasicLevel extends ApplicationAdapter {
         eatingShark = new EatingShark();
         swimmingShark = new SwimmingShark();
         bloodEffect = new BloodEffect();
+        bonusEffect = new BloodEffect("bonus_effect.png"); // Ефект для бонусів
 
         // Створюємо рибок використовуючи дані рівня
         createInitialFishes();
@@ -277,6 +279,7 @@ public class BasicLevel extends ApplicationAdapter {
             handleInput(Gdx.graphics.getDeltaTime());
             eatingShark.update(Gdx.graphics.getDeltaTime());
             bloodEffect.update(Gdx.graphics.getDeltaTime());
+            bonusEffect.update(Gdx.graphics.getDeltaTime());
 
             // Оновлюємо камеру відносно позиції акули
             scrollingBackground.updateCamera(sharkX, sharkY, sharkWidth, sharkHeight);
@@ -353,6 +356,9 @@ public class BasicLevel extends ApplicationAdapter {
 
         // Ефект крові
         bloodEffect.render(batch);
+        
+        // Ефект бонусів
+        bonusEffect.render(batch);
 
         // Спеціальний рендеринг рівня
         renderLevelSpecific(batch);
@@ -676,6 +682,7 @@ public class BasicLevel extends ApplicationAdapter {
         gameOverMenu.dispose();
         eatingShark.dispose();
         bloodEffect.dispose();
+        bonusEffect.dispose(); // Очищуємо ефект бонусів
         gameHUD.dispose();
         swimmingShark.dispose();
 
@@ -916,30 +923,46 @@ public class BasicLevel extends ApplicationAdapter {
 
         Bonus collectedBonus = bonusManager.checkCollisions(sharkX, sharkY, sharkWidth, sharkHeight);
         if (collectedBonus != null) {
-            // Запускаємо анімацію їжі акули
-            eatingShark.startEating();
-            
-            // Збираємо бонус
-            bonusManager.collectBonus(collectedBonus, gameHUD);
-            
-            // Синхронізуємо життя якщо це була ракушка з перлиною
+            // Для ракушки - з'їдаємо тільки перлину, ракушка залишається
             if (collectedBonus instanceof ShellBonus) {
                 ShellBonus shell = (ShellBonus) collectedBonus;
                 if (shell.isOpen() && shell.hasPearl()) {
-                    lives = gameHUD.getCurrentLives(); // Синхронізуємо з HUD
+                    // Запускаємо анімацію їжі акули (з'їдаємо перлину)
+                    eatingShark.startEating();
+                    
+                    // Збираємо бонус (тільки перлину)
+                    bonusManager.collectBonus(collectedBonus, gameHUD);
+                    
+                    // Синхронізуємо життя
+                    lives = gameHUD.getCurrentLives();
+                    
+                    // Ефект бонусу для перлини
+                    final float bonusX = collectedBonus.getX() + collectedBonus.getWidth() / 2;
+                    final float bonusY = collectedBonus.getY() + collectedBonus.getHeight() / 2;
+                    
+                    Timer.schedule(new Timer.Task() {
+                        @Override
+                        public void run() {
+                            bonusEffect.spawn(bonusX, bonusY);
+                        }
+                    }, BLOOD_EFFECT_DELAY);
                 }
+            } else {
+                // Для інших бонусів - з'їдаємо повністю
+                eatingShark.startEating();
+                bonusManager.collectBonus(collectedBonus, gameHUD);
+                
+                // Ефект бонусу
+                final float bonusX = collectedBonus.getX() + collectedBonus.getWidth() / 2;
+                final float bonusY = collectedBonus.getY() + collectedBonus.getHeight() / 2;
+                
+                Timer.schedule(new Timer.Task() {
+                    @Override
+                    public void run() {
+                        bonusEffect.spawn(bonusX, bonusY);
+                    }
+                }, BLOOD_EFFECT_DELAY);
             }
-            
-            // Ефект крові як для рибок
-            final float bonusX = collectedBonus.getX() + collectedBonus.getWidth() / 2;
-            final float bonusY = collectedBonus.getY() + collectedBonus.getHeight() / 2;
-            
-            Timer.schedule(new Timer.Task() {
-                @Override
-                public void run() {
-                    bloodEffect.spawn(bonusX, bonusY);
-                }
-            }, BLOOD_EFFECT_DELAY);
         }
     }
 }
