@@ -47,7 +47,7 @@ public class MainMenu {
         titleFont = generator.generateFont(parameter);
 
         // Налаштування для меню
-        parameter.size = 15;
+        parameter.size = 25;
         parameter.color = Color.WHITE;
         parameter.borderWidth = 1;
         menuFont = generator.generateFont(parameter);

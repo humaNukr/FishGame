@@ -24,13 +24,13 @@ public class ThirdLevel extends BasicLevel {
         // Найскладніші рибки
 
         // Дуже маленькі надшвидкі рибки (дуже важко зловити)
-        availableFish.add(new FishSpawnData("fish_08/", 15, 0.05f, 6, 0.1f, 8, 250f, 0.15f));
+        availableFish.add(new FishSpawnData("fish_15/", 15, 0.05f, 6, 0.2f, 12, 250f, 0.2f));
 
         // Великі швидкі рибки (складно зловити, але дають багато очок)
-        availableFish.add(new FishSpawnData("fish_05/", 15, 0.05f, 25, 0.1f, 3, 160f, 0.7f));
+        availableFish.add(new FishSpawnData("fish_14/", 15, 0.05f, 25, 0.1f, 3, 160f, 0.5f));
 
         // Гігантські рибки (найважчі для з'їдання, але найбільше очок)
-        availableFish.add(new FishSpawnData("fish_03/", 15, 0.16f, 35, 0.1f, 1, 120f, 1.0f));
+        availableFish.add(new FishSpawnData("fish_13/", 15, 0.16f, 35, 0.1f, 1, 120f, 0.8f));
     }
 
     @Override
