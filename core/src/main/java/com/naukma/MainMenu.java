@@ -31,9 +31,11 @@ public class MainMenu {
     private int selectedLevel = -1; // -1 означає, що рівень не обрано
     private boolean isActive = true;
 
+
     private GlyphLayout glyphLayout;
 
     public MainMenu() {
+
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/HennyPenny.ttf"));
         FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 
@@ -58,17 +60,6 @@ public class MainMenu {
 
         generator.dispose();
 
-//        titleFont = new BitmapFont();
-//        titleFont.getData().setScale(4);
-//        titleFont.setColor(Color.CYAN);
-//
-//        menuFont = new BitmapFont();
-//        menuFont.getData().setScale(2.5f);
-//        menuFont.setColor(Color.WHITE);
-//
-//        levelFont = new BitmapFont();
-//        levelFont.getData().setScale(2f);
-//        levelFont.setColor(Color.WHITE);
 
         glyphLayout = new GlyphLayout();
 
@@ -166,12 +157,21 @@ public class MainMenu {
         int mouseX = Gdx.input.getX();
         int mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
 
-        // Обробка кліків по кнопках рівнів
+        // Обробка кліків мишкою
         if (Gdx.input.justTouched()) {
+            // Спочатку перевіряємо кнопки рівнів
             for (int i = 0; i < levelButtonBounds.length; i++) {
                 if (levelButtonBounds[i].contains(mouseX, mouseY)) {
                     selectedLevel = i;
-                    return;
+                    return; // Якщо клікнули на рівень, більше нічого не робимо
+                }
+            }
+
+            // Потім перевіряємо основні кнопки меню
+            for (int i = 0; i < buttonBounds.length; i++) {
+                if (buttonBounds[i].contains(mouseX, mouseY)) {
+                    handleSelection(i);
+                    return; // Якщо клікнули на кнопку меню, виходимо
                 }
             }
         }
@@ -212,20 +212,11 @@ public class MainMenu {
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) && selectedItem >= 0) {
             handleSelection(selectedItem);
         }
-
-        if (Gdx.input.justTouched()) {
-            for (int i = 0; i < buttonBounds.length; i++) {
-                if (buttonBounds[i].contains(mouseX, mouseY)) {
-                    handleSelection(i);
-                    break;
-                }
-            }
-        }
     }
 
     private void handleSelection(int itemIndex) {
         switch (itemIndex) {
-            case 0: // START GAME
+            case 0:
                 if (selectedLevel >= 0) { // Перевіряємо, чи обрано рівень
                     isActive = false;
                 }
@@ -326,13 +317,13 @@ public class MainMenu {
         }
 
         // Інструкції внизу
-        menuFont.setColor(Color.LIGHT_GRAY);
-        menuFont.getData().setScale(1.5f);
-        String instruction = "Mouse/Keys + ENTER";
-        glyphLayout.setText(menuFont, instruction);
-        float instrX = (Gdx.graphics.getWidth() - glyphLayout.width) / 2;
-        menuFont.draw(batch, instruction, instrX, 50);
-        menuFont.getData().setScale(2.5f);
+//        menuFont.setColor(Color.LIGHT_GRAY);
+//        menuFont.getData().setScale(1.5f);
+//        String instruction = "Mouse/Keys + ENTER";
+//        glyphLayout.setText(menuFont, instruction);
+//        float instrX = (Gdx.graphics.getWidth() - glyphLayout.width) / 2;
+//        menuFont.draw(batch, instruction, instrX, 50);
+//        menuFont.getData().setScale(2.5f);
     }
 
     public boolean isActive() {
@@ -364,7 +355,7 @@ public class MainMenu {
 
     public void dispose() {
         if (titleFont != null) titleFont.dispose();
-        if (menuFont != null) menuFont.dispose();
+//        if (menuFont != null) menuFont.dispose();
         if (levelFont != null) levelFont.dispose();
         if (backgroundTexture != null) backgroundTexture.dispose();
         if (buttonTexture != null) buttonTexture.dispose();

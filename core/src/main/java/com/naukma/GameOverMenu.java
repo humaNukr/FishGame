@@ -11,39 +11,49 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.Rectangle;
 
-public class PauseMenu {
+public class GameOverMenu {
     private BitmapFont titleFont;
     private BitmapFont menuFont;
+    private BitmapFont reasonFont;
     private Texture menuBackground;
     private Texture buttonTexture;
     private Texture buttonHoverTexture;
     private Texture overlayTexture;
 
-    private String[] menuItems = {"Resume", "Restart", "Main Menu"};
+    private String[] menuItems = {"Restart", "Main Menu", "Exit Game"};
     private Rectangle[] buttonBounds;
     private int selectedItem = 0;
     private boolean isActive = false;
     private boolean shouldReturnToMainMenu = false;
     private boolean shouldRestart = false;
+    private boolean shouldExitGame = false;
+
+    private String gameOverReason = "Game Over!";
 
     private float menuX, menuY;
     private float menuWidth, menuHeight;
     private GlyphLayout glyphLayout;
 
-    public PauseMenu() {
-
+    public GameOverMenu() {
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/HennyPenny.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
 
         // Налаштування для заголовка
-        parameter.size = 48; // Трохи менше для кращої пропорції
-        parameter.color = Color.CYAN;
+        parameter.size = 48;
+        parameter.color = Color.RED;
         parameter.borderWidth = 2;
         parameter.borderColor = Color.BLACK;
         titleFont = generator.generateFont(parameter);
 
+        // Налаштування для причини програшу
+        parameter.size = 32;
+        parameter.color = Color.ORANGE;
+        parameter.borderWidth = 1;
+        parameter.borderColor = Color.DARK_GRAY;
+        reasonFont = generator.generateFont(parameter);
+
         // Налаштування для меню
-        parameter.size = 24; // Збільшено для кращої читабельності
+        parameter.size = 24;
         parameter.color = Color.WHITE;
         parameter.borderWidth = 1;
         menuFont = generator.generateFont(parameter);
@@ -53,9 +63,9 @@ public class PauseMenu {
 
         glyphLayout = new GlyphLayout();
 
-        // Збільшуємо розмір меню для додаткової кнопки
+        // Розмір меню
         menuWidth = Gdx.graphics.getWidth() * 0.4f;
-        menuHeight = Gdx.graphics.getHeight() * 0.7f;
+        menuHeight = Gdx.graphics.getHeight() * 0.6f;
         menuX = (Gdx.graphics.getWidth() - menuWidth) / 2;
         menuY = (Gdx.graphics.getHeight() - menuHeight) / 2;
 
@@ -72,25 +82,25 @@ public class PauseMenu {
     private void createTextures() {
         // Напівпрозорий фон для затемнення екрана
         Pixmap pixmap = new Pixmap(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), Pixmap.Format.RGBA8888);
-        pixmap.setColor(0f, 0f, 0f, 0.7f); // Трохи темніше для кращої видимості
+        pixmap.setColor(0f, 0f, 0f, 0.8f); // Трохи темніше для драматичності
         pixmap.fill();
         overlayTexture = new Texture(pixmap);
         pixmap.dispose();
 
-        // Звичайна кнопка (стиль MainMenu)
+        // Звичайна кнопка (червонуватий відтінок для Game Over)
         pixmap = new Pixmap(250, 50, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0.2f, 0.3f, 0.8f, 0.8f);
+        pixmap.setColor(0.8f, 0.2f, 0.3f, 0.8f); // Червонуватий фон
         pixmap.fill();
-        pixmap.setColor(0.4f, 0.5f, 1f, 1f);
+        pixmap.setColor(1f, 0.4f, 0.5f, 1f); // Світло-червона рамка
         pixmap.drawRectangle(0, 0, 250, 50);
         buttonTexture = new Texture(pixmap);
         pixmap.dispose();
 
         // Кнопка при наведенні
         pixmap = new Pixmap(250, 50, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0.4f, 0.5f, 1f, 0.9f);
+        pixmap.setColor(1f, 0.4f, 0.5f, 0.9f);
         pixmap.fill();
-        pixmap.setColor(0.6f, 0.7f, 1f, 1f);
+        pixmap.setColor(1f, 0.6f, 0.7f, 1f);
         pixmap.drawRectangle(0, 0, 250, 50);
         buttonHoverTexture = new Texture(pixmap);
         pixmap.dispose();
@@ -100,7 +110,7 @@ public class PauseMenu {
         buttonBounds = new Rectangle[menuItems.length];
         float buttonWidth = 250;
         float buttonHeight = 50;
-        float itemY = menuY + menuHeight - 300;
+        float itemY = menuY + menuHeight - 320; // Опускаємо кнопки нижче через додатковий текст
 
         for (int i = 0; i < menuItems.length; i++) {
             float buttonX = menuX + (menuWidth - buttonWidth) / 2;
@@ -139,9 +149,9 @@ public class PauseMenu {
             handleSelection(selectedItem);
         }
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            // ESC для відновлення гри
-            handleSelection(0);
+        // R для швидкого рестарту
+        if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+            handleSelection(0); // Restart
         }
 
         if (Gdx.input.justTouched()) {
@@ -156,15 +166,16 @@ public class PauseMenu {
 
     private void handleSelection(int itemIndex) {
         switch (itemIndex) {
-            case 0: // Resume
-                isActive = false;
-                break;
-            case 1: // Restart
+            case 0: // Restart
                 shouldRestart = true;
                 isActive = false;
                 break;
-            case 2: // Exit Game
+            case 1: // Main Menu
                 shouldReturnToMainMenu = true;
+                isActive = false;
+                break;
+            case 2: // Exit Game
+                shouldExitGame = true;
                 isActive = false;
                 break;
         }
@@ -180,11 +191,11 @@ public class PauseMenu {
         if (menuBackground != null) {
             batch.draw(menuBackground, menuX, menuY, menuWidth, menuHeight);
         } else {
-            // Якщо немає фонової текстури, створюємо простий фон
+            // Якщо немає фонової текстури, створюємо простий фон з червонуватим відтінком
             Pixmap pixmap = new Pixmap((int)menuWidth, (int)menuHeight, Pixmap.Format.RGBA8888);
-            pixmap.setColor(0.2f, 0.2f, 0.3f, 0.9f);
+            pixmap.setColor(0.3f, 0.2f, 0.2f, 0.9f); // Темно-червонуватий фон
             pixmap.fill();
-            pixmap.setColor(0.4f, 0.4f, 0.6f, 1f);
+            pixmap.setColor(0.6f, 0.4f, 0.4f, 1f);
             pixmap.drawRectangle(0, 0, (int)menuWidth, (int)menuHeight);
             Texture fallbackBg = new Texture(pixmap);
             batch.draw(fallbackBg, menuX, menuY, menuWidth, menuHeight);
@@ -192,11 +203,17 @@ public class PauseMenu {
             pixmap.dispose();
         }
 
-        // Малюємо заголовок
-        glyphLayout.setText(titleFont, "Game Paused");
-        titleFont.draw(batch, "Game Paused",
+        // Малюємо заголовок "GAME OVER"
+        glyphLayout.setText(titleFont, "GAME OVER");
+        titleFont.draw(batch, "GAME OVER",
             menuX + (menuWidth - glyphLayout.width) / 2,
             menuY + menuHeight - 60);
+
+        // Малюємо причину програшу
+        glyphLayout.setText(reasonFont, gameOverReason);
+        reasonFont.draw(batch, gameOverReason,
+            menuX + (menuWidth - glyphLayout.width) / 2,
+            menuY + menuHeight - 120);
 
         // Малюємо кнопки
         for (int i = 0; i < menuItems.length; i++) {
@@ -223,7 +240,7 @@ public class PauseMenu {
 
         // Інструкції внизу меню
         menuFont.setColor(Color.LIGHT_GRAY);
-        String instruction = "ESC/Mouse/Keys + ENTER";
+        String instruction = "R - Restart | Mouse/Keys + ENTER";
         glyphLayout.setText(menuFont, instruction);
         float instrX = menuX + (menuWidth - glyphLayout.width) / 2;
         float instrY = menuY + 30;
@@ -252,6 +269,7 @@ public class PauseMenu {
             selectedItem = 0; // Скидаємо на першу позицію при відкритті
             shouldReturnToMainMenu = false; // Скидаємо флаг
             shouldRestart = false; // Скидаємо флаг рестарту
+            shouldExitGame = false; // Скидаємо флаг виходу
             initializeButtonBounds(); // Оновлюємо межі кнопок
         }
     }
@@ -264,12 +282,22 @@ public class PauseMenu {
         return shouldRestart;
     }
 
-    public void resetReturnFlag() {
-        shouldReturnToMainMenu = false;
+    public boolean shouldExitGame() {
+        return shouldExitGame;
     }
 
-    public void resetRestartFlag() {
+    public void resetFlags() {
+        shouldReturnToMainMenu = false;
         shouldRestart = false;
+        shouldExitGame = false;
+    }
+
+    public void setGameOverReason(String reason) {
+        this.gameOverReason = reason;
+    }
+
+    public String getGameOverReason() {
+        return gameOverReason;
     }
 
     public void show() {
@@ -283,6 +311,7 @@ public class PauseMenu {
     public void dispose() {
         if (titleFont != null) titleFont.dispose();
         if (menuFont != null) menuFont.dispose();
+        if (reasonFont != null) reasonFont.dispose();
         if (menuBackground != null) menuBackground.dispose();
         if (buttonTexture != null) buttonTexture.dispose();
         if (buttonHoverTexture != null) buttonHoverTexture.dispose();
