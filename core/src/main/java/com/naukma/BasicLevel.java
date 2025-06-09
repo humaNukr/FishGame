@@ -45,6 +45,7 @@ public class BasicLevel extends ApplicationAdapter {
     private EatingShark eatingShark;
     private SwimmingShark swimmingShark;
     private BloodEffect bloodEffect;
+    private BloodEffect bonusEffect; // Ефект для бонусів
     protected GameHUD gameHUD;
 
     // Позиція і характеристики акули
@@ -76,6 +77,9 @@ public class BasicLevel extends ApplicationAdapter {
 
     // Додаткові змінні для нової системи
     private Array<String> unlockedFishTypes; // Розблоковані типи рибок для акули
+
+    // Bonus system
+    private BonusManager bonusManager;
 
     public BasicLevel(int levelNumber) {
         this.levelNumber = levelNumber;
@@ -118,9 +122,14 @@ public class BasicLevel extends ApplicationAdapter {
         eatingShark = new EatingShark();
         swimmingShark = new SwimmingShark();
         bloodEffect = new BloodEffect();
+        bonusEffect = new BloodEffect("bonus_effect.png"); // Ефект для бонусів
 
         // Створюємо рибок використовуючи дані рівня
         createInitialFishes();
+
+        // Ініціалізуємо систему бонусів
+        bonusManager = new BonusManager(levelNumber);
+        bonusManager.setWorldBounds(scrollingBackground.getWorldWidth(), scrollingBackground.getWorldHeight());
 
         sharkWidth = shark.getWidth() * SHARK_SCALE;
         sharkHeight = shark.getHeight() * SHARK_SCALE;
@@ -149,6 +158,7 @@ public class BasicLevel extends ApplicationAdapter {
 
         // Встановлюємо видимі межі для всіх рибок (без HUD зверху)
         setVisibleBoundsForAllFish();
+        updateBonusVisibleBounds();
     }
 
     protected void initializeLevel() {
@@ -269,6 +279,7 @@ public class BasicLevel extends ApplicationAdapter {
             handleInput(Gdx.graphics.getDeltaTime());
             eatingShark.update(Gdx.graphics.getDeltaTime());
             bloodEffect.update(Gdx.graphics.getDeltaTime());
+            bonusEffect.update(Gdx.graphics.getDeltaTime());
 
             // Оновлюємо камеру відносно позиції акули
             scrollingBackground.updateCamera(sharkX, sharkY, sharkWidth, sharkHeight);
@@ -277,6 +288,10 @@ public class BasicLevel extends ApplicationAdapter {
             updateFishes(Gdx.graphics.getDeltaTime());
             updateLevelLogic(Gdx.graphics.getDeltaTime(), sharkX, sharkY);
             checkLevelConditions();
+            
+            // Оновлюємо систему бонусів
+            bonusManager.update(Gdx.graphics.getDeltaTime());
+            checkBonusCollisions();
         } else if (isPaused) {
             handlePauseMenu();
         } else if (showGameOverEffect) {
@@ -320,6 +335,9 @@ public class BasicLevel extends ApplicationAdapter {
             }
         }
 
+        // Малюємо бонуси
+        bonusManager.render(batch);
+
         // Малюємо акулу
         if (eatingShark.isEating()) {
             Texture currentSharkTexture = eatingShark.getCurrentTexture();
@@ -338,6 +356,9 @@ public class BasicLevel extends ApplicationAdapter {
 
         // Ефект крові
         bloodEffect.render(batch);
+        
+        // Ефект бонусів
+        bonusEffect.render(batch);
 
         // Спеціальний рендеринг рівня
         renderLevelSpecific(batch);
@@ -630,6 +651,12 @@ public class BasicLevel extends ApplicationAdapter {
         // Оновлюємо розблоковані типи та видимі межі після ресету
         initializeUnlockedFishTypes();
         updateVisibleBoundsForAllFish();
+        updateBonusVisibleBounds();
+
+        // Скидаємо систему бонусів
+        if (bonusManager != null) {
+            bonusManager.reset();
+        }
 
         // Скидаємо стани Game Over
         isGameOver = false;
@@ -655,8 +682,14 @@ public class BasicLevel extends ApplicationAdapter {
         gameOverMenu.dispose();
         eatingShark.dispose();
         bloodEffect.dispose();
+        bonusEffect.dispose(); // Очищуємо ефект бонусів
         gameHUD.dispose();
         swimmingShark.dispose();
+
+        // Очищуємо систему бонусів
+        if (bonusManager != null) {
+            bonusManager.dispose();
+        }
 
         // mainMenu тепер в Main.java
     }
@@ -849,6 +882,14 @@ public class BasicLevel extends ApplicationAdapter {
         }
     }
 
+    private void updateBonusVisibleBounds() {
+        if (bonusManager != null && gameHUD != null) {
+            float visibleMinY = 0f;
+            float visibleMaxY = Gdx.graphics.getHeight() - gameHUD.getHudHeight();
+            bonusManager.setVisibleBounds(visibleMinY, visibleMaxY);
+        }
+    }
+
     private void updateGameOverEffect(float deltaTime) {
         gameOverEffectTimer += deltaTime;
         if (gameOverEffectTimer >= GAME_OVER_EFFECT_DURATION) {
@@ -875,5 +916,53 @@ public class BasicLevel extends ApplicationAdapter {
         }
 
         // Логіка повернення до головного меню обробляється в Main.java
+    }
+
+    private void checkBonusCollisions() {
+        if (eatingShark.isEating()) return;
+
+        Bonus collectedBonus = bonusManager.checkCollisions(sharkX, sharkY, sharkWidth, sharkHeight);
+        if (collectedBonus != null) {
+            // Для ракушки - з'їдаємо тільки перлину, ракушка залишається
+            if (collectedBonus instanceof ShellBonus) {
+                ShellBonus shell = (ShellBonus) collectedBonus;
+                if (shell.isOpen() && shell.hasPearl()) {
+                    // Запускаємо анімацію їжі акули (з'їдаємо перлину)
+                    eatingShark.startEating();
+                    
+                    // Збираємо бонус (тільки перлину)
+                    bonusManager.collectBonus(collectedBonus, gameHUD);
+                    
+                    // Синхронізуємо життя
+                    lives = gameHUD.getCurrentLives();
+                    
+                    // Ефект бонусу для перлини
+                    final float bonusX = collectedBonus.getX() + collectedBonus.getWidth() / 2;
+                    final float bonusY = collectedBonus.getY() + collectedBonus.getHeight() / 2;
+                    
+                    Timer.schedule(new Timer.Task() {
+                        @Override
+                        public void run() {
+                            bonusEffect.spawn(bonusX, bonusY);
+                        }
+                    }, BLOOD_EFFECT_DELAY);
+                }
+            } else {
+                // Для інших бонусів - з'їдаємо повністю
+                eatingShark.startEating();
+                bonusManager.collectBonus(collectedBonus, gameHUD);
+                
+                // Ефект бонусу
+                final float bonusX = collectedBonus.getX() + collectedBonus.getWidth() / 2;
+                final float bonusY = collectedBonus.getY() + collectedBonus.getHeight() / 2;
+                
+                Timer.schedule(new Timer.Task() {
+                    @Override
+                    public void run() {
+                        bonusEffect.spawn(bonusX, bonusY);
+                    }
+                }, BLOOD_EFFECT_DELAY);
+            }
+        }
     }
 }
