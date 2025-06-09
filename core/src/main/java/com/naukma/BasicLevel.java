@@ -36,6 +36,7 @@ public class BasicLevel extends ApplicationAdapter {
     // Типи риб для цього рівня
     protected Array<FishSpawnData> availableFish;
     protected ObjectMap<String, Integer> currentFishCounts;
+    protected ObjectMap<String, Integer> eatenFishCounts; // Лічильник з'їдених риб кожного типу
 
     // Ігрові об'єкти
     private SpriteBatch batch;
@@ -56,8 +57,9 @@ public class BasicLevel extends ApplicationAdapter {
     // Константи
     private static final int TOTAL_FISH_TYPES = 8;
     private static final float BLOOD_EFFECT_DELAY = 0.55f;
-    private static final float SHARK_SCALE = 0.5f;
-    private static final float EATING_DISTANCE = 75f;
+    // Використовуємо константу з SwimmingShark
+    // private static final float SHARK_SCALE = 0.5f; - видалено
+    private static final float BASE_EATING_DISTANCE = 75f;
     private static final float EATING_FRAME_DELAY = 0.5f;
 
     // Додаткові змінні
@@ -85,6 +87,7 @@ public class BasicLevel extends ApplicationAdapter {
         this.levelNumber = levelNumber;
         this.availableFish = new Array<>();
         this.currentFishCounts = new ObjectMap<>();
+        this.eatenFishCounts = new ObjectMap<>(); // Ініціалізуємо лічильник з'їдених риб
         this.unlockedFishTypes = new Array<>();
         initializeLevel();
         this.lives = this.livesCount; // Ініціалізуємо життя з налаштувань рівня
@@ -131,8 +134,8 @@ public class BasicLevel extends ApplicationAdapter {
         bonusManager = new BonusManager(levelNumber);
         bonusManager.setWorldBounds(scrollingBackground.getWorldWidth(), scrollingBackground.getWorldHeight());
 
-        sharkWidth = shark.getWidth() * SHARK_SCALE;
-        sharkHeight = shark.getHeight() * SHARK_SCALE;
+        sharkWidth = shark.getWidth() * SwimmingShark.SHARK_SCALE;
+        sharkHeight = shark.getHeight() * SwimmingShark.SHARK_SCALE;
 
         // Початкова позиція акули в світових координатах (центр світу)
         sharkX = (scrollingBackground.getWorldWidth() - sharkWidth) / 2f;
@@ -511,7 +514,7 @@ public class BasicLevel extends ApplicationAdapter {
             float sizeRatio = fishSize / sharkSize;
 
             if (sizeRatio < 0.3f) {
-                if (distance < EATING_DISTANCE && canEatFishType(fish.getFishType())) {
+                if (distance < BASE_EATING_DISTANCE * SwimmingShark.SHARK_SCALE && canEatFishType(fish.getFishType())) {
                     eatFish(fish, fishFrontX, fishFrontY);
                 }
             } else if (sizeRatio > 0.7f) {
@@ -536,6 +539,13 @@ public class BasicLevel extends ApplicationAdapter {
         fish.setActive(false);
         gameHUD.addScore(10);
         gameHUD.addFishEaten();
+
+        // Додаємо з'їдену рибку до лічильника типів
+        String fishType = fish.getFishType();
+        if (fishType != null) {
+            int currentCount = eatenFishCounts.get(fishType, 0);
+            eatenFishCounts.put(fishType, currentCount + 1);
+        }
 
         final float bloodX = fishX;
         final float bloodY = fishY;
@@ -632,6 +642,7 @@ public class BasicLevel extends ApplicationAdapter {
     private void checkLevelConditions() {
         float timeRemaining = gameHUD.getTimeRemaining(); // Тепер таймер йде до 0
 
+        // Спочатку перевіряємо перемогу
         if (checkWinCondition(gameHUD.getScore(), timeRemaining, gameHUD.getFishEaten())) {
             isCompleted = true;
             return; // Виграш має пріоритет, виходимо до перевірки програшу
@@ -642,7 +653,7 @@ public class BasicLevel extends ApplicationAdapter {
             // Ця перевірка є в takeDamage, але залишаємо для надійності
             triggerGameOver("Out of Lives!");
         } else if (timeRemaining <= 0) {
-            // Якщо час вийшов і ми тут, значить, умова перемоги не виконана
+            // Якщо час вийшов і умова перемоги не виконана - програш
             triggerGameOver("Time's Up!");
         }
     }
@@ -682,6 +693,9 @@ public class BasicLevel extends ApplicationAdapter {
         showGameOverEffect = false;
         gameOverEffectTimer = 0f;
         gameOverMenu.setActive(false);
+
+        // Скидаємо лічильник з'їдених риб
+        eatenFishCounts.clear();
 
         isCompleted = false;
         isFailed = false;
@@ -723,11 +737,13 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     public boolean checkWinCondition(int currentScore, float timeRemaining, int fishEaten) {
-        return currentScore >= targetScore;
+        // Базова логіка - переозначається в підкласах
+        return false; // Ніколи не виграєш на базовому рівні
     }
 
     public boolean checkLoseCondition(int currentScore, float timeRemaining, int lives) {
-        return lives < 0 || (timeRemaining <= 0 && currentScore < targetScore);
+        // Програш тільки при втраті життів або закінченні часу без перемоги
+        return lives < 0 || timeRemaining <= 0;
     }
 
     // Методи для роботи з Game Over
@@ -835,6 +851,15 @@ public class BasicLevel extends ApplicationAdapter {
 
     public int getTargetFishCount() {
         return targetFishCount;
+    }
+
+    // Методи для роботи з з'їденими рибами
+    public int getEatenFishCount(String fishPath) {
+        return eatenFishCounts.get(fishPath, 0);
+    }
+
+    public ObjectMap<String, Integer> getAllEatenFishCounts() {
+        return eatenFishCounts;
     }
 
     private void initializeUnlockedFishTypes() {
