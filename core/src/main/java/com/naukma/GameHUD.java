@@ -1,6 +1,7 @@
 package com.naukma;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -38,6 +39,11 @@ public class GameHUD {
     // Stamina system
     private float stamina;
     private float maxStamina;
+
+    // Bonus effects system
+    private boolean scoreBonusActive = false;
+    private float scoreBonusMultiplier = 1f;
+    private float scoreBonusTimer = 0f;
 
     // UI elements
     private Array<Texture> fishIcons;
@@ -301,6 +307,12 @@ public class GameHUD {
 
         // Update stamina system
         updateStaminaSystem(deltaTime);
+        
+        // Update bonus effects
+        updateBonusEffects(deltaTime);
+        
+        // Handle bonus activation input
+        handleBonusInput();
     }
 
     // New method to handle stamina system
@@ -327,6 +339,68 @@ public class GameHUD {
         }
     }
 
+    // New method to handle bonus system
+    private void updateBonusEffects(float deltaTime) {
+        if (scoreBonusActive) {
+            scoreBonusTimer -= deltaTime;
+            if (scoreBonusTimer <= 0) {
+                scoreBonusActive = false;
+                scoreBonusMultiplier = 1f;
+            }
+        }
+    }
+
+    // Handle bonus activation from keyboard
+    private void handleBonusInput() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {
+            useStoredBonus(0); // Use bonus type 0
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) {
+            useStoredBonus(1); // Use bonus type 1 (Star bonus - score multiplier)
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) {
+            useStoredBonus(2); // Use bonus type 2
+        }
+    }
+
+    // Use stored bonus from inventory
+    private void useStoredBonus(int bonusType) {
+        if (bonusType < 0 || bonusType >= bonusCounts.size) return;
+        
+        int currentCount = bonusCounts.get(bonusType);
+        if (currentCount <= 0) return;
+        
+        // Check if bonus can be used
+        if (bonusType == 1 && scoreBonusActive) {
+            // Star bonus is already active, can't use another one
+            return;
+        }
+        
+        // Use the bonus
+        bonusCounts.set(bonusType, currentCount - 1);
+        activateBonus(bonusType);
+    }
+
+    // Activate bonus effect
+    private void activateBonus(int bonusType) {
+        switch (bonusType) {
+            case 0:
+                // Bonus type 0 - shell bonus (додає життя при збиранні, тут нічого не робимо)
+                // Це буде використовуватися якщо додамо інші типи бонусів з ракушки
+                addScore(100); // Просто додаємо очки як резервний варіант
+                break;
+            case 1:
+                // Star bonus - score multiplier
+                if (!scoreBonusActive) { // Перевіряємо чи не активний вже
+                    activateScoreBonus(StarBonus.getScoreMultiplier(), StarBonus.getEffectDuration());
+                }
+                break;
+            case 2:
+                // Clock bonus - add time
+                addTime(ClockBonus.getTimeBonus());
+                break;
+        }
+    }
 
     public void render(SpriteBatch batch) {
         // Check if screen size changed and update accordingly
@@ -499,6 +573,21 @@ public class GameHUD {
         if (staminaProgress > 0) {
             batch.draw(progressBarFill, staminaBarX, staminaBarY, staminaBarWidth * staminaProgress, progressBarHeight);
         }
+        
+        // Відображаємо активний бонус зірочки
+        if (scoreBonusActive) {
+            String bonusText = String.format("STAR BONUS: x%.1f (%.0fs)", scoreBonusMultiplier, scoreBonusTimer);
+            glyphLayout.setText(levelFont, bonusText);
+            
+            float bonusX = staminaBarX;
+            float bonusY = staminaBarY - padding * 3f; // Під стаміною
+            
+            // Мерехтливий ефект
+            float alpha = (float) (Math.sin(System.currentTimeMillis() * 0.01f) * 0.3f + 0.7f);
+            Color bonusColor = new Color(1f, 1f, 0f, alpha); // Жовтий
+            
+            drawTextWithOutline(batch, levelFont, bonusText, bonusX, bonusY, bonusColor, new Color(0f, 0f, 0f, alpha));
+        }
     }
 
     private void renderBonusSection(SpriteBatch batch) {
@@ -583,7 +672,28 @@ public class GameHUD {
 
     // Game logic methods
     public void addScore(int points) {
-        targetScore += points;
+        // Apply score multiplier if active
+        float finalPoints = points * scoreBonusMultiplier;
+        targetScore += (int)finalPoints;
+    }
+
+    // Bonus system methods
+    public void activateScoreBonus(float multiplier, float duration) {
+        this.scoreBonusActive = true;
+        this.scoreBonusMultiplier = multiplier;
+        this.scoreBonusTimer = duration;
+    }
+
+    public void addTime(float timeToAdd) {
+        gameTimer = Math.min(gameTimer + timeToAdd, maxLevelTime * 2); // Обмежуємо подвійним початковим часом
+    }
+
+    public boolean isScoreBonusActive() {
+        return scoreBonusActive;
+    }
+
+    public float getScoreBonusTimeRemaining() {
+        return scoreBonusTimer;
     }
 
     // Новий метод для додавання з'їденої рибки
@@ -592,6 +702,13 @@ public class GameHUD {
         experienceProgress = fishEaten; // Використовуємо experienceProgress для анімації
         displayedProgress = Math.min(displayedProgress, experienceProgress); // Оновлюємо відображення
         checkLevelUp();
+    }
+
+    // Додаємо життя (для перлин з ракушки)
+    public void addLife() {
+        currentLives++;
+        // Можна додати максимальне обмеження життів якщо потрібно
+        // currentLives = Math.min(currentLives, maxLives);
     }
 
     private void checkLevelUp() {
