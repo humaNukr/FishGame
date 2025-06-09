@@ -13,9 +13,9 @@ public class BonusManager {
     private float visibleMinY, visibleMaxY;
     
     // Spawn chances for different bonus types
-    private static final float SHELL_SPAWN_CHANCE = 0.6f;  // 60% шанс (вище оскільки 1 раз за рівень)
-    private static final float STAR_SPAWN_CHANCE = 0.25f;  // 25% шанс 
-    private static final float CLOCK_SPAWN_CHANCE = 0.15f; // 15% шанс
+    private static final float SHELL_SPAWN_CHANCE = 0.3f;  // 30% шанс
+    private static final float STAR_SPAWN_CHANCE = 0.35f;  // 35% шанс 
+    private static final float CLOCK_SPAWN_CHANCE = 0.35f; // 35% шанс
     
     // Spawn intervals based on level
     private static final float[] SPAWN_INTERVALS = {15f, 12f, 10f}; // Секунди між спавнами
@@ -98,12 +98,22 @@ public class BonusManager {
         Bonus newBonus = null;
         
         if (random < SHELL_SPAWN_CHANCE) {
-            // Спавн мушлі
-            ShellBonus testShell = new ShellBonus(currentLevel);
-            if (testShell.canSpawn(currentLevel)) {
-                newBonus = testShell;
-            } else {
-                testShell.dispose(); // Очищуємо тестову мушлю
+            // Спавн мушлі - перевіряємо чи немає вже активної ракушки
+            boolean hasActiveShell = false;
+            for (Bonus bonus : activeBonuses) {
+                if (bonus instanceof ShellBonus) {
+                    hasActiveShell = true;
+                    break;
+                }
+            }
+            
+            if (!hasActiveShell) {
+                ShellBonus testShell = new ShellBonus(currentLevel);
+                if (testShell.canSpawn(currentLevel)) {
+                    newBonus = testShell;
+                } else {
+                    testShell.dispose(); // Очищуємо якщо не можна заспавнити
+                }
             }
         } else if (random < SHELL_SPAWN_CHANCE + STAR_SPAWN_CHANCE) {
             // Спавн зірочки
@@ -170,13 +180,24 @@ public class BonusManager {
     
     // Методи для примусового спавну бонусів (для тестування)
     public void forceSpawnShell() {
-        ShellBonus shell = new ShellBonus(currentLevel);
-        if (shell.canSpawn(currentLevel)) {
-            shell.setWorldBounds(worldWidth, worldHeight);
-            shell.setVisibleBounds(visibleMinY, visibleMaxY);
-            activeBonuses.add(shell);
-        } else {
-            shell.dispose(); // Очищуємо якщо не можна заспавнити
+        // Перевіряємо чи немає вже активної ракушки
+        boolean hasActiveShell = false;
+        for (Bonus bonus : activeBonuses) {
+            if (bonus instanceof ShellBonus) {
+                hasActiveShell = true;
+                break;
+            }
+        }
+        
+        if (!hasActiveShell) {
+            ShellBonus shell = new ShellBonus(currentLevel);
+            if (shell.canSpawn(currentLevel)) {
+                shell.setWorldBounds(worldWidth, worldHeight);
+                shell.setVisibleBounds(visibleMinY, visibleMaxY);
+                activeBonuses.add(shell);
+            } else {
+                shell.dispose(); // Очищуємо якщо не можна заспавнити
+            }
         }
     }
     

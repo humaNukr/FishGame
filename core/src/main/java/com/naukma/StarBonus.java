@@ -38,24 +38,24 @@ public class StarBonus extends Bonus {
     @Override
     protected void initializePosition() {
         if (worldWidth > 0 && worldHeight > 0) {
-            // Завжди з'являється знизу екрану
+            // З'являється знизу видимої зони
             x = MathUtils.random(width, worldWidth - width);
-            y = -height; // Знизу екрану
+            y = visibleMinY - height; // Нижче видимої зони
             
-            // Встановлюємо цільову позицію в середній частині екрану
-            targetY = MathUtils.random(visibleMinY + 200f, visibleMaxY - 200f);
+            // Встановлюємо цільову позицію в центрі видимої зони
+            targetY = (visibleMinY + visibleMaxY) / 2f;
         } else {
             x = MathUtils.random(100f, 800f);
-            y = -50f;
-            targetY = 400f;
+            y = 0f; // Нижче екрану
+            targetY = 300f;
         }
     }
     
     @Override
     protected void updateMovement(float deltaTime) {
         if (!hasReachedTarget) {
-            // Спливаємо вгору до цільової позиції
-            y += verticalSpeed * deltaTime;
+            // Спливаємо вгору від нижчої позиції до цільової (вгору - збільшення y)
+            y += verticalSpeed * deltaTime; // Рухаємося вгору (y збільшується)
             
             // Перевіряємо чи досягли цільової позиції
             if (y >= targetY) {

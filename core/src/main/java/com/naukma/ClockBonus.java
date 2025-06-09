@@ -35,15 +35,15 @@ public class ClockBonus extends Bonus {
     @Override
     protected void initializePosition() {
         if (worldWidth > 0 && worldHeight > 0) {
-            // Завжди з'являється знизу екрану
+            // З'являється знизу видимої зони
             x = MathUtils.random(width, worldWidth - width);
-            y = -height; // Знизу екрану
+            y = visibleMinY - height; // Нижче видимої зони
             
-            // Встановлюємо цільову позицію в середній частині екрану
-            targetY = MathUtils.random(visibleMinY + 150f, visibleMaxY - 150f);
+            // Встановлюємо цільову позицію в центрі видимої зони
+            targetY = (visibleMinY + visibleMaxY) / 2f;
         } else {
             x = MathUtils.random(100f, 800f);
-            y = -50f;
+            y = 0f; // Нижче екрану
             targetY = 300f;
         }
     }
@@ -51,8 +51,8 @@ public class ClockBonus extends Bonus {
     @Override
     protected void updateMovement(float deltaTime) {
         if (!hasReachedTarget) {
-            // Спливаємо вгору до цільової позиції
-            y += speed * deltaTime;
+            // Спливаємо вгору від нижчої позиції до цільової (вгору - збільшення y)
+            y += speed * deltaTime; // Рухаємося вгору (y збільшується)
             
             // Перевіряємо чи досягли цільової позиції
             if (y >= targetY) {
@@ -65,7 +65,7 @@ public class ClockBonus extends Bonus {
             x += Math.sin(animationTime * 2f) * 20f * deltaTime;
             y += Math.cos(animationTime * 1.5f) * 12f * deltaTime;
             
-            // Обмежуємо рух межами екрану
+            // Обмежуємо рух межами видимої зони
             x = Math.max(0, Math.min(worldWidth - width, x));
             y = Math.max(visibleMinY, Math.min(visibleMaxY - height, y));
             
