@@ -348,7 +348,7 @@ public class BasicLevel extends ApplicationAdapter {
         bloodEffect.render(batch);
         bonusEffect.render(batch);
 
-        if (eatingShark.isEating()) {
+        if (eatingShark.isEating() && !victoryAnimationActive) {
             Texture currentSharkTexture = eatingShark.getCurrentTexture();
             batch.draw(currentSharkTexture,
                 sharkX, sharkY,
@@ -360,7 +360,7 @@ public class BasicLevel extends ApplicationAdapter {
                 currentSharkTexture.getWidth(), currentSharkTexture.getHeight(),
                 true, rotation > 90 && rotation < 270);
         } else if (!isVictory) {
-            swimmingShark.renderAt(batch, sharkX, sharkY, rotation, rotation > 90 && rotation < 270);
+            swimmingShark.renderAt(batch, sharkX, sharkY, rotation, victoryAnimationActive ? victorySpeedX < 0 : (rotation > 90 && rotation < 270));
         }
 
         // Рендеримо HUD та меню
@@ -443,7 +443,7 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void checkCollisions() {
-        if (eatingShark.isEating()) return;
+        if (eatingShark.isEating() || victoryAnimationActive) return;
 
         double rotationRad = Math.toRadians(rotation);
         float sharkCenterX = sharkX + sharkWidth / 2;
@@ -599,9 +599,9 @@ public class BasicLevel extends ApplicationAdapter {
         if (checkWinCondition(score, timeRemaining, getTotalEatenFishCount())) {
             victoryAnimationActive = true;
             if (sharkX < scrollingBackground.getWorldWidth() / 2) {
-                victorySpeedX = 200; // Початкова швидкість вправо
-            } else {
                 victorySpeedX = -200; // Початкова швидкість вліво
+            } else {
+                victorySpeedX = 200; // Початкова швидкість вправо
             }
             victorySpeedY = 300; // Початкова вертикальна швидкість для "сальто"
             return;
@@ -1059,7 +1059,7 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void checkBonusCollisions() {
-        if (eatingShark.isEating()) return;
+        if (eatingShark.isEating() || victoryAnimationActive) return;
 
         Bonus collectedBonus = bonusManager.checkCollisions(sharkX, sharkY, sharkWidth, sharkHeight);
         if (collectedBonus != null) {
