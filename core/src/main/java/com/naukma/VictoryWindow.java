@@ -19,6 +19,7 @@ public class VictoryWindow {
     private GlyphLayout glyphLayout;
     
     private Texture backgroundTexture;
+    private Texture victoryBgTexture;
     private Texture buttonTexture;
     private Texture buttonHoverTexture;
     
@@ -84,12 +85,15 @@ public class VictoryWindow {
     }
     
     private void createTextures() {
-        // Напівпрозорий фон
+        // Напівпрозорий фон (залишимо як запасний)
         Pixmap bgPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         bgPixmap.setColor(0f, 0f, 0f, 0.8f);
         bgPixmap.fill();
         backgroundTexture = new Texture(bgPixmap);
         bgPixmap.dispose();
+
+        // Завантажуємо фон з файлу
+        victoryBgTexture = new Texture(Gdx.files.internal("victory_bg.jpeg"));
         
         // Кнопка (звичайна)
         Pixmap buttonPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
@@ -181,7 +185,8 @@ public class VictoryWindow {
             float mouseX = Gdx.input.getX();
             float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
             
-            if (isPointInButton(mouseX, mouseY, nextButtonX, nextButtonY, nextButtonWidth, nextButtonHeight)) {
+            // Кнопка "Next Level" активна тільки якщо це не 3-й рівень
+            if (levelNumber < 3 && isPointInButton(mouseX, mouseY, nextButtonX, nextButtonY, nextButtonWidth, nextButtonHeight)) {
                 nextLevelPressed = true;
                 active = false;
             } else if (isPointInButton(mouseX, mouseY, menuButtonX, menuButtonY, menuButtonWidth, menuButtonHeight)) {
@@ -191,7 +196,7 @@ public class VictoryWindow {
         }
         
         // Клавіші
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+        if (levelNumber < 3 && (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))) {
             nextLevelPressed = true;
             active = false;
         }
@@ -213,7 +218,8 @@ public class VictoryWindow {
         float screenHeight = Gdx.graphics.getHeight();
         
         // Фон
-        batch.draw(backgroundTexture, 0, 0, screenWidth, screenHeight);
+        batch.setColor(Color.WHITE); // Скидаємо колір, щоб фон не був прозорим
+        batch.draw(victoryBgTexture, 0, 0, screenWidth, screenHeight);
         
         // Заголовок
         String titleText = "LEVEL " + levelNumber + " COMPLETED!";
@@ -267,11 +273,11 @@ public class VictoryWindow {
         }
         
         // Кнопки
-        renderButton(batch, nextButtonX, nextButtonY, nextButtonWidth, nextButtonHeight, 
-            "Next Level", nextButtonHovered);
-        
-        renderButton(batch, menuButtonX, menuButtonY, menuButtonWidth, menuButtonHeight, 
-            "Main Menu", menuButtonHovered);
+        // Кнопка "Next Level" показується тільки якщо це не 3-й рівень
+        if (levelNumber < 3) {
+            renderButton(batch, nextButtonX, nextButtonY, nextButtonWidth, nextButtonHeight, "Next Level", nextButtonHovered);
+        }
+        renderButton(batch, menuButtonX, menuButtonY, menuButtonWidth, menuButtonHeight, "Main Menu", menuButtonHovered);
     }
     
     private void renderButton(SpriteBatch batch, float x, float y, float width, float height, 
@@ -326,6 +332,7 @@ public class VictoryWindow {
         textFont.dispose();
         buttonFont.dispose();
         backgroundTexture.dispose();
+        victoryBgTexture.dispose();
         buttonTexture.dispose();
         buttonHoverTexture.dispose();
     }

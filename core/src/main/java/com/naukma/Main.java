@@ -111,6 +111,10 @@ public class Main extends ApplicationAdapter {
                 showingMenu = true;
                 mainMenu.setActive(true);
             }
+        } else if (currentLevel.isFailed()) {
+            // Якщо рівень "провалено" (наприклад, вихід з вікна перемоги), повертаємось до меню
+            showingMenu = true;
+            mainMenu.setActive(true);
         }
     }
 
