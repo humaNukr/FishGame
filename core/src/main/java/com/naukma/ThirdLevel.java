@@ -43,29 +43,6 @@ public class ThirdLevel extends BasicLevel {
     }
 
     @Override
-    public boolean checkWinCondition(int currentScore, float timeRemaining, int fishEaten) {
-        // Перемога тільки коли акула досягла 3-го рівня і з'їла всіх потрібних риб
-        int sharkLevel = calculateSharkLevel();
-        
-        if (sharkLevel < 3) {
-            return false; // Акула ще не досягла максимального рівня
-        }
-        
-        // Перевіряємо чи всі типи риб з'їдені в достатній кількості
-        for (int i = 0; i < availableFish.size; i++) {
-            String fishPath = availableFish.get(i).path;
-            int requiredCount = getFishUnlockRequirement(i);
-            int eatenCount = getEatenFishCount(fishPath);
-            
-            if (eatenCount < requiredCount) {
-                return false; // Якщо не з'їли достатньо цього типу - ще не перемога
-            }
-        }
-        
-        return true; // Акула 3-го рівня і всі типи риб з'їдені в достатній кількості
-    }
-
-    @Override
     public boolean checkLoseCondition(int currentScore, float timeRemaining, int lives) {
         // Програш тільки при втраті життів або закінченні часу без перемоги
         return lives < 0 || timeRemaining <= 0;

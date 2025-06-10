@@ -83,11 +83,20 @@ public class BasicLevel extends ApplicationAdapter {
     // Bonus system
     private BonusManager bonusManager;
 
+    // Додаємо поля для затримки перемоги (залишаємо тільки один раз!)
+    private boolean pendingVictory = false;
+    private float victoryDelayTimer = 0f;
+    private float lastFishX = 0f;
+    private float lastFishY = 0f;
+
+    private VictoryWindow victoryWindow;
+
     public BasicLevel(int levelNumber) {
         this.levelNumber = levelNumber;
         this.availableFish = new Array<>();
         this.currentFishCounts = new ObjectMap<>();
-        this.eatenFishCounts = new ObjectMap<>(); // Ініціалізуємо лічильник з'їдених риб
+        this.eatenFishCounts = new ObjectMap<>();
+        this.victoryWindow = new VictoryWindow();
         this.unlockedFishTypes = new Array<>();
         initializeLevel();
         this.lives = this.livesCount; // Ініціалізуємо життя з налаштувань рівня
@@ -346,20 +355,69 @@ public class BasicLevel extends ApplicationAdapter {
 
         batch.begin();
 
-        // Малюємо скролінговий фон
+        // --- Порядок рендерингу ---
+        // 1. Якщо вікно перемоги активне - рендеримо тільки його
+        if (victoryWindow != null && victoryWindow.isActive()) {
+            victoryWindow.handleInput();
+            victoryWindow.update(Gdx.graphics.getDeltaTime());
+            victoryWindow.render(batch);
+
+            // Перевіряємо, чи потрібно переходити на наступний рівень
+            if (victoryWindow.isNextLevelRequested()) {
+                isCompleted = true; // Сигнал для Main.java для переходу
+                victoryWindow.setActive(false);
+            }
+            // Перевіряємо, чи потрібно повертатись в меню
+            if(victoryWindow.isMenuRequested()){
+                isFailed = true; // Використовуємо isFailed як сигнал для повернення в меню
+                victoryWindow.setActive(false);
+            }
+
+            batch.end();
+            return;
+        }
+
+        // 2. Якщо очікуємо перемоги (затримка) - рендеримо заморожену сцену з анімацією
+        if (pendingVictory) {
+            // Рендеримо фон і рибок як статичні елементи
+            scrollingBackground.render(batch);
+            for (SwimmingFish fish : fishes) {
+                if (scrollingBackground.isInView(fish.getX(), fish.getY(), fish.getWidth(), fish.getHeight())) {
+                    fish.renderAt(batch, fish.getX(), fish.getY());
+                }
+            }
+            bonusManager.render(batch);
+
+            // Рендеримо анімацію поїдання акули на місці останньої риби
+            Texture sharkTexture = eatingShark.getCurrentTexture();
+            if (sharkTexture != null) {
+                // Використовуємо lastFishX/Y, які тепер завжди актуальні
+                batch.draw(sharkTexture, lastFishX - sharkWidth / 2, lastFishY - sharkHeight / 2, sharkWidth, sharkHeight);
+            }
+            
+            // Оновлюємо таймер затримки
+            victoryDelayTimer -= Gdx.graphics.getDeltaTime();
+            if (victoryDelayTimer <= 0f) {
+                pendingVictory = false;
+                if (victoryWindow != null) {
+                    victoryWindow.show(levelNumber, gameHUD.getScore());
+                }
+            }
+            batch.end();
+            return;
+        }
+
+        // 3. Стандартний рендеринг гри
         scrollingBackground.render(batch);
 
-        // Малюємо рибок у світових координатах
         for (SwimmingFish fish : fishes) {
             if (scrollingBackground.isInView(fish.getX(), fish.getY(), fish.getWidth(), fish.getHeight())) {
                 fish.renderAt(batch, fish.getX(), fish.getY());
             }
         }
 
-        // Малюємо бонуси
         bonusManager.render(batch);
 
-        // Малюємо акулу
         if (eatingShark.isEating()) {
             Texture currentSharkTexture = eatingShark.getCurrentTexture();
             batch.draw(currentSharkTexture,
@@ -375,16 +433,10 @@ public class BasicLevel extends ApplicationAdapter {
             swimmingShark.renderAt(batch, sharkX, sharkY, rotation);
         }
 
-        // Ефект крові
         bloodEffect.render(batch);
-        
-        // Ефект бонусів
         bonusEffect.render(batch);
-
-        // Спеціальний рендеринг рівня
         renderLevelSpecific(batch);
 
-        // Перемикаємося на стандартну проекцію для HUD
         batch.setProjectionMatrix(batch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
 
         if (showGameOverEffect) {
@@ -399,18 +451,11 @@ public class BasicLevel extends ApplicationAdapter {
             sprintHandler.updateSpeed();
         }
 
-        // Рендеримо HUD тільки якщо не Game Over
         if (!showGameOverEffect && !isGameOver) {
-            // Викликаємо новий метод render з параметрами від рівня
-            int currentSharkLevel = calculateSharkLevel(); // Обчислюємо рівень акули
-            
-            // Отримуємо прогрес поточного активного типу риби
+            int currentSharkLevel = calculateSharkLevel();
             String activeFishType = getCurrentActiveFishType();
             int currentFishEaten = activeFishType != null ? getEatenFishCount(activeFishType) : 0;
-            
-            // Отримуємо кількість риб потрібну для левел апу активного типу
             int requiredFishForLevelUp = getRequiredFishForActiveFishType();
-            
             gameHUD.render(batch, currentSharkLevel, currentFishEaten, lives, requiredFishForLevelUp);
         }
 
@@ -585,6 +630,10 @@ public class BasicLevel extends ApplicationAdapter {
 
         // Оновлюємо розблоковані типи після з'їдання рибки
         updateUnlockedFishTypes();
+
+        // Зберігаємо координати для можливої анімації перемоги
+        lastFishX = fishX;
+        lastFishY = fishY;
     }
 
     private void takeDamage(SwimmingFish fish, float fishX, float fishY) {
@@ -655,20 +704,25 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void checkLevelConditions() {
-        float timeRemaining = gameHUD.getTimeRemaining(); // Тепер таймер йде до 0
-
-        // Спочатку перевіряємо перемогу
-        if (checkWinCondition(gameHUD.getScore(), timeRemaining, getTotalEatenFishCount())) {
-            isCompleted = true;
-            return; // Виграш має пріоритет, виходимо до перевірки програшу
+        // Не перевіряємо умови, якщо перемога вже очікується або гра на паузі/завершена
+        if (pendingVictory || isPaused || isGameOver || showGameOverEffect) {
+            return;
         }
 
-        // Якщо не виграли, перевіряємо умови програшу
+        float timeRemaining = gameHUD.getTimeRemaining();
+
+        // 1. Перевірка умови перемоги
+        if (checkWinCondition(gameHUD.getScore(), timeRemaining, getTotalEatenFishCount())) {
+            pendingVictory = true;
+            victoryDelayTimer = 1.0f; // 1 секунда затримки
+            eatingShark.startEating(); // Запускаємо анімацію поїдання
+            return; // Виходимо, щоб уникнути перевірки програшу в тому ж кадрі
+        }
+
+        // 2. Перевірка умов програшу (тільки якщо не перемогли)
         if (lives < 0) {
-            // Ця перевірка є в takeDamage, але залишаємо для надійності
             triggerGameOver("Out of Lives!");
         } else if (timeRemaining <= 0) {
-            // Якщо час вийшов і умова перемоги не виконана - програш
             triggerGameOver("Time's Up!");
         }
     }
@@ -752,8 +806,8 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     public boolean checkWinCondition(int currentScore, float timeRemaining, int fishEaten) {
-        // Базова логіка - переозначається в підкласах
-        return false; // Ніколи не виграєш на базовому рівні
+        // Умова перемоги: рівень акули має перевищити кількість доступних типів риб
+        return calculateSharkLevel() > availableFish.size;
     }
 
     public boolean checkLoseCondition(int currentScore, float timeRemaining, int lives) {
@@ -926,7 +980,7 @@ public class BasicLevel extends ApplicationAdapter {
         }
         
         // Рівень = кількість завершених типів + 1
-        return Math.min(completedTypes + 1, 3); // Максимум 3 рівень
+        return completedTypes + 1;
     }
 
     private void initializeUnlockedFishTypes() {

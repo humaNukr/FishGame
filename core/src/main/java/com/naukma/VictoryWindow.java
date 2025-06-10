@@ -312,8 +312,8 @@ public class VictoryWindow {
     
     // Геттери
     public boolean isActive() { return active; }
-    public boolean shouldGoToNextLevel() { return nextLevelPressed; }
-    public boolean shouldGoToMainMenu() { return mainMenuPressed; }
+    public boolean isNextLevelRequested() { return nextLevelPressed; }
+    public boolean isMenuRequested() { return mainMenuPressed; }
     public void setActive(boolean active) { this.active = active; }
     
     public void resetFlags() {
