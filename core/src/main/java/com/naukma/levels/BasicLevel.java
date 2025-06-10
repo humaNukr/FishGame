@@ -1,4 +1,5 @@
 package com.naukma.levels;
+
 import com.naukma.bonuses.Bonus;
 import com.naukma.bonuses.BonusManager;
 import com.naukma.bonuses.EatingShark;
@@ -28,84 +29,7 @@ import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.graphics.Pixmap;
 
 public class BasicLevel extends ApplicationAdapter {
-    // Налаштування рівня
-    protected int levelNumber;
-    protected float timeLimit;
-    protected int targetScore;
-    protected int targetFishCount; // Кількість риб для перемоги
-    protected int maxFishCount;
-    protected int livesCount; // Кількість життів на рівні
-    protected boolean isCompleted;
-    protected boolean isFailed;
 
-    // Налаштування складності
-    protected float sharkSpeed;
-    protected float minFishSpeed;
-    protected float maxFishSpeed;
-    protected float minFishScale;
-    protected float maxFishScale;
-
-    // Типи риб для цього рівня
-    protected Array<FishSpawnData> availableFish;
-    protected ObjectMap<String, Integer> currentFishCounts;
-    protected ObjectMap<String, Integer> eatenFishCounts; // Лічильник з'їдених риб кожного типу
-
-    // Ігрові об'єкти
-    private SpriteBatch batch;
-    private ScrollingBackground scrollingBackground;
-    private Texture shark;
-    private Array<SwimmingFish> fishes;
-    private EatingShark eatingShark;
-    private SwimmingShark swimmingShark;
-    private BloodEffect bloodEffect;
-    private BloodEffect bonusEffect; // Ефект для бонусів
-    protected GameHUD gameHUD;
-
-    // Позиція і характеристики акули
-    private float sharkX, sharkY;
-    private float sharkWidth, sharkHeight;
-    private float rotation = 0f;
-
-    // Константи
-    private static final int TOTAL_FISH_TYPES = 8;
-    private static final float BLOOD_EFFECT_DELAY = 0.55f;
-    private static final float BASE_EATING_DISTANCE = 50f;
-    private static final float EATING_FRAME_DELAY = 0.5f;
-
-    // Додаткові змінні
-    private BitmapFont font;
-    private Texture whitePixel; // Білий піксель для фонів
-    private int score = 0;
-    private int lives = 3; // Поточні життя гравця
-    private PauseMenu pauseMenu;
-    private GameOverMenu gameOverMenu;
-    private boolean isPaused = false;
-    private boolean isGameOver = false;
-    private boolean showGameOverEffect = false;
-    private float gameOverEffectTimer = 0f;
-    private static final float GAME_OVER_EFFECT_DURATION = 2f; // 2 секунди
-    private Vector3 tempVector;
-    private SharkSprintHandler sprintHandler;
-
-    // Додаткові змінні для нової системи
-    private Array<String> unlockedFishTypes; // Розблоковані типи рибок для акули
-
-    // Bonus system
-    private BonusManager bonusManager;
-
-    private boolean victoryAnimationActive = false;
-    private float victorySpeedX = 0;
-    private float victorySpeedY = 0;
-    private float victoryAcceleration = 400f;
-
-    // Додаємо поля для затримки перемоги (залишаємо тільки один раз!)
-    private boolean pendingVictory = false;
-    private boolean isVictory = false; // Новий прапор, що сигналізує про перемогу
-    private float victoryDelayTimer = 0f;
-    private float lastFishX = 0f;
-    private float lastFishY = 0f;
-
-    private VictoryWindow victoryWindow;
 
     public BasicLevel(int levelNumber) {
         this.levelNumber = levelNumber;
@@ -119,10 +43,6 @@ public class BasicLevel extends ApplicationAdapter {
         initializeUnlockedFishTypes();
     }
 
-    // Конструктор за замовчуванням для Main
-    public BasicLevel() {
-        this(1);
-    }
 
     @Override
     public void create() {
@@ -226,15 +146,33 @@ public class BasicLevel extends ApplicationAdapter {
         for (int i = 0; i < maxFishCount; i++) {
             int fishType = MathUtils.random(TOTAL_FISH_TYPES - 1);
             switch (fishType) {
-                case 0: createFish("fish_01/", 15); break;
-                case 1: createFish("fish_02/", 15); break;
-                case 2: createFish("fish_03/", 15); break;
-                case 3: createFish("fish_04/", 15); break;
-                case 4: createFish("fish_05/", 15); break;
-                case 5: createFish("fish_06/", 15); break;
-                case 6: createFish("fish_07/", 15); break;
-                case 7: createFish("fish_08/", 15); break;
-                case 8: createFish("fish_09/", 9); break;
+                case 0:
+                    createFish("fish_01/", 15);
+                    break;
+                case 1:
+                    createFish("fish_02/", 15);
+                    break;
+                case 2:
+                    createFish("fish_03/", 15);
+                    break;
+                case 3:
+                    createFish("fish_04/", 15);
+                    break;
+                case 4:
+                    createFish("fish_05/", 15);
+                    break;
+                case 5:
+                    createFish("fish_06/", 15);
+                    break;
+                case 6:
+                    createFish("fish_07/", 15);
+                    break;
+                case 7:
+                    createFish("fish_08/", 15);
+                    break;
+                case 8:
+                    createFish("fish_09/", 9);
+                    break;
             }
         }
     }
@@ -247,7 +185,7 @@ public class BasicLevel extends ApplicationAdapter {
         for (FishSpawnData fishData : availableFish) {
             if (canSpawnFish(fishData)) {
                 // Додаємо тип кілька разів відповідно до його ймовірності
-                int probability = Math.max(1, (int)(fishData.spawnWeight * 100));
+                int probability = Math.max(1, (int) (fishData.spawnWeight * 100));
                 for (int i = 0; i < probability; i++) {
                     availableForSpawn.add(fishData);
                 }
@@ -306,8 +244,10 @@ public class BasicLevel extends ApplicationAdapter {
 
     private float getFrameDurationForPath(String path) {
         switch (path) {
-            case "fish_03/": return 0.16f;
-            default: return 0.05f;
+            case "fish_03/":
+                return 0.16f;
+            default:
+                return 0.05f;
         }
     }
 
@@ -335,7 +275,6 @@ public class BasicLevel extends ApplicationAdapter {
 
             checkCollisions();
             updateFishes(Gdx.graphics.getDeltaTime());
-            updateLevelLogic(Gdx.graphics.getDeltaTime(), sharkX, sharkY);
             checkLevelConditions();
 
             // Оновлюємо систему бонусів
@@ -421,10 +360,8 @@ public class BasicLevel extends ApplicationAdapter {
                 currentSharkTexture.getWidth(), currentSharkTexture.getHeight(),
                 true, rotation > 90 && rotation < 270);
         } else if (!isVictory) {
-            swimmingShark.renderAt(batch, sharkX, sharkY, rotation);
+            swimmingShark.renderAt(batch, sharkX, sharkY, rotation, rotation > 90 && rotation < 270);
         }
-
-        renderLevelSpecific(batch);
 
         // Рендеримо HUD та меню
         batch.setProjectionMatrix(batch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
@@ -537,7 +474,7 @@ public class BasicLevel extends ApplicationAdapter {
                 }
             } else if (sizeRatio > 0.7f) {
                 if (rectsOverlap(sharkX, sharkY, sharkWidth, sharkHeight,
-                    fishX, fishY, fishWidth*0.6f, fishHeight*0.6f)) {
+                    fishX, fishY, fishWidth * 0.6f, fishHeight * 0.6f)) {
                     takeDamage(fish, fishFrontX, fishFrontY);
                 }
             }
@@ -547,9 +484,9 @@ public class BasicLevel extends ApplicationAdapter {
     private boolean rectsOverlap(float x1, float y1, float w1, float h1,
                                  float x2, float y2, float w2, float h2) {
         return x1 < x2 + w2 &&
-               x1 + w1 > x2 &&
-               y1 < y2 + h2 &&
-               y1 + h1 > y2;
+            x1 + w1 > x2 &&
+            y1 < y2 + h2 &&
+            y1 + h1 > y2;
     }
 
     private void eatFish(SwimmingFish fish, float fishX, float fishY) {
@@ -641,8 +578,16 @@ public class BasicLevel extends ApplicationAdapter {
             sharkX = scrollingBackground.getWorldWidth() - sharkWidth;
 
         if (sharkY < 0) sharkY = 0;
-        if (sharkY > scrollingBackground.getWorldHeight() - sharkHeight)
-            sharkY = scrollingBackground.getWorldHeight() - sharkHeight;
+        if (rotation > 200 && rotation < 340) {
+            if (sharkY < sharkHeight / 1.2f) sharkY = sharkHeight / 1.2f;
+        }
+        if (rotation < 170 && rotation > 10) {
+            if (sharkY > scrollingBackground.getWorldHeight() - gameHUD.getHudHeight() - sharkHeight * 1.2f)
+                sharkY = scrollingBackground.getWorldHeight() - gameHUD.getHudHeight() - sharkHeight * 1.2f;
+        }
+        if (sharkY > scrollingBackground.getWorldHeight() - gameHUD.getHudHeight() - sharkHeight / 1.2f) {
+            sharkY = scrollingBackground.getWorldHeight() - gameHUD.getHudHeight() - sharkHeight / 1.2f;
+        }
     }
 
     private void checkLevelConditions() {
@@ -740,29 +685,16 @@ public class BasicLevel extends ApplicationAdapter {
         // mainMenu тепер в Main.java
     }
 
-    // Методи для переозначення в підкласах
-    protected void updateLevelLogic(float deltaTime, float sharkX, float sharkY) {
-        // Базовий рівень не має спеціальної логіки
-    }
-
-    protected void renderLevelSpecific(SpriteBatch batch) {
-        // Базовий рівень не має спеціального рендерингу
-    }
 
     public boolean checkWinCondition(int currentScore, float timeRemaining, int fishEaten) {
-        // Умова перемоги: рівень акули має перевищити кількість доступних типів риб
         return calculateSharkLevel() > availableFish.size;
     }
 
     public boolean checkLoseCondition(int currentScore, float timeRemaining, int lives) {
-        // Програш тільки при втраті життів або закінченні часу без перемоги
         return lives < 0 || timeRemaining <= 0;
     }
 
     // Методи для роботи з Game Over
-    public boolean isInGameOver() {
-        return isGameOver;
-    }
 
     public boolean shouldReturnToMainMenuFromGameOver() {
         return gameOverMenu != null && gameOverMenu.shouldReturnToMainMenu();
@@ -834,19 +766,53 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     // Геттери
-    public int getLevelNumber() { return levelNumber; }
-    public float getTimeLimit() { return timeLimit; }
-    public int getTargetScore() { return targetScore; }
-    public int getMaxFishCount() { return maxFishCount; }
-    public int getLivesCount() { return livesCount; }
-    public int getCurrentLives() { return lives; }
-    public float getSharkSpeed() { return sharkSpeed; }
-    public boolean isCompleted() { return isCompleted; }
-    public boolean isFailed() { return isFailed; }
-    public GameHUD getGameHUD() { return gameHUD; }
+    public int getLevelNumber() {
+        return levelNumber;
+    }
 
-    public void setCompleted(boolean completed) { this.isCompleted = completed; }
-    public void setFailed(boolean failed) { this.isFailed = failed; }
+    public float getTimeLimit() {
+        return timeLimit;
+    }
+
+    public int getTargetScore() {
+        return targetScore;
+    }
+
+    public int getMaxFishCount() {
+        return maxFishCount;
+    }
+
+    public int getLivesCount() {
+        return livesCount;
+    }
+
+    public int getCurrentLives() {
+        return lives;
+    }
+
+    public float getSharkSpeed() {
+        return sharkSpeed;
+    }
+
+    public boolean isCompleted() {
+        return isCompleted;
+    }
+
+    public boolean isFailed() {
+        return isFailed;
+    }
+
+    public GameHUD getGameHUD() {
+        return gameHUD;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.isCompleted = completed;
+    }
+
+    public void setFailed(boolean failed) {
+        this.isFailed = failed;
+    }
 
     public boolean shouldReturnToMainMenu() {
         return pauseMenu != null && pauseMenu.shouldReturnToMainMenu();
@@ -963,10 +929,14 @@ public class BasicLevel extends ApplicationAdapter {
     protected int getFishUnlockRequirement(int fishTypeIndex) {
         // Базове значення - можна переозначити в підкласах
         switch (fishTypeIndex) {
-            case 0: return 10; // Після 10 перших риб розблоковується другий тип
-            case 1: return 5;  // Після 5 других риб розблоковується третій тип
-            case 2: return 3;  // Після 3 третіх риб (якщо є 4-й тип)
-            default: return 5;
+            case 0:
+                return 10; // Після 10 перших риб розблоковується другий тип
+            case 1:
+                return 5;  // Після 5 других риб розблоковується третій тип
+            case 2:
+                return 3;  // Після 3 третіх риб (якщо є 4-й тип)
+            default:
+                return 5;
         }
     }
 
@@ -994,7 +964,7 @@ public class BasicLevel extends ApplicationAdapter {
         for (FishSpawnData fishData : availableFish) {
             if (canSpawnFish(fishData)) {
                 // Додаємо тип кілька разів відповідно до його ймовірності
-                int probability = Math.max(1, (int)(fishData.spawnWeight * 100));
+                int probability = Math.max(1, (int) (fishData.spawnWeight * 100));
                 for (int i = 0; i < probability; i++) {
                     availableForSpawn.add(fishData);
                 }
@@ -1086,7 +1056,6 @@ public class BasicLevel extends ApplicationAdapter {
             gameOverMenu.resetFlags();
         }
 
-        // Логіка повернення до головного меню обробляється в Main.java
     }
 
     private void checkBonusCollisions() {
@@ -1196,4 +1165,79 @@ public class BasicLevel extends ApplicationAdapter {
             this.sharkHeight = swimmingShark.getHeight();
         }
     }
+
+    // Налаштування рівня
+    protected int levelNumber;
+    protected float timeLimit;
+    protected int targetScore;
+    protected int targetFishCount; // Кількість риб для перемоги
+    protected int maxFishCount;
+    protected int livesCount; // Кількість життів на рівні
+    protected boolean isCompleted;
+    protected boolean isFailed;
+
+    // Налаштування складності
+    protected float sharkSpeed;
+    protected float minFishSpeed;
+    protected float maxFishSpeed;
+    protected float minFishScale;
+    protected float maxFishScale;
+
+    // Типи риб для цього рівня
+    protected Array<FishSpawnData> availableFish;
+    protected ObjectMap<String, Integer> currentFishCounts;
+    protected ObjectMap<String, Integer> eatenFishCounts; // Лічильник з'їдених риб кожного типу
+
+    // Ігрові об'єкти
+    private SpriteBatch batch;
+    private ScrollingBackground scrollingBackground;
+    private Texture shark;
+    private Array<SwimmingFish> fishes;
+    private EatingShark eatingShark;
+    private SwimmingShark swimmingShark;
+    private BloodEffect bloodEffect;
+    private BloodEffect bonusEffect; // Ефект для бонусів
+    protected GameHUD gameHUD;
+
+    // Позиція і характеристики акули
+    private float sharkX, sharkY;
+    private float sharkWidth, sharkHeight;
+    private float rotation = 0f;
+
+    // Константи
+    private static final int TOTAL_FISH_TYPES = 8;
+    private static final float BLOOD_EFFECT_DELAY = 0.55f;
+    private static final float BASE_EATING_DISTANCE = 50f;
+
+    // Додаткові змінні
+    private BitmapFont font;
+    private Texture whitePixel; // Білий піксель для фонів
+    private int score = 0;
+    private int lives = 3; // Поточні життя гравця
+    private PauseMenu pauseMenu;
+    private GameOverMenu gameOverMenu;
+    private boolean isPaused = false;
+    private boolean isGameOver = false;
+    private boolean showGameOverEffect = false;
+    private float gameOverEffectTimer = 0f;
+    private static final float GAME_OVER_EFFECT_DURATION = 2f; // 2 секунди
+    private Vector3 tempVector;
+    private SharkSprintHandler sprintHandler;
+
+    // Додаткові змінні для нової системи
+    private Array<String> unlockedFishTypes; // Розблоковані типи рибок для акули
+
+    // Bonus system
+    private BonusManager bonusManager;
+
+    private boolean victoryAnimationActive = false;
+    private float victorySpeedX = 0;
+    private float victorySpeedY = 0;
+    private float victoryAcceleration = 400f;
+
+    // Додаємо поля для затримки перемоги (залишаємо тільки один раз!)
+    private boolean pendingVictory = false;
+    private boolean isVictory = false; // Новий прапор, що сигналізує про перемогу
+
+    private VictoryWindow victoryWindow;
 }

@@ -15,79 +15,6 @@ import com.naukma.bonuses.StarBonus;
 import com.naukma.levels.FishSpawnData;
 
 public class GameHUD {
-    // Fonts
-    private BitmapFont titleFont;
-    private BitmapFont scoreFont;
-    private BitmapFont levelFont;
-
-    // Game data - тільки базові дані без стану
-    private int score;
-    private int targetScore;
-    private boolean isSprintActive = false;
-    private boolean canSprint = true;
-
-    // Current game level and timer
-    private int currentGameLevel;
-    private float gameTimer;
-    private float maxLevelTime;
-    private int targetFishCount;
-    private boolean timerActive;
-
-    // Stamina system
-    private float stamina;
-    private float maxStamina;
-
-    // Bonus effects system
-    private boolean scoreBonusActive = false;
-    private float scoreBonusMultiplier = 1f;
-    private float scoreBonusTimer = 0f;
-
-    // UI elements
-    private Array<Texture> fishIcons;
-    private Array<Texture> bonusIcons;
-    private Array<Integer> bonusCounts;
-    private Texture heartIcon;
-    private GlyphLayout glyphLayout;
-    private Texture hudBackground;
-    private Texture progressBarBg;
-    private Texture progressBarFill;
-    private Texture gameLogo;
-
-    // Layout variables - all adaptive to screen size
-    private float screenWidth;
-    private float screenHeight;
-    private float hudHeight;
-    private float padding;
-    private float iconSize;
-    private float iconSpacing;
-    private float progressBarHeight;
-    private float bonusIconSize;
-    private float logoSize;
-    private float titleFontScale;
-    private float scoreFontScale;
-    private float levelFontScale;
-
-    // Level up effect
-    private float levelUpEffectTimer;
-    private boolean showLevelUpEffect;
-    private Color levelUpColor;
-
-    // Constants
-    private static final int MAX_SHARK_LEVEL = 3;
-    private static final float LEVEL_UP_EFFECT_DURATION = 3f;
-    private static final float SPRINT_DRAIN_TIME = 5f;
-    private static final float SPRINT_REGEN_TIME = 20f;
-    private static final float STAMINA_DRAIN_RATE = 100f / SPRINT_DRAIN_TIME;
-    private static final float STAMINA_REGENERATION_RATE = 100f / SPRINT_REGEN_TIME;
-    private static final float SPRINT_SPEED_MULTIPLIER = 1.3f;
-
-    // Screen size ratios for adaptive design
-    private static final float HUD_HEIGHT_RATIO = 0.15f;
-    private static final float PADDING_RATIO = 0.02f;
-    private static final float ICON_SIZE_RATIO = 0.08f;
-    private static final float ICON_SPACING_RATIO = 0.015f;
-    private static final float PROGRESS_BAR_HEIGHT_RATIO = 0.012f;
-    private static final float BONUS_ICON_RATIO = 0.05f;
 
     public GameHUD() {
         updateScreenDimensions();
@@ -332,10 +259,10 @@ public class GameHUD {
 
     private void renderBackground(SpriteBatch batch) {
         batch.draw(hudBackground,
-        -screenWidth*0.02f,
-        screenHeight - hudHeight+screenHeight*0.02f,
-        screenWidth*1.04f,
-        hudHeight);
+            -screenWidth * 0.02f,
+            screenHeight - hudHeight + screenHeight * 0.02f,
+            screenWidth * 1.04f,
+            hudHeight);
     }
 
     private void drawTextWithOutline(SpriteBatch batch, BitmapFont font, String text, float x, float y, Color textColor, Color outlineColor) {
@@ -359,7 +286,7 @@ public class GameHUD {
 
     private void renderGameLogo(SpriteBatch batch) {
         float logoX = (screenWidth - logoSize) / 2;
-        float logoY = screenHeight - hudHeight + padding/2;
+        float logoY = screenHeight - hudHeight + padding / 2;
 
         Color originalColor = batch.getColor();
         batch.setColor(1f, 1f, 1f, 1.0f);
@@ -371,20 +298,20 @@ public class GameHUD {
         String scoreText = String.format("Score: %,d", score);
         glyphLayout.setText(scoreFont, scoreText);
 
-        float scoreX = padding*6f;
-        float scoreY = screenHeight - hudHeight/2 + padding*1.5f;
+        float scoreX = padding * 6f;
+        float scoreY = screenHeight - hudHeight / 2 + padding * 1.5f;
 
         drawTextWithOutline(batch, scoreFont, scoreText, scoreX, scoreY,
-                           new Color(1f, 1f, 1f, 1f), new Color(0f, 0f, 0f, 1f));
+            new Color(1f, 1f, 1f, 1f), new Color(0f, 0f, 0f, 1f));
 
         String levelText = String.format("Level: %d", currentGameLevel);
         glyphLayout.setText(levelFont, levelText);
 
         float levelX = scoreX;
-        float levelY = scoreY - padding*2.5f;
+        float levelY = scoreY - padding * 2.5f;
 
         drawTextWithOutline(batch, levelFont, levelText, levelX, levelY,
-                           new Color(0f, 1f, 1f, 1f), new Color(0f, 0f, 0f, 1f));
+            new Color(0f, 1f, 1f, 1f), new Color(0f, 0f, 0f, 1f));
     }
 
     private void renderLevelIcons(SpriteBatch batch, int currentSharkLevel, int currentFishEaten, int requiredFishForLevelUp) {
@@ -427,7 +354,7 @@ public class GameHUD {
 
         batch.draw(progressBarBg, x, y, barWidth, progressBarHeight);
 
-        float fillWidth = ((float)currentFishEaten / requiredFish) * barWidth;
+        float fillWidth = ((float) currentFishEaten / requiredFish) * barWidth;
         if (fillWidth > 0) {
             batch.draw(progressBarFill, x, y, fillWidth, progressBarHeight);
         }
@@ -435,21 +362,21 @@ public class GameHUD {
         String progressText = String.format("%d/%d fish", currentFishEaten, requiredFish);
         glyphLayout.setText(levelFont, progressText);
         float textX = x + (barWidth - glyphLayout.width) / 2;
-        float textY = y + progressBarHeight + glyphLayout.height + padding/2;
+        float textY = y + progressBarHeight + glyphLayout.height + padding / 2;
 
         drawTextWithOutline(batch, levelFont, progressText, textX, textY,
-                           new Color(1f, 1f, 1f, 1f), new Color(0f, 0f, 0f, 1f));
+            new Color(1f, 1f, 1f, 1f), new Color(0f, 0f, 0f, 1f));
     }
 
     private void renderAdditionalElements(SpriteBatch batch) {
         String staminaText = "Stamina";
         glyphLayout.setText(levelFont, staminaText);
 
-        float staminaX = screenWidth * 0.65f - glyphLayout.width/2;
-        float staminaY = screenHeight - hudHeight/2 + glyphLayout.height/2;
+        float staminaX = screenWidth * 0.65f - glyphLayout.width / 2;
+        float staminaY = screenHeight - hudHeight / 2 + glyphLayout.height / 2;
 
         drawTextWithOutline(batch, levelFont, staminaText, staminaX, staminaY,
-                           new Color(0f, 1f, 0.5f, 1f), new Color(0f, 0f, 0f, 1f));
+            new Color(0f, 1f, 0.5f, 1f), new Color(0f, 0f, 0f, 1f));
 
         float staminaBarX = staminaX;
         float staminaBarY = staminaY - padding * 2.5f;
@@ -481,7 +408,7 @@ public class GameHUD {
 
         float largeBonusSize = bonusIconSize * 1.3f;
         float bonusStartX = screenWidth * 0.75f;
-        float bonusY = screenHeight - hudHeight/2 - largeBonusSize/2;
+        float bonusY = screenHeight - hudHeight / 2 - largeBonusSize / 2;
 
         for (int i = 0; i < bonusIcons.size; i++) {
             float bonusX = bonusStartX + i * (largeBonusSize + iconSpacing * 2);
@@ -493,10 +420,10 @@ public class GameHUD {
                 glyphLayout.setText(levelFont, countText);
 
                 float countX = bonusX + (largeBonusSize - glyphLayout.width) / 2;
-                float countY = bonusY + padding/4;
+                float countY = bonusY + padding / 4;
 
                 drawTextWithOutline(batch, levelFont, countText, countX, countY,
-                                   new Color(1f, 1f, 1f, 1f), new Color(0f, 0f, 0f, 1f));
+                    new Color(1f, 1f, 1f, 1f), new Color(0f, 0f, 0f, 1f));
             }
         }
     }
@@ -504,8 +431,12 @@ public class GameHUD {
     private void renderLevelUpEffect(SpriteBatch batch, int currentSharkLevel) {
         if (showLevelUpEffect) {
             float alpha = MathUtils.sin(levelUpEffectTimer * 8) * 0.5f + 0.5f;
-
-            String levelUpText = "LEVEL " + currentSharkLevel + " UNLOCKED!";
+            String levelUpText = "";
+            if (currentSharkLevel <= 3) {
+                levelUpText = "SHARK LEVEL " + currentSharkLevel + " UNLOCKED!";
+            } else {
+                levelUpText = "YOU HAVE PASSED THIS LEVEL!";
+            }
             glyphLayout.setText(titleFont, levelUpText);
 
             float x = (screenWidth - glyphLayout.width) / 2;
@@ -519,26 +450,26 @@ public class GameHUD {
     }
 
     private void renderTimer(SpriteBatch batch) {
-        int minutes = (int)(gameTimer / 60);
-        int seconds = (int)(gameTimer % 60);
+        int minutes = (int) (gameTimer / 60);
+        int seconds = (int) (gameTimer % 60);
         String timerText = String.format("Time: %02d:%02d", minutes, seconds);
 
         glyphLayout.setText(scoreFont, timerText);
 
-        float timerX = screenWidth - glyphLayout.width - padding*6f;
-        float timerY = screenHeight - hudHeight/2 + padding*3f;
+        float timerX = screenWidth - glyphLayout.width - padding * 6f;
+        float timerY = screenHeight - hudHeight / 2 + padding * 3f;
 
         drawTextWithOutline(batch, scoreFont, timerText, timerX, timerY,
-                           new Color(1f, 1f, 0f, 1f), new Color(0f, 0f, 0f, 1f));
+            new Color(1f, 1f, 0f, 1f), new Color(0f, 0f, 0f, 1f));
     }
 
     private void renderLives(SpriteBatch batch, int currentLives) {
-        float livesX = padding*6f;
-        float livesY = screenHeight - hudHeight/2 + padding*1.3f;
+        float livesX = padding * 6f;
+        float livesY = screenHeight - hudHeight / 2 + padding * 1.3f;
         float heartSize = iconSize * 0.6f;
 
         for (int i = 0; i < currentLives; i++) {
-            float heartX = livesX + i * (heartSize + iconSpacing/2);
+            float heartX = livesX + i * (heartSize + iconSpacing / 2);
             batch.draw(heartIcon, heartX, livesY, heartSize, heartSize);
         }
     }
@@ -546,7 +477,7 @@ public class GameHUD {
     // Public API methods
     public void addScore(int points) {
         float finalPoints = points * scoreBonusMultiplier;
-        targetScore += (int)finalPoints;
+        targetScore += (int) finalPoints;
     }
 
     public void activateScoreBonus(float multiplier, float duration) {
@@ -572,17 +503,42 @@ public class GameHUD {
     }
 
     // Getters
-    public int getScore() { return score; }
-    public int getCurrentGameLevel() { return currentGameLevel; }
-    public float getGameTimer() { return gameTimer; }
-    public boolean isTimerActive() { return timerActive; }
-    public float getHudHeight() { return hudHeight; }
-    public float getTimeRemaining() { return gameTimer; }
+    public int getScore() {
+        return score;
+    }
+
+    public int getCurrentGameLevel() {
+        return currentGameLevel;
+    }
+
+    public float getGameTimer() {
+        return gameTimer;
+    }
+
+    public boolean isTimerActive() {
+        return timerActive;
+    }
+
+    public float getHudHeight() {
+        return hudHeight;
+    }
+
+    public float getTimeRemaining() {
+        return gameTimer;
+    }
 
     // Setters
-    public void setCurrentGameLevel(int level) { this.currentGameLevel = level; }
-    public void setTimerActive(boolean active) { this.timerActive = active; }
-    public void setGameTimer(float timer) { this.gameTimer = timer; }
+    public void setCurrentGameLevel(int level) {
+        this.currentGameLevel = level;
+    }
+
+    public void setTimerActive(boolean active) {
+        this.timerActive = active;
+    }
+
+    public void setGameTimer(float timer) {
+        this.gameTimer = timer;
+    }
 
     public void setLevelParameters(float timeLimit, int fishTarget) {
         this.maxLevelTime = timeLimit;
@@ -644,4 +600,78 @@ public class GameHUD {
         // Логіка додавання життя має бути в BasicLevel,
         // цей метод тут для сумісності
     }
+
+    // Fonts
+    private BitmapFont titleFont;
+    private BitmapFont scoreFont;
+    private BitmapFont levelFont;
+
+    // Game data - тільки базові дані без стану
+    private int score;
+    private int targetScore;
+    private boolean isSprintActive = false;
+    private boolean canSprint = true;
+
+    // Current game level and timer
+    private int currentGameLevel;
+    private float gameTimer;
+    private float maxLevelTime;
+    private int targetFishCount;
+    private boolean timerActive;
+
+    // Stamina system
+    private float stamina;
+    private float maxStamina;
+
+    // Bonus effects system
+    private boolean scoreBonusActive = false;
+    private float scoreBonusMultiplier = 1f;
+    private float scoreBonusTimer = 0f;
+
+    // UI elements
+    private Array<Texture> fishIcons;
+    private Array<Texture> bonusIcons;
+    private Array<Integer> bonusCounts;
+    private Texture heartIcon;
+    private GlyphLayout glyphLayout;
+    private Texture hudBackground;
+    private Texture progressBarBg;
+    private Texture progressBarFill;
+    private Texture gameLogo;
+
+    // Layout variables - all adaptive to screen size
+    private float screenWidth;
+    private float screenHeight;
+    private float hudHeight;
+    private float padding;
+    private float iconSize;
+    private float iconSpacing;
+    private float progressBarHeight;
+    private float bonusIconSize;
+    private float logoSize;
+    private float titleFontScale;
+    private float scoreFontScale;
+    private float levelFontScale;
+
+    // Level up effect
+    private float levelUpEffectTimer;
+    private boolean showLevelUpEffect;
+    private Color levelUpColor;
+
+    // Constants
+    private static final int MAX_SHARK_LEVEL = 3;
+    private static final float LEVEL_UP_EFFECT_DURATION = 3f;
+    private static final float SPRINT_DRAIN_TIME = 5f;
+    private static final float SPRINT_REGEN_TIME = 20f;
+    private static final float STAMINA_DRAIN_RATE = 100f / SPRINT_DRAIN_TIME;
+    private static final float STAMINA_REGENERATION_RATE = 100f / SPRINT_REGEN_TIME;
+    private static final float SPRINT_SPEED_MULTIPLIER = 1.3f;
+
+    // Screen size ratios for adaptive design
+    private static final float HUD_HEIGHT_RATIO = 0.15f;
+    private static final float PADDING_RATIO = 0.02f;
+    private static final float ICON_SIZE_RATIO = 0.08f;
+    private static final float ICON_SPACING_RATIO = 0.015f;
+    private static final float PROGRESS_BAR_HEIGHT_RATIO = 0.012f;
+    private static final float BONUS_ICON_RATIO = 0.05f;
 }

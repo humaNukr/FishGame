@@ -2,6 +2,7 @@ package com.naukma.bonuses;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
 
 public class EatingShark {
@@ -22,7 +23,6 @@ public class EatingShark {
     public void startEating() {
         isEating = true;
         stateTime = 0;
-        currentFrame = 0;
     }
 
     public void update(float delta) {
@@ -36,12 +36,27 @@ public class EatingShark {
         }
     }
 
+    public void renderAt(SpriteBatch batch, float x, float y, float rotation, boolean flipY) {
+        if (!isEating) return;
+
+        Texture currentTexture = getCurrentTexture();
+        float width = currentTexture.getWidth() * 0.5f; // Припускаючи, що масштаб 0.5
+        float height = currentTexture.getHeight() * 0.5f;
+
+        batch.draw(currentTexture,
+                x, y,
+                width / 2, height / 2,
+                width, height,
+                1, 1,
+                rotation,
+                0, 0,
+                currentTexture.getWidth(), currentTexture.getHeight(),
+                true, flipY);
+    }
+
     public Texture getCurrentTexture() {
-        Texture currentTexture = isEating ? frames.get(currentFrame + 1) : frames.get(0);
-        if (currentTexture.getWidth() != width || currentTexture.getHeight() != height) {
-            currentTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        }
-        return currentTexture;
+        int frameIndex = (int)(stateTime / FRAME_DURATION) % frames.size;
+        return frames.get(frameIndex);
     }
 
     public boolean isEating() {
@@ -61,4 +76,5 @@ public class EatingShark {
     private static final int EATING_FRAMES = 7;
     private int currentFrame = 0;
     private float width, height;
+    private static final float FRAME_DURATION = 0.1f;
 }

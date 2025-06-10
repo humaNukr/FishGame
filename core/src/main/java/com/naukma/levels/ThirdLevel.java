@@ -35,10 +35,14 @@ public class ThirdLevel extends BasicLevel {
     protected int getFishUnlockRequirement(int fishTypeIndex) {
         // Переозначаємо вимоги для третього рівня
         switch (fishTypeIndex) {
-            case 0: return 2; // Після 20 перших риб (fish_15/) розблоковується другий тип (fish_14/)
-            case 1: return 2;  // Після 8 других риб (fish_14/) розблоковується третій тип (fish_13/)
-            case 2: return 2;  // Після 4 третіх риб (fish_13/) - перемога
-            default: return 5;
+            case 0:
+                return 2; // Після 20 перших риб (fish_15/) розблоковується другий тип (fish_14/)
+            case 1:
+                return 2;  // Після 8 других риб (fish_14/) розблоковується третій тип (fish_13/)
+            case 2:
+                return 2;  // Після 4 третіх риб (fish_13/) - перемога
+            default:
+                return 5;
         }
     }
 
@@ -48,20 +52,4 @@ public class ThirdLevel extends BasicLevel {
         return lives < 0 || timeRemaining <= 0;
     }
 
-    @Override
-    protected void updateLevelLogic(float deltaTime, float sharkX, float sharkY) {
-        // Спеціальна логіка для складного рівня
-        // Можна додати додаткові ускладнення:
-        // - Рибки тікають від акули
-        // - Періодичні "шторми" що змінюють швидкість
-        // - Бонусні рибки що з'являються рідко
-    }
-
-    @Override
-    protected void renderLevelSpecific(SpriteBatch batch) {
-        // Можна додати спеціальні ефекти для найскладнішого рівня
-        // - Темніший фон
-        // - Частинки у воді
-        // - Спеціальні візуальні ефекти
-    }
 }
