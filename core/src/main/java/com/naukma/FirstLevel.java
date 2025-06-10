@@ -36,7 +36,7 @@ public class FirstLevel extends BasicLevel {
     protected int getFishUnlockRequirement(int fishTypeIndex) {
         // Переозначаємо вимоги для першого рівня
         switch (fishTypeIndex) {
-            case 0: return 20; // Після 20 перших риб (fish_04/) розблоковується другий тип (fish_05/)
+            case 0: return 5; // Після 20 перших риб (fish_04/) розблоковується другий тип (fish_05/)
             case 1: return 3;  // Після 3 других риб (fish_05/) розблоковується третій тип (fish_02/)
             case 2: return 2;  // Після 2 третіх риб (fish_02/) - перемога
             default: return 5;
@@ -46,7 +46,7 @@ public class FirstLevel extends BasicLevel {
     @Override
     public boolean checkWinCondition(int currentScore, float timeRemaining, int fishEaten) {
         // Перемога тільки коли акула досягла 3-го рівня і з'їла всіх потрібних риб
-        int sharkLevel = gameHUD != null ? gameHUD.getSharkLevel() : 1;
+        int sharkLevel = calculateSharkLevel();
         
         if (sharkLevel < 3) {
             return false; // Акула ще не досягла максимального рівня

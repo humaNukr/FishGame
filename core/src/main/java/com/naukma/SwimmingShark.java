@@ -40,5 +40,5 @@ public class SwimmingShark extends SwimmingFish {
     }
 
     private static final int SHARK_FRAMES = 7;
-    public static final float SHARK_SCALE = 2.0f; 
+    public static final float SHARK_SCALE = 2f;
 }

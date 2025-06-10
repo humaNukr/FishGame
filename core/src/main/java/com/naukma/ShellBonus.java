@@ -147,8 +147,7 @@ public class ShellBonus extends Bonus {
     @Override
     public void onCollected(GameHUD gameHUD) {
         if (isOpen && hasPearl) {
-            // Додаємо життя замість бонусу до інвентарю
-            gameHUD.addLife();
+            // Життя буде додано в BasicLevel
             hasPearl = false;
             isOpen = true; // Залишаємо відкритою
             currentFrame = 2; // Ракушка без перлини (3-й кадр)

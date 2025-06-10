@@ -45,7 +45,7 @@ public class ThirdLevel extends BasicLevel {
     @Override
     public boolean checkWinCondition(int currentScore, float timeRemaining, int fishEaten) {
         // Перемога тільки коли акула досягла 3-го рівня і з'їла всіх потрібних риб
-        int sharkLevel = gameHUD != null ? gameHUD.getSharkLevel() : 1;
+        int sharkLevel = calculateSharkLevel();
         
         if (sharkLevel < 3) {
             return false; // Акула ще не досягла максимального рівня

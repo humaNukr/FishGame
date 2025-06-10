@@ -110,7 +110,7 @@ public class BasicLevel extends ApplicationAdapter {
 
         // Встановлюємо параметри рівня в HUD (без targetFishCount)
         gameHUD.setLevelParameters(timeLimit, -1); // -1 означає що не показуємо цільову кількість риб
-        gameHUD.setCurrentLives(lives); // Встановлюємо поточні життя
+        // Життя передаються в render методі
         gameHUD.resetTimer();
 
         // Оновлюємо іконки рибок згідно з поточним рівнем
@@ -401,7 +401,17 @@ public class BasicLevel extends ApplicationAdapter {
 
         // Рендеримо HUD тільки якщо не Game Over
         if (!showGameOverEffect && !isGameOver) {
-            gameHUD.render(batch);
+            // Викликаємо новий метод render з параметрами від рівня
+            int currentSharkLevel = calculateSharkLevel(); // Обчислюємо рівень акули
+            
+            // Отримуємо прогрес поточного активного типу риби
+            String activeFishType = getCurrentActiveFishType();
+            int currentFishEaten = activeFishType != null ? getEatenFishCount(activeFishType) : 0;
+            
+            // Отримуємо кількість риб потрібну для левел апу активного типу
+            int requiredFishForLevelUp = getRequiredFishForActiveFishType();
+            
+            gameHUD.render(batch, currentSharkLevel, currentFishEaten, lives, requiredFishForLevelUp);
         }
 
         batch.end();
@@ -536,14 +546,23 @@ public class BasicLevel extends ApplicationAdapter {
     private void eatFish(SwimmingFish fish, float fishX, float fishY) {
         eatingShark.startEating();
         fish.setActive(false);
+        
+        // Перевіряємо рівень до додавання очок
+        int oldSharkLevel = calculateSharkLevel();
+        
         gameHUD.addScore(10);
-        gameHUD.addFishEaten();
 
-        // Додаємо з'їдену рибку до лічильника типів
+        // Додаємо з'їдену рибку до лічільника типів
         String fishType = fish.getFishType();
         if (fishType != null) {
             int currentCount = eatenFishCounts.get(fishType, 0);
             eatenFishCounts.put(fishType, currentCount + 1);
+        }
+        
+        // Перевіряємо чи був level up після додавання риби
+        int newSharkLevel = calculateSharkLevel();
+        if (newSharkLevel > oldSharkLevel) {
+            gameHUD.triggerLevelUpEffect(); // Тригеримо ефект
         }
 
         final float bloodX = fishX;
@@ -572,10 +591,7 @@ public class BasicLevel extends ApplicationAdapter {
         // Спочатку віднімаємо життя
         lives--;
 
-        // Оновлюємо HUD
-        if (gameHUD != null) {
-            gameHUD.setCurrentLives(lives);
-        }
+        // Життя передаються в render методі
 
         // Ефекти
         bloodEffect.spawn(fishX, fishY);
@@ -642,7 +658,7 @@ public class BasicLevel extends ApplicationAdapter {
         float timeRemaining = gameHUD.getTimeRemaining(); // Тепер таймер йде до 0
 
         // Спочатку перевіряємо перемогу
-        if (checkWinCondition(gameHUD.getScore(), timeRemaining, gameHUD.getFishEaten())) {
+        if (checkWinCondition(gameHUD.getScore(), timeRemaining, getTotalEatenFishCount())) {
             isCompleted = true;
             return; // Виграш має пріоритет, виходимо до перевірки програшу
         }
@@ -673,7 +689,7 @@ public class BasicLevel extends ApplicationAdapter {
 
         gameHUD.setCurrentGameLevel(levelNumber);
         gameHUD.setLevelParameters(timeLimit, -1); // Не показуємо цільову кількість риб
-        gameHUD.setCurrentLives(lives); // Оновлюємо життя в HUD
+        // Життя передаються в render методі
         gameHUD.resetTimer();
         gameHUD.updateLevelFishIcons(availableFish);
 
@@ -860,6 +876,58 @@ public class BasicLevel extends ApplicationAdapter {
     public ObjectMap<String, Integer> getAllEatenFishCounts() {
         return eatenFishCounts;
     }
+    
+    // Новий метод для підрахунку загальної кількості з'їдених риб
+    private int getTotalEatenFishCount() {
+        int total = 0;
+        for (Integer count : eatenFishCounts.values()) {
+            total += count;
+        }
+        return total;
+    }
+    
+    // Метод для отримання поточного активного типу риби
+    private String getCurrentActiveFishType() {
+        // Перевіряємо всі типи риби послідовно (незалежно від sharkLevel)
+        for (int i = 0; i < availableFish.size; i++) {
+            String fishType = availableFish.get(i).path;
+            int eatenCount = getEatenFishCount(fishType);
+            int required = getFishUnlockRequirement(i);
+            
+            // Якщо цей тип ще не завершений - він активний
+            if (eatenCount < required) {
+                return fishType;
+            }
+        }
+        
+        // Якщо всі типи завершені - повертаємо останній
+        if (availableFish.size > 0) {
+            return availableFish.get(availableFish.size - 1).path;
+        }
+        
+        return null;
+    }
+    
+    // Новий метод для обчислення рівня акули на основі завершених типів риб
+    protected int calculateSharkLevel() {
+        int completedTypes = 0;
+        
+        // Підраховуємо скільки типів риб повністю завершено
+        for (int i = 0; i < availableFish.size; i++) {
+            String fishType = availableFish.get(i).path;
+            int eatenCount = getEatenFishCount(fishType);
+            int required = getFishUnlockRequirement(i);
+            
+            if (eatenCount >= required) {
+                completedTypes++;
+            } else {
+                break; // Зупиняємося на першому незавершеному типі
+            }
+        }
+        
+        // Рівень = кількість завершених типів + 1
+        return Math.min(completedTypes + 1, 3); // Максимум 3 рівень
+    }
 
     private void initializeUnlockedFishTypes() {
         // На початку акула може їсти тільки перший тип рибок рівня
@@ -870,16 +938,25 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void updateUnlockedFishTypes() {
-        // Оновлюємо доступні типи рибок на основі рівня акули
+        // Оновлюємо доступні типи рибок на основі завершених попередніх типів
         unlockedFishTypes.clear();
 
-        // Акула може їсти стільки типів, скільки у неї рівень (максимум 3)
-        int sharkLevel = gameHUD != null ? gameHUD.getSharkLevel() : 1;
-        int maxUnlockableTypes = Math.min(sharkLevel, availableFish.size);
+        // Завжди додаємо перший тип (він доступний з початку)
+        if (availableFish.size > 0) {
+            unlockedFishTypes.add(availableFish.get(0).path);
+        }
 
-        for (int i = 0; i < maxUnlockableTypes; i++) {
-            if (i < availableFish.size) {
+        // Додаємо наступні типи тільки якщо попередні завершені
+        for (int i = 1; i < availableFish.size; i++) {
+            String previousFishType = availableFish.get(i - 1).path;
+            int previousEaten = getEatenFishCount(previousFishType);
+            int previousRequired = getFishUnlockRequirement(i - 1);
+            
+            // Якщо попередній тип завершений - розблоковуємо наступний
+            if (previousEaten >= previousRequired) {
                 unlockedFishTypes.add(availableFish.get(i).path);
+            } else {
+                break; // Зупиняємося якщо попередній тип не завершений
             }
         }
     }
@@ -1029,8 +1106,8 @@ public class BasicLevel extends ApplicationAdapter {
                     // Збираємо бонус (тільки перлину)
                     bonusManager.collectBonus(collectedBonus, gameHUD);
                     
-                    // Синхронізуємо життя
-                    lives = gameHUD.getCurrentLives();
+                    // Додаємо життя за перлину
+                    lives++;
                     
                     // Ефект бонусу для перлини
                     final float bonusX = collectedBonus.getX() + collectedBonus.getWidth() / 2;
@@ -1060,5 +1137,27 @@ public class BasicLevel extends ApplicationAdapter {
                 }, BLOOD_EFFECT_DELAY);
             }
         }
+    }
+
+    // Метод для отримання кількості риб потрібної для левел апу активного типу
+    private int getRequiredFishForActiveFishType() {
+        // Знаходимо індекс активного типу риби
+        for (int i = 0; i < availableFish.size; i++) {
+            String fishType = availableFish.get(i).path;
+            int eatenCount = getEatenFishCount(fishType);
+            int required = getFishUnlockRequirement(i);
+            
+            // Якщо цей тип ще не завершений - повертаємо його вимогу
+            if (eatenCount < required) {
+                return required;
+            }
+        }
+        
+        // Якщо всі типи завершені - повертаємо вимогу для останнього типу
+        if (availableFish.size > 0) {
+            return getFishUnlockRequirement(availableFish.size - 1);
+        }
+        
+        return 10; // Значення за замовчуванням
     }
 }
