@@ -6,10 +6,11 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 
-public class SwimmingFish {
+public class SwimmingFish extends Entity {
 
     public SwimmingFish(String framesPath, int framesCount, boolean isLookingLeft,
                         float speed, float scale, float frameDuration) {
+        super(0, 0); // Початкові координати, які будуть змінені в respawn()
         this.isLookingLeft = isLookingLeft;
         this.speed = speed;
         this.frameDuration = frameDuration;
@@ -23,8 +24,8 @@ public class SwimmingFish {
                 frames.add(new Texture(Gdx.files.internal(framesPath + "frame_" + i + ".png")));
             }
         }
-        width = frames.get(0).getWidth() * scale;
-        height = frames.get(0).getHeight() * scale;
+        this.width = frames.get(0).getWidth() * scale;
+        this.height = frames.get(0).getHeight() * scale;
 
         // Зберігаємо інформацію про тип рибки
         this.fishType = framesPath;
@@ -101,8 +102,8 @@ public class SwimmingFish {
         this.frameCount = frameCount;
         
         // Оновлюємо розміри
-        width = frames.get(0).getWidth() * newScale;
-        height = frames.get(0).getHeight() * newScale;
+        this.width = frames.get(0).getWidth() * newScale;
+        this.height = frames.get(0).getHeight() * newScale;
         
         // Очищуємо старі текстури
         for (Texture frame : oldFrames) {
@@ -209,8 +210,6 @@ public class SwimmingFish {
     private final Array<Texture> frames;
     private float stateTime;
     private float frameDuration = 0.10f;
-    private float x, y;
-    private float width, height;
     private float rotation;
     private float speed;
     private int frameCount;

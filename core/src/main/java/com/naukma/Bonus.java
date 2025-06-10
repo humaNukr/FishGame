@@ -4,9 +4,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 
-public abstract class Bonus {
-    protected float x, y;
-    protected float width, height;
+public abstract class Bonus extends Entity {
     protected boolean active;
     protected boolean collected;
     protected Texture texture;
@@ -22,6 +20,7 @@ public abstract class Bonus {
     protected float bobAmplitude;
     
     public Bonus(String texturePath, float scale, float speed) {
+        super(0, 0); // Початкові координати, які будуть змінені
         this.texture = new Texture(texturePath);
         this.scale = scale;
         this.speed = speed;
@@ -111,10 +110,6 @@ public abstract class Bonus {
     // Getters
     public boolean isActive() { return active; }
     public boolean isCollected() { return collected; }
-    public float getX() { return x; }
-    public float getY() { return y; }
-    public float getWidth() { return width; }
-    public float getHeight() { return height; }
     
     public void dispose() {
         if (texture != null) {

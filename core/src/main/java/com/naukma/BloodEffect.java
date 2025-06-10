@@ -5,22 +5,28 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-public class BloodEffect {
+public class BloodEffect extends Entity {
 
     public BloodEffect() {
+        super(-100, -100); // Початково ховаємо за екраном
         bloodTexture = new Texture(Gdx.files.internal("blood.png"));
         alpha = 1f;
         isActive = false;
         scale = 0.3f;
+        this.width = bloodTexture.getWidth() * scale;
+        this.height = bloodTexture.getHeight() * scale;
         color = new Color(1, 1, 1, 1);
     }
 
     // Конструктор з кастомною текстурою
     public BloodEffect(String texturePath) {
+        super(-100, -100); // Початково ховаємо за екраном
         bloodTexture = new Texture(Gdx.files.internal(texturePath));
         alpha = 1f;
         isActive = false;
         scale = 0.1f;
+        this.width = bloodTexture.getWidth() * scale;
+        this.height = bloodTexture.getHeight() * scale;
         color = new Color(1, 1, 1, 1);
     }
 
@@ -61,7 +67,6 @@ public class BloodEffect {
     }
 
     private Texture bloodTexture;
-    private float x, y;
     private float alpha;
     private boolean isActive;
     private float scale;
