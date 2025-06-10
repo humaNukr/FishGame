@@ -289,6 +289,28 @@ public class BasicLevel extends ApplicationAdapter {
             handleGameOverMenu();
         }
 
+        if (isShrinkingForVictory) {
+            shrinkingTimer += Gdx.graphics.getDeltaTime();
+            float progress = Math.min(1f, shrinkingTimer / SHRINKING_DURATION);
+            float newScale = MathUtils.lerp(initialSharkScale, TARGET_VICTORY_SCALE, progress);
+            swimmingShark.setScale(newScale);
+            this.sharkWidth = swimmingShark.getWidth();
+            this.sharkHeight = swimmingShark.getHeight();
+
+            if (progress >= 1f) {
+                isShrinkingForVictory = false;
+                victoryAnimationActive = true;
+
+                // Start the somersault
+                if (sharkX < scrollingBackground.getWorldWidth() / 2) {
+                    victorySpeedX = 200; // Початкова швидкість вправо
+                } else {
+                    victorySpeedX = -200; // Початкова швидкість вліво
+                }
+                victorySpeedY = 300; // Початкова вертикальна швидкість для "сальто"
+            }
+        }
+
         if (victoryAnimationActive) {
             float delta = Gdx.graphics.getDeltaTime();
             sharkX += victorySpeedX * delta;
@@ -443,7 +465,7 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void checkCollisions() {
-        if (eatingShark.isEating() || victoryAnimationActive) return;
+        if (eatingShark.isEating() || victoryAnimationActive || isShrinkingForVictory) return;
 
         double rotationRad = Math.toRadians(rotation);
         float sharkCenterX = sharkX + sharkWidth / 2;
@@ -490,7 +512,7 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void eatFish(SwimmingFish fish, float fishX, float fishY) {
-        if (isVictory || pendingVictory || victoryAnimationActive) {
+        if (isVictory || pendingVictory || victoryAnimationActive || isShrinkingForVictory) {
             return;
         }
 
@@ -541,7 +563,7 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void handleInput(float delta) {
-        if (isPaused || isGameOver || showGameOverEffect || victoryAnimationActive) {
+        if (isPaused || isGameOver || showGameOverEffect || victoryAnimationActive || isShrinkingForVictory) {
             return;
         }
         tempVector.set(Gdx.input.getX(), Gdx.input.getY(), 0);
@@ -591,19 +613,15 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void checkLevelConditions() {
-        if (isVictory || isGameOver || victoryAnimationActive) return; // Якщо вже є результат, нічого не робимо
+        if (isVictory || isGameOver || victoryAnimationActive || isShrinkingForVictory) return; // Якщо вже є результат, нічого не робимо
 
         float timeRemaining = gameHUD.getTimeRemaining();
 
         // Перевіряємо умову перемоги
         if (checkWinCondition(score, timeRemaining, getTotalEatenFishCount())) {
-            victoryAnimationActive = true;
-            if (sharkX < scrollingBackground.getWorldWidth() / 2) {
-                victorySpeedX = -200; // Початкова швидкість вліво
-            } else {
-                victorySpeedX = 200; // Початкова швидкість вправо
-            }
-            victorySpeedY = 300; // Початкова вертикальна швидкість для "сальто"
+            isShrinkingForVictory = true;
+            shrinkingTimer = 0f;
+            initialSharkScale = swimmingShark.getScale();
             return;
         }
 
@@ -1059,7 +1077,7 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void checkBonusCollisions() {
-        if (eatingShark.isEating() || victoryAnimationActive) return;
+        if (eatingShark.isEating() || victoryAnimationActive || isShrinkingForVictory) return;
 
         Bonus collectedBonus = bonusManager.checkCollisions(sharkX, sharkY, sharkWidth, sharkHeight);
         if (collectedBonus != null) {
@@ -1238,6 +1256,13 @@ public class BasicLevel extends ApplicationAdapter {
     // Додаємо поля для затримки перемоги (залишаємо тільки один раз!)
     private boolean pendingVictory = false;
     private boolean isVictory = false; // Новий прапор, що сигналізує про перемогу
+
+    // Змінні для анімації зменшення
+    private boolean isShrinkingForVictory = false;
+    private float shrinkingTimer = 0f;
+    private static final float SHRINKING_DURATION = 0.5f;
+    private float initialSharkScale = 1f;
+    private static final float TARGET_VICTORY_SCALE = 0.4f;
 
     private VictoryWindow victoryWindow;
 }
