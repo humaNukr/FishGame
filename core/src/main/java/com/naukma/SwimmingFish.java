@@ -8,6 +8,8 @@ import com.badlogic.gdx.utils.Array;
 
 public class SwimmingFish extends Entity {
 
+    protected float scale;
+
     public SwimmingFish(String framesPath, int framesCount, boolean isLookingLeft,
                         float speed, float scale, float frameDuration) {
         super(0, 0); // Початкові координати, які будуть змінені в respawn()
@@ -15,6 +17,7 @@ public class SwimmingFish extends Entity {
         this.speed = speed;
         this.frameDuration = frameDuration;
         this.frameCount = framesCount;
+        this.scale = scale;
         frames = new Array<>();
 
         for (int i = 0; i < framesCount; i++) {
@@ -204,7 +207,14 @@ public class SwimmingFish extends Entity {
     public float getY() { return y; }
     public float getWidth() { return width; }
     public float getHeight() { return height; }
-    public float getScale() { return width / frames.get(0).getWidth(); }
+    public float getScale() { return scale; }
+    public void setScale(float scale) {
+        this.scale = scale;
+        if (frames != null && frames.size > 0) {
+            this.width = frames.get(0).getWidth() * scale;
+            this.height = frames.get(0).getHeight() * scale;
+        }
+    }
     public void setActive(boolean active) { this.isActive = active; }
 
     private final Array<Texture> frames;

@@ -4,13 +4,13 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class SwimmingShark extends SwimmingFish {
-    public SwimmingShark() {
+    public SwimmingShark(float initialScale) {
         super(
             "shark_moving/",
             SHARK_FRAMES,
             false,
             200f,
-            SHARK_SCALE,
+            initialScale,
             0.1f
         );
     }
@@ -40,5 +40,4 @@ public class SwimmingShark extends SwimmingFish {
     }
 
     private static final int SHARK_FRAMES = 7;
-    public static final float SHARK_SCALE = 2f;
 }

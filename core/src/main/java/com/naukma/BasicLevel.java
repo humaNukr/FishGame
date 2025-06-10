@@ -57,9 +57,7 @@ public class BasicLevel extends ApplicationAdapter {
     // Константи
     private static final int TOTAL_FISH_TYPES = 8;
     private static final float BLOOD_EFFECT_DELAY = 0.55f;
-    // Використовуємо константу з SwimmingShark
-    // private static final float SHARK_SCALE = 0.5f; - видалено
-    private static final float BASE_EATING_DISTANCE = 75f;
+    private static final float BASE_EATING_DISTANCE = 50f;
     private static final float EATING_FRAME_DELAY = 0.5f;
 
     // Додаткові змінні
@@ -137,7 +135,7 @@ public class BasicLevel extends ApplicationAdapter {
         gameOverMenu = new GameOverMenu();
         fishes = new Array<>();
         eatingShark = new EatingShark();
-        swimmingShark = new SwimmingShark();
+        swimmingShark = new SwimmingShark(0.4f); // Початковий розмір для 1-го рівня
         bloodEffect = new BloodEffect();
         bonusEffect = new BloodEffect("bonus_effect.png"); // Ефект для бонусів
 
@@ -148,8 +146,8 @@ public class BasicLevel extends ApplicationAdapter {
         bonusManager = new BonusManager(levelNumber);
         bonusManager.setWorldBounds(scrollingBackground.getWorldWidth(), scrollingBackground.getWorldHeight());
 
-        sharkWidth = shark.getWidth() * SwimmingShark.SHARK_SCALE;
-        sharkHeight = shark.getHeight() * SwimmingShark.SHARK_SCALE;
+        // Оновлюємо розмір акули одразу при створенні
+        updateSharkSize();
 
         // Початкова позиція акули в світових координатах (центр світу)
         sharkX = (scrollingBackground.getWorldWidth() - sharkWidth) / 2f;
@@ -331,6 +329,7 @@ public class BasicLevel extends ApplicationAdapter {
             // Оновлюємо систему бонусів
             bonusManager.update(Gdx.graphics.getDeltaTime());
             checkBonusCollisions();
+            updateSharkSize(); // Оновлюємо розмір акули
         } else if (isPaused) {
             handlePauseMenu();
         } else if (showGameOverEffect) {
@@ -521,7 +520,7 @@ public class BasicLevel extends ApplicationAdapter {
             float sizeRatio = fishSize / sharkSize;
 
             if (sizeRatio < 0.3f) {
-                if (distance < BASE_EATING_DISTANCE * SwimmingShark.SHARK_SCALE && canEatFishType(fish.getFishType())) {
+                if (distance < BASE_EATING_DISTANCE * swimmingShark.getScale() && canEatFishType(fish.getFishType())) {
                     eatFish(fish, fishFrontX, fishFrontY);
                 }
             } else if (sizeRatio > 0.7f) {
@@ -546,6 +545,8 @@ public class BasicLevel extends ApplicationAdapter {
             return;
         }
 
+        int oldLevel = calculateSharkLevel();
+
         FishSpawnData data = getFishDataFor(fish);
         if (data != null) {
             gameHUD.addScore(data.points);
@@ -559,6 +560,11 @@ public class BasicLevel extends ApplicationAdapter {
 
         eatingShark.startEating();
         updateUnlockedFishTypes();
+
+        int newLevel = calculateSharkLevel();
+        if (newLevel > oldLevel) {
+            gameHUD.triggerLevelUpEffect();
+        }
     }
 
     private void takeDamage(SwimmingFish fish, float fishX, float fishY) {
@@ -1150,5 +1156,32 @@ public class BasicLevel extends ApplicationAdapter {
             }
         }
         return null;
+    }
+
+    private void updateSharkSize() {
+        int level = calculateSharkLevel();
+        float newScale;
+
+        switch (level) {
+            case 1:
+                newScale = 0.5f;
+                break;
+            case 2:
+                newScale = 0.8f;
+                break;
+            case 3:
+                newScale = 1.2f;
+                break;
+            default:
+                newScale = 0.6f;
+                break;
+        }
+
+        if (swimmingShark.getScale() != newScale) {
+            swimmingShark.setScale(newScale);
+            // Оновлюємо розміри в BasicLevel, які використовуються для колізій
+            this.sharkWidth = swimmingShark.getWidth();
+            this.sharkHeight = swimmingShark.getHeight();
+        }
     }
 }
