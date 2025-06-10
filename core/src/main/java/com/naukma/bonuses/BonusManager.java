@@ -138,9 +138,9 @@ public class BonusManager {
         }
     }
 
-    public Bonus checkCollisions(float sharkX, float sharkY, float sharkWidth, float sharkHeight) {
+    public Bonus checkCollisions(float sharkNoseX, float sharkNoseY) {
         for (Bonus bonus : activeBonuses) {
-            if (bonus.checkCollision(sharkX, sharkY, sharkWidth, sharkHeight)) {
+            if (bonus.checkCollision(sharkNoseX, sharkNoseY)) {
                 return bonus;
             }
         }

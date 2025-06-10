@@ -15,6 +15,10 @@ public class SwimmingShark extends SwimmingFish {
         );
     }
 
+    public Texture getSharkTexture() {
+        return getFrameTexture();
+    }
+
     public void renderAt(SpriteBatch batch, float x, float y, float rotation, boolean flipY) {
         Texture currentTexture = getFrameTexture();
         float width = currentTexture.getWidth() * getScale();

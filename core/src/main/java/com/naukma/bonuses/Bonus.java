@@ -76,22 +76,9 @@ public abstract class Bonus extends Entity {
         }
     }
 
-    public boolean checkCollision(float sharkX, float sharkY, float sharkWidth, float sharkHeight) {
-        if (!active || collected) return false;
-
-        float centerX = x + width / 2;
-        float centerY = y + height / 2 + bobOffset;
-        float sharkCenterX = sharkX + sharkWidth / 2;
-        float sharkCenterY = sharkY + sharkHeight / 2;
-
-        float distance = (float) Math.sqrt(
-            Math.pow(centerX - sharkCenterX, 2) +
-            Math.pow(centerY - sharkCenterY, 2)
-        );
-
-        float collisionDistance = (width + sharkWidth) / 4; // Collision radius
-
-        return distance < collisionDistance;
+    public boolean checkCollision(float pointX, float pointY) {
+        return pointX >= this.x && pointX <= this.x + this.width &&
+               pointY >= this.y && pointY <= this.y + this.height;
     }
 
     public void collect() {

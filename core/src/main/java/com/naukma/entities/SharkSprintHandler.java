@@ -9,9 +9,6 @@ public class SharkSprintHandler {
     private float baseSpeed;
     private float currentSpeed;
     private boolean isSprintActive;
-    private static final float SPRINT_MULTIPLIER = 1.3f; // 30% збільшення швидкості
-    private static final float STAMINA_DRAIN_RATE = 20f; // Витрата стаміни в секунду
-    private static final float STAMINA_REGEN_RATE = 5f; // Відновлення стаміни в секунду
 
     public SharkSprintHandler(GameHUD gameHUD, float baseSpeed) {
         this.gameHUD = gameHUD;

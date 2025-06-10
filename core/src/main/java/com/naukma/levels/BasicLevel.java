@@ -594,6 +594,14 @@ public class BasicLevel extends ApplicationAdapter {
             sharkY += moveY;
         }
 
+        float constanta = 0.1f;
+        if(swimmingShark.getScale() == 0.5f) {
+            constanta = 1.2f;
+        } else if (swimmingShark.getScale() == 1.3f) {
+            constanta = 1.5f;
+        } else {
+            constanta = 1.7f;
+        }
         // Обмеження межами світу
         if (sharkX < 0) sharkX = 0;
         if (sharkX > scrollingBackground.getWorldWidth() - sharkWidth)
@@ -601,14 +609,15 @@ public class BasicLevel extends ApplicationAdapter {
 
         if (sharkY < 0) sharkY = 0;
         if (rotation > 200 && rotation < 340) {
-            if (sharkY < sharkHeight / 1.2f) sharkY = sharkHeight / 1.2f;
+            if (sharkY < sharkHeight / constanta) sharkY = sharkHeight / constanta;
         }
         if (rotation < 170 && rotation > 10) {
-            if (sharkY > scrollingBackground.getWorldHeight() - gameHUD.getHudHeight() - sharkHeight * 1.2f)
-                sharkY = scrollingBackground.getWorldHeight() - gameHUD.getHudHeight() - sharkHeight * 1.2f;
+
+            if (sharkY > scrollingBackground.getWorldHeight() - gameHUD.getHudHeight() - sharkHeight * constanta)
+                sharkY = scrollingBackground.getWorldHeight() - gameHUD.getHudHeight() - sharkHeight * constanta;
         }
-        if (sharkY > scrollingBackground.getWorldHeight() - gameHUD.getHudHeight() - sharkHeight / 1.2f) {
-            sharkY = scrollingBackground.getWorldHeight() - gameHUD.getHudHeight() - sharkHeight / 1.2f;
+        if (sharkY > scrollingBackground.getWorldHeight() - gameHUD.getHudHeight() - sharkHeight / constanta) {
+            sharkY = scrollingBackground.getWorldHeight() - gameHUD.getHudHeight() - sharkHeight / constanta;
         }
     }
 
@@ -1079,7 +1088,15 @@ public class BasicLevel extends ApplicationAdapter {
     private void checkBonusCollisions() {
         if (eatingShark.isEating() || victoryAnimationActive || isShrinkingForVictory) return;
 
-        Bonus collectedBonus = bonusManager.checkCollisions(sharkX, sharkY, sharkWidth, sharkHeight);
+        // Визначаємо координати "носа" акули
+        double rotationRad = Math.toRadians(rotation);
+        float sharkCenterX = sharkX + sharkWidth / 2;
+        float sharkCenterY = sharkY + sharkHeight / 2;
+        float headDistance = (swimmingShark.getSharkTexture().getWidth() * swimmingShark.getScale()) / 2f; // Відстань від центру до носа
+        float sharkHeadX = sharkCenterX + (float) (Math.cos(rotationRad) * headDistance);
+        float sharkHeadY = sharkCenterY + (float) (Math.sin(rotationRad) * headDistance);
+
+        Bonus collectedBonus = bonusManager.checkCollisions(sharkHeadX, sharkHeadY);
         if (collectedBonus != null) {
             // Для ракушки - з'їдаємо тільки перлину, ракушка залишається
             if (collectedBonus instanceof ShellBonus) {

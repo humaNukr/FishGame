@@ -7,6 +7,10 @@ import com.naukma.ui.GameHUD;
 
 public class ShellBonus extends Bonus {
 
+    private static final float PEARL_COLLISION_RADIUS = 15f;
+    private static final float OPEN_CHANCE_BASE = 0.5f;
+    private static final float OPEN_CHANCE_INCREMENT = 0.1f;
+    private static final float BOB_SPEED = 50f;
 
     public ShellBonus(int levelNumber) {
         super("shell/frame_00.png", getScaleForLevel(levelNumber), 0f);
@@ -138,16 +142,21 @@ public class ShellBonus extends Bonus {
     }
 
     @Override
-    public boolean checkCollision(float sharkX, float sharkY, float sharkWidth, float sharkHeight) {
-        // Колізія можлива тільки коли ракушка відкрита і є перлина
-        if (!active || collected || !isOpen || !hasPearl) return false;
+    public boolean checkCollision(float pointX, float pointY) {
+        if (!active) return false;
 
-        return super.checkCollision(sharkX, sharkY, sharkWidth, sharkHeight);
+        if (isOpen && hasPearl) {
+            // Якщо мушля відкрита, перевіряємо зіткнення тільки з перлиною
+            return checkPearlCollision(pointX, pointY);
+        } else {
+            // Якщо закрита, перевіряємо зіткнення з самою мушлею
+            return super.checkCollision(pointX, pointY);
+        }
     }
 
     @Override
     public void onCollected(GameHUD gameHUD) {
-        if (isOpen && hasPearl) {
+        if (hasPearl) {
             // Життя буде додано в BasicLevel
             hasPearl = false;
             isOpen = true; // Залишаємо відкритою
@@ -192,6 +201,13 @@ public class ShellBonus extends Bonus {
         if (pearlEffect != null) {
             pearlEffect.dispose();
         }
+    }
+
+    private boolean checkPearlCollision(float pointX, float pointY) {
+        float pearlX = x + width / 2;
+        float pearlY = y + height / 2 + bobOffset;
+        float distance = (float) Math.sqrt(Math.pow(pearlX - pointX, 2) + Math.pow(pearlY - pointY, 2));
+        return distance < PEARL_COLLISION_RADIUS;
     }
 
     private static int lastSpawnedLevel = -1;
