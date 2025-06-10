@@ -408,8 +408,8 @@ public class GameHUD {
 
             batch.draw(fishIcons.get(i), x, iconsY, iconSize, iconSize);
 
-            // Показуємо прогрес тільки для поточного активного типу
-            if (isCurrent && currentSharkLevel < MAX_SHARK_LEVEL) {
+            // Показуємо прогрес для поточного активного типу (включно з 3-м рівнем)
+            if (isCurrent) {
                 // Використовуємо передану кількість риб для левел апу
                 renderProgressBar(batch, x, iconsY - progressBarHeight - padding, currentFishEaten, requiredFishForLevelUp);
             }
