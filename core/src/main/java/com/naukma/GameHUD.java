@@ -632,4 +632,13 @@ public class GameHUD {
             bonus.dispose();
         }
     }
+
+    public int getSharkLevel() {
+        return this.currentGameLevel;
+    }
+
+    public void addLife() {
+        // Логіка додавання життя має бути в BasicLevel,
+        // цей метод тут для сумісності
+    }
 }

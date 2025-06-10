@@ -83,6 +83,11 @@ public class BasicLevel extends ApplicationAdapter {
     // Bonus system
     private BonusManager bonusManager;
 
+    private boolean victoryAnimationActive = false;
+    private float victorySpeedX = 0;
+    private float victorySpeedY = 0;
+    private float victoryAcceleration = 400f;
+
     // Додаємо поля для затримки перемоги (залишаємо тільки один раз!)
     private boolean pendingVictory = false;
     private boolean isVictory = false; // Новий прапор, що сигналізує про перемогу
@@ -308,6 +313,9 @@ public class BasicLevel extends ApplicationAdapter {
 
         if (!isPaused && !isGameOver && !showGameOverEffect) {
             handleInput(Gdx.graphics.getDeltaTime());
+            sprintHandler.handleInput();
+            sprintHandler.updateSpeed();
+            gameHUD.update(Gdx.graphics.getDeltaTime());
             eatingShark.update(Gdx.graphics.getDeltaTime());
             bloodEffect.update(Gdx.graphics.getDeltaTime());
             bonusEffect.update(Gdx.graphics.getDeltaTime());
@@ -329,6 +337,27 @@ public class BasicLevel extends ApplicationAdapter {
             updateGameOverEffect(Gdx.graphics.getDeltaTime());
         } else if (isGameOver) {
             handleGameOverMenu();
+        }
+
+        if (victoryAnimationActive) {
+            float delta = Gdx.graphics.getDeltaTime();
+            sharkX += victorySpeedX * delta;
+            sharkY += victorySpeedY * delta;
+
+            if (victorySpeedX > 0) {
+                victorySpeedX += victoryAcceleration * delta;
+            } else {
+                victorySpeedX -= victoryAcceleration * delta;
+            }
+            victorySpeedY -= victoryAcceleration * delta * 1.5f;
+
+            rotation = MathUtils.atan2(victorySpeedY, victorySpeedX) * MathUtils.radiansToDegrees;
+
+            // Перевіряємо, чи акула вийшла за межі екрану
+            if (sharkX > scrollingBackground.getWorldWidth() + sharkWidth || sharkX < -sharkWidth || sharkY > scrollingBackground.getWorldHeight() + sharkHeight || sharkY < -sharkHeight) {
+                victoryAnimationActive = false;
+                isVictory = true; // Тепер можна показувати вікно перемоги
+            }
         }
 
         renderGame();
@@ -354,73 +383,20 @@ public class BasicLevel extends ApplicationAdapter {
         Gdx.gl.glClearColor(0, 0, 0.2f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        batch.setProjectionMatrix(scrollingBackground.getCamera().combined);
         batch.begin();
 
-        // --- Порядок рендерингу ---
-        // 1. Якщо вікно перемоги активне - рендеримо тільки його
-        if (victoryWindow != null && victoryWindow.isActive()) {
-            // Встановлюємо проекцію для екрану, щоб вікно не залежало від камери світу
-            batch.setProjectionMatrix(batch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
-
-            victoryWindow.handleInput();
-            victoryWindow.update(Gdx.graphics.getDeltaTime());
-            victoryWindow.render(batch);
-
-            // Перевіряємо, чи потрібно переходити на наступний рівень
-            if (victoryWindow.isNextLevelRequested()) {
-                isCompleted = true; // Сигнал для Main.java для переходу
-                victoryWindow.setActive(false);
-            }
-            // Перевіряємо, чи потрібно повертатись в меню
-            if(victoryWindow.isMenuRequested()){
-                isFailed = true; // Використовуємо isFailed як сигнал для повернення в меню
-                victoryWindow.setActive(false);
-            }
-
-            batch.end();
-            return;
-        }
-
-        // 2. Якщо очікуємо перемоги (затримка) - рендеримо заморожену сцену з анімацією
-        if (pendingVictory) {
-            // Рендеримо фон і рибок як статичні елементи
-            scrollingBackground.render(batch);
-            for (SwimmingFish fish : fishes) {
-                if (scrollingBackground.isInView(fish.getX(), fish.getY(), fish.getWidth(), fish.getHeight())) {
-                    fish.renderAt(batch, fish.getX(), fish.getY());
-                }
-            }
-            bonusManager.render(batch);
-
-            // Рендеримо анімацію поїдання акули на місці останньої риби
-            Texture sharkTexture = eatingShark.getCurrentTexture();
-            if (sharkTexture != null) {
-                // Використовуємо lastFishX/Y, які тепер завжди актуальні
-                batch.draw(sharkTexture, lastFishX - sharkWidth / 2, lastFishY - sharkHeight / 2, sharkWidth, sharkHeight);
-            }
-            
-            // Оновлюємо таймер затримки
-            victoryDelayTimer -= Gdx.graphics.getDeltaTime();
-            if (victoryDelayTimer <= 0f) {
-                pendingVictory = false;
-                if (victoryWindow != null) {
-                    victoryWindow.show(levelNumber, gameHUD.getScore());
-                }
-            }
-            batch.end();
-            return;
-        }
-
-        // 3. Стандартний рендеринг гри
         scrollingBackground.render(batch);
+        bonusManager.render(batch);
 
         for (SwimmingFish fish : fishes) {
-            if (scrollingBackground.isInView(fish.getX(), fish.getY(), fish.getWidth(), fish.getHeight())) {
+            if (fish.isActive() && scrollingBackground.isInView(fish.getX(), fish.getY(), fish.getWidth(), fish.getHeight())) {
                 fish.renderAt(batch, fish.getX(), fish.getY());
             }
         }
 
-        bonusManager.render(batch);
+        bloodEffect.render(batch);
+        bonusEffect.render(batch);
 
         if (eatingShark.isEating()) {
             Texture currentSharkTexture = eatingShark.getCurrentTexture();
@@ -433,29 +409,20 @@ public class BasicLevel extends ApplicationAdapter {
                 0, 0,
                 currentSharkTexture.getWidth(), currentSharkTexture.getHeight(),
                 true, rotation > 90 && rotation < 270);
-        } else {
+        } else if (!isVictory) {
             swimmingShark.renderAt(batch, sharkX, sharkY, rotation);
         }
-
-        bloodEffect.render(batch);
-        bonusEffect.render(batch);
+        
         renderLevelSpecific(batch);
 
+        // Рендеримо HUD та меню
         batch.setProjectionMatrix(batch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
-
-        if (showGameOverEffect) {
-            renderGameOverEffect(batch);
-        } else if (isGameOver) {
+        
+        if (isGameOver) {
             gameOverMenu.render(batch);
         } else if (isPaused) {
             pauseMenu.render(batch);
         } else {
-            sprintHandler.handleInput();
-            gameHUD.update(Gdx.graphics.getDeltaTime());
-            sprintHandler.updateSpeed();
-        }
-
-        if (!showGameOverEffect && !isGameOver) {
             int currentSharkLevel = calculateSharkLevel();
             String activeFishType = getCurrentActiveFishType();
             int currentFishEaten = activeFishType != null ? getEatenFishCount(activeFishType) : 0;
@@ -463,48 +430,30 @@ public class BasicLevel extends ApplicationAdapter {
             gameHUD.render(batch, currentSharkLevel, currentFishEaten, lives, requiredFishForLevelUp);
         }
 
+        if (victoryWindow.isActive()) {
+            victoryWindow.render(batch);
+        }
+
         batch.end();
-    }
 
-    private void renderGameOverEffect(SpriteBatch batch) {
-        // Створюємо правильний темний фон
-        batch.end(); // Закінчуємо поточний batch
-
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        Gdx.gl.glClearColor(0f, 0f, 0f, 0.7f);
-
-        // Малюємо напівпрозорий прямокутник поверх усього
-        batch.begin();
-        batch.setColor(0f, 0f, 0f, 0.7f);
-        // Створюємо простий прямокутник для фону
-        batch.draw(whitePixel, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        batch.setColor(Color.WHITE); // Відновлюємо колір
-
-        // Анімований текст Game Over
-        float alpha = (float) (Math.sin(gameOverEffectTimer * 6) * 0.3f + 0.7f);
-        float scale = 1f + (float) (Math.sin(gameOverEffectTimer * 4) * 0.1f);
-
-        String gameOverText = "GAME OVER";
-        font.getData().setScale(4f * scale);
-
-        // Обчислюємо позицію по центру екрану
-        float screenCenterX = Gdx.graphics.getWidth() / 2f;
-        float screenCenterY = Gdx.graphics.getHeight() / 2f;
-
-        // Малюємо тінь
-        font.setColor(0f, 0f, 0f, alpha * 0.8f);
-        font.draw(batch, gameOverText, screenCenterX - 145, screenCenterY - 5);
-
-        // Малюємо основний текст
-        font.setColor(1f, 0.2f, 0.2f, alpha);
-        font.draw(batch, gameOverText, screenCenterX - 150, screenCenterY);
-
-        // Відновлюємо стандартний розмір шрифту
-        font.getData().setScale(2f);
-        font.setColor(Color.WHITE);
-
-        // Логіка переходу до меню обробляється в updateGameOverEffect()
+        // Оновлюємо логіку вікна перемоги поза рендерингом
+        if (isVictory && !victoryAnimationActive) {
+            if (!victoryWindow.isActive()) {
+                victoryWindow.show(levelNumber, score);
+            }
+        }
+        
+        if (victoryWindow.isActive()) {
+            victoryWindow.handleInput();
+            victoryWindow.update(Gdx.graphics.getDeltaTime());
+            if (victoryWindow.isNextLevelRequested()) {
+                isCompleted = true;
+                victoryWindow.setActive(false);
+            } else if (victoryWindow.isMenuRequested()) {
+                isFailed = true;
+                victoryWindow.setActive(false);
+            }
+        }
     }
 
     private void updateFishes(float deltaTime) {
@@ -593,64 +542,32 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void eatFish(SwimmingFish fish, float fishX, float fishY) {
-        eatingShark.startEating();
-        fish.setActive(false);
-        
-        // Перевіряємо рівень до додавання очок
-        int oldSharkLevel = calculateSharkLevel();
-        
-        gameHUD.addScore(10);
-
-        // Додаємо з'їдену рибку до лічільника типів
-        String fishType = fish.getFishType();
-        if (fishType != null) {
-            int currentCount = eatenFishCounts.get(fishType, 0);
-            eatenFishCounts.put(fishType, currentCount + 1);
-        }
-        
-        // Перевіряємо чи був level up після додавання риби
-        int newSharkLevel = calculateSharkLevel();
-        if (newSharkLevel > oldSharkLevel) {
-            gameHUD.triggerLevelUpEffect(); // Тригеримо ефект
+        if (isVictory || pendingVictory || victoryAnimationActive) {
+            return;
         }
 
-        final float bloodX = fishX;
-        final float bloodY = fishY;
+        FishSpawnData data = getFishDataFor(fish);
+        if (data != null) {
+            gameHUD.addScore(data.points);
+        }
+        score = gameHUD.getScore();
 
-        Timer.schedule(new Timer.Task() {
-            @Override
-            public void run() {
-                bloodEffect.spawn(bloodX, bloodY);
-            }
-        }, BLOOD_EFFECT_DELAY);
+        eatenFishCounts.put(fish.getFishType(), eatenFishCounts.get(fish.getFishType(), 0) + 1);
 
-        Timer.schedule(new Timer.Task() {
-            @Override
-            public void run() {
-                fish.setActive(false);
-                gameHUD.addScore(10);
-            }
-        }, EATING_FRAME_DELAY);
-
-        // Оновлюємо розблоковані типи після з'їдання рибки
-        updateUnlockedFishTypes();
-
-        // Зберігаємо координати для можливої анімації перемоги
-        lastFishX = fishX;
-        lastFishY = fishY;
-    }
-
-    private void takeDamage(SwimmingFish fish, float fishX, float fishY) {
-        // Спочатку віднімаємо життя
-        lives--;
-
-        // Життя передаються в render методі
-
-        // Ефекти
         bloodEffect.spawn(fishX, fishY);
         fish.setActive(false);
 
-        // Перевіряємо чи життя стали меншими за 0 (тобто -1)
+        eatingShark.startEating();
+        updateUnlockedFishTypes();
+    }
+
+    private void takeDamage(SwimmingFish fish, float fishX, float fishY) {
+        if (isPaused || isGameOver || showGameOverEffect || isVictory || pendingVictory || victoryAnimationActive) {
+            return;
+        }
+        lives--;
+        bloodEffect.spawn(fishX, fishY);
+        fish.setActive(false);
         if (lives < 0) {
             triggerGameOver("Out of Lives!");
         }
@@ -669,6 +586,9 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void handleInput(float delta) {
+        if (isPaused || isGameOver || showGameOverEffect || victoryAnimationActive) {
+            return;
+        }
         tempVector.set(Gdx.input.getX(), Gdx.input.getY(), 0);
         scrollingBackground.getCamera().unproject(tempVector);
 
@@ -708,24 +628,24 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void checkLevelConditions() {
-        // Не перевіряємо умови, якщо перемога вже відбулася, очікується або гра на паузі/завершена
-        if (isVictory || pendingVictory || isPaused || isGameOver || showGameOverEffect) {
-            return;
-        }
+        if (isVictory || isGameOver || victoryAnimationActive) return; // Якщо вже є результат, нічого не робимо
 
         float timeRemaining = gameHUD.getTimeRemaining();
 
-        // 1. Перевірка умови перемоги
-        if (checkWinCondition(gameHUD.getScore(), timeRemaining, getTotalEatenFishCount())) {
-            pendingVictory = true;
-            isVictory = true; // Встановлюємо прапор перемоги, щоб не запускати логіку знову
-            victoryDelayTimer = 1.0f; // 1 секунда затримки
-            eatingShark.startEating(); // Запускаємо анімацію поїдання
-            return; // Виходимо, щоб уникнути перевірки програшу в тому ж кадрі
+        // Перевіряємо умову перемоги
+        if (checkWinCondition(score, timeRemaining, getTotalEatenFishCount())) {
+            victoryAnimationActive = true;
+            if (sharkX < scrollingBackground.getWorldWidth() / 2) {
+                victorySpeedX = 200; // Початкова швидкість вправо
+            } else {
+                victorySpeedX = -200; // Початкова швидкість вліво
+            }
+            victorySpeedY = 300; // Початкова вертикальна швидкість для "сальто"
+            return;
         }
 
-        // 2. Перевірка умов програшу (тільки якщо не перемогли)
-        if (lives < 0) {
+        // Перевіряємо умову поразки
+        if (checkLoseCondition(score, timeRemaining, lives)) {
             triggerGameOver("Out of Lives!");
         } else if (timeRemaining <= 0) {
             triggerGameOver("Time's Up!");
@@ -1219,5 +1139,16 @@ public class BasicLevel extends ApplicationAdapter {
         }
         
         return 10; // Значення за замовчуванням
+    }
+
+    private FishSpawnData getFishDataFor(SwimmingFish fish) {
+        String fishType = fish.getFishType();
+        if (fishType == null) return null;
+        for (FishSpawnData data : availableFish) {
+            if (data.path.equals(fishType)) {
+                return data;
+            }
+        }
+        return null;
     }
 }

@@ -36,9 +36,9 @@ public class FirstLevel extends BasicLevel {
     protected int getFishUnlockRequirement(int fishTypeIndex) {
         // Переозначаємо вимоги для першого рівня
         switch (fishTypeIndex) {
-            case 0: return 1; // Після 20 перших риб (fish_04/) розблоковується другий тип (fish_05/)
-            case 1: return 1;  // Після 3 других риб (fish_05/) розблоковується третій тип (fish_02/)
-            case 2: return 1;  // Після 2 третіх риб (fish_02/) - перемога
+            case 0: return 5; // Після 20 перших риб (fish_04/) розблоковується другий тип (fish_05/)
+            case 1: return 2;  // Після 3 других риб (fish_05/) розблоковується третій тип (fish_02/)
+            case 2: return 2;  // Після 2 третіх риб (fish_02/) - перемога
             default: return 5;
         }
     }
