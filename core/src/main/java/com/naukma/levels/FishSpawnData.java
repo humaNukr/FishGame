@@ -1,4 +1,4 @@
-package com.naukma;
+package com.naukma.levels;
 
 public class FishSpawnData {
     public String path;

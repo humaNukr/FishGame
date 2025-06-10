@@ -1,4 +1,4 @@
-package com.naukma;
+package com.naukma.levels;
 import com.badlogic.gdx.utils.Array;
 
 public class LevelManager {

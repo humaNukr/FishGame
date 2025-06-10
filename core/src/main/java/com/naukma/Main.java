@@ -2,9 +2,11 @@ package com.naukma;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.naukma.levels.BasicLevel;
+import com.naukma.levels.LevelManager;
+import com.naukma.ui.MainMenu;
 
 public class Main extends ApplicationAdapter {
 
@@ -46,7 +48,7 @@ public class Main extends ApplicationAdapter {
                     basicLevel.resetReturnToMainMenuFlag();
                     return;
                 }
-                
+
                 // Перевіряємо Game Over меню
                 if (basicLevel.shouldReturnToMainMenuFromGameOver()) {
                     showingMenu = true;
@@ -54,7 +56,7 @@ public class Main extends ApplicationAdapter {
                     basicLevel.resetGameOverFlags();
                     return;
                 }
-                
+
                 // Перевіряємо вихід з гри
                 if (basicLevel.shouldExitGameFromGameOver()) {
                     Gdx.app.exit();

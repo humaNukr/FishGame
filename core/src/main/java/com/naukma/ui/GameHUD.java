@@ -1,4 +1,4 @@
-package com.naukma;
+package com.naukma.ui;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -10,6 +10,9 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
+import com.naukma.bonuses.ClockBonus;
+import com.naukma.bonuses.StarBonus;
+import com.naukma.levels.FishSpawnData;
 
 public class GameHUD {
     // Fonts
@@ -393,7 +396,7 @@ public class GameHUD {
 
         for (int i = 0; i < MAX_SHARK_LEVEL && i < fishIcons.size; i++) {
             float x = startX + fishSpacing * i;
-            
+
             boolean isLocked = i + 1 > currentSharkLevel;
             boolean isCurrent = i + 1 == currentSharkLevel;
 

@@ -1,44 +1,48 @@
-package com.naukma;
+package com.naukma.bonuses;
 
 import com.badlogic.gdx.math.MathUtils;
+import com.naukma.ui.GameHUD;
 
-public class ClockBonus extends Bonus {
+public class StarBonus extends Bonus {
     private float targetY;
     private boolean hasReachedTarget;
     private float direction;
-    private static final float TIME_BONUS = 10f; // 10 секунд
-    
-    public ClockBonus(int levelNumber) {
-        super("bonus3.png", getScaleForLevel(levelNumber), getSpeedForLevel(levelNumber));
+    private float verticalSpeed;
+    private static final float SCORE_MULTIPLIER = 1.4f; // +40% очок
+    private static final float EFFECT_DURATION = 30f; // 30 секунд
+
+    public StarBonus(int levelNumber) {
+        super("bonus2.png", getScaleForLevel(levelNumber), getSpeedForLevel(levelNumber));
         this.direction = MathUtils.random(0f, 360f);
+        this.verticalSpeed = speed;
         this.hasReachedTarget = false;
     }
-    
+
     private static float getScaleForLevel(int levelNumber) {
         switch (levelNumber) {
-            case 1: return 0.17f; // Зменшено в 3 рази
-            case 2: return 0.2f;
-            case 3: return 0.23f;
-            default: return 0.17f;
+            case 1: return 0.2f; // Зменшено в 3 рази
+            case 2: return 0.23f;
+            case 3: return 0.27f;
+            default: return 0.2f;
         }
     }
-    
+
     private static float getSpeedForLevel(int levelNumber) {
         switch (levelNumber) {
-            case 1: return 40f;
-            case 2: return 50f;
-            case 3: return 60f;
-            default: return 40f;
+            case 1: return 30f;
+            case 2: return 40f;
+            case 3: return 50f;
+            default: return 30f;
         }
     }
-    
+
     @Override
     protected void initializePosition() {
         if (worldWidth > 0 && worldHeight > 0) {
             // З'являється знизу видимої зони
             x = MathUtils.random(width, worldWidth - width);
             y = visibleMinY - height; // Нижче видимої зони
-            
+
             // Встановлюємо цільову позицію в центрі видимої зони
             targetY = (visibleMinY + visibleMaxY) / 2f;
         } else {
@@ -47,48 +51,49 @@ public class ClockBonus extends Bonus {
             targetY = 300f;
         }
     }
-    
+
     @Override
     protected void updateMovement(float deltaTime) {
         if (!hasReachedTarget) {
             // Спливаємо вгору від нижчої позиції до цільової (вгору - збільшення y)
-            y += speed * deltaTime; // Рухаємося вгору (y збільшується)
-            
+            y += verticalSpeed * deltaTime; // Рухаємося вгору (y збільшується)
+
             // Перевіряємо чи досягли цільової позиції
             if (y >= targetY) {
                 y = targetY;
                 hasReachedTarget = true;
             }
         } else {
-            // Коливаємося в цільовій точці з більшою амплітудою
-            // Рух по колу
-            x += Math.sin(animationTime * 2f) * 20f * deltaTime;
-            y += Math.cos(animationTime * 1.5f) * 12f * deltaTime;
-            
-            // Обмежуємо рух межами видимої зони
+            // Коливаємося в цільовій точці
+            // Невеликий горизонтальний рух
+            x += Math.sin(animationTime * 1.5f) * 15f * deltaTime;
+
+            // Обмежуємо горизонтальний рух межами екрану
             x = Math.max(0, Math.min(worldWidth - width, x));
-            y = Math.max(visibleMinY, Math.min(visibleMaxY - height, y));
-            
-            // Корегуємо позицію до цільової
-            if (Math.abs(y - targetY) > 50f) {
-                y += (targetY - y) * 0.1f; // Повертаємося до цільової позиції
+
+            // Змінюємо напрямок іноді для різноманітності
+            if (MathUtils.random() < 0.005f) { // 0.5% шанс кожного кадру
+                direction += MathUtils.random(-30f, 30f);
             }
         }
     }
-    
-    @Override
+
     public void onCollected(GameHUD gameHUD) {
         // Бонус НЕ активується автоматично, а додається до інвентарю
-        gameHUD.addBonus(2, 1); // Тип 2 - годинник
+        gameHUD.addBonus(1, 1); // Тип 1 - зірочка
     }
-    
+
     @Override
     public boolean canSpawn(int levelNumber) {
-        // Годинник може з'являтися коли завгодно
+        // Зірочка може з'являтися в будь-який час
         return true;
     }
-    
-    public static float getTimeBonus() {
-        return TIME_BONUS;
+
+    public static float getScoreMultiplier() {
+        return SCORE_MULTIPLIER;
     }
-} 
+
+    public static float getEffectDuration() {
+        return EFFECT_DURATION;
+    }
+}

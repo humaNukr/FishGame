@@ -1,5 +1,15 @@
-package com.naukma;
-
+package com.naukma.levels;
+import com.naukma.bonuses.Bonus;
+import com.naukma.bonuses.BonusManager;
+import com.naukma.bonuses.EatingShark;
+import com.naukma.bonuses.ShellBonus;
+import com.naukma.effects.BloodEffect;
+import com.naukma.ui.GameHUD;
+import com.naukma.ui.PauseMenu;
+import com.naukma.ui.GameOverMenu;
+import com.naukma.ui.VictoryWindow;
+import com.naukma.entities.SharkSprintHandler;
+import com.naukma.world.ScrollingBackground;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -12,6 +22,8 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Timer;
+import com.naukma.entities.SwimmingFish;
+import com.naukma.entities.SwimmingShark;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.graphics.Pixmap;
 
@@ -325,7 +337,7 @@ public class BasicLevel extends ApplicationAdapter {
             updateFishes(Gdx.graphics.getDeltaTime());
             updateLevelLogic(Gdx.graphics.getDeltaTime(), sharkX, sharkY);
             checkLevelConditions();
-            
+
             // Оновлюємо систему бонусів
             bonusManager.update(Gdx.graphics.getDeltaTime());
             checkBonusCollisions();
@@ -411,12 +423,12 @@ public class BasicLevel extends ApplicationAdapter {
         } else if (!isVictory) {
             swimmingShark.renderAt(batch, sharkX, sharkY, rotation);
         }
-        
+
         renderLevelSpecific(batch);
 
         // Рендеримо HUD та меню
         batch.setProjectionMatrix(batch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
-        
+
         if (isGameOver) {
             gameOverMenu.render(batch);
         } else if (isPaused) {
@@ -441,7 +453,7 @@ public class BasicLevel extends ApplicationAdapter {
                 victoryWindow.show(levelNumber, score);
             }
         }
-        
+
         if (victoryWindow.isActive()) {
             victoryWindow.handleInput();
             victoryWindow.update(Gdx.graphics.getDeltaTime());
@@ -862,7 +874,7 @@ public class BasicLevel extends ApplicationAdapter {
     public ObjectMap<String, Integer> getAllEatenFishCounts() {
         return eatenFishCounts;
     }
-    
+
     // Новий метод для підрахунку загальної кількості з'їдених риб
     private int getTotalEatenFishCount() {
         int total = 0;
@@ -871,7 +883,7 @@ public class BasicLevel extends ApplicationAdapter {
         }
         return total;
     }
-    
+
     // Метод для отримання поточного активного типу риби
     private String getCurrentActiveFishType() {
         // Перевіряємо всі типи риби послідовно (незалежно від sharkLevel)
@@ -879,38 +891,38 @@ public class BasicLevel extends ApplicationAdapter {
             String fishType = availableFish.get(i).path;
             int eatenCount = getEatenFishCount(fishType);
             int required = getFishUnlockRequirement(i);
-            
+
             // Якщо цей тип ще не завершений - він активний
             if (eatenCount < required) {
                 return fishType;
             }
         }
-        
+
         // Якщо всі типи завершені - повертаємо останній
         if (availableFish.size > 0) {
             return availableFish.get(availableFish.size - 1).path;
         }
-        
+
         return null;
     }
-    
+
     // Новий метод для обчислення рівня акули на основі завершених типів риб
     protected int calculateSharkLevel() {
         int completedTypes = 0;
-        
+
         // Підраховуємо скільки типів риб повністю завершено
         for (int i = 0; i < availableFish.size; i++) {
             String fishType = availableFish.get(i).path;
             int eatenCount = getEatenFishCount(fishType);
             int required = getFishUnlockRequirement(i);
-            
+
             if (eatenCount >= required) {
                 completedTypes++;
             } else {
                 break; // Зупиняємося на першому незавершеному типі
             }
         }
-        
+
         // Рівень = кількість завершених типів + 1
         return completedTypes + 1;
     }
@@ -937,7 +949,7 @@ public class BasicLevel extends ApplicationAdapter {
             String previousFishType = availableFish.get(i - 1).path;
             int previousEaten = getEatenFishCount(previousFishType);
             int previousRequired = getFishUnlockRequirement(i - 1);
-            
+
             // Якщо попередній тип завершений - розблоковуємо наступний
             if (previousEaten >= previousRequired) {
                 unlockedFishTypes.add(availableFish.get(i).path);
@@ -1088,17 +1100,17 @@ public class BasicLevel extends ApplicationAdapter {
                 if (shell.isOpen() && shell.hasPearl()) {
                     // Запускаємо анімацію їжі акули (з'їдаємо перлину)
                     eatingShark.startEating();
-                    
+
                     // Збираємо бонус (тільки перлину)
                     bonusManager.collectBonus(collectedBonus, gameHUD);
-                    
+
                     // Додаємо життя за перлину
                     lives++;
-                    
+
                     // Ефект бонусу для перлини
                     final float bonusX = collectedBonus.getX() + collectedBonus.getWidth() / 2;
                     final float bonusY = collectedBonus.getY() + collectedBonus.getHeight() / 2;
-                    
+
                     Timer.schedule(new Timer.Task() {
                         @Override
                         public void run() {
@@ -1110,11 +1122,11 @@ public class BasicLevel extends ApplicationAdapter {
                 // Для інших бонусів - з'їдаємо повністю
                 eatingShark.startEating();
                 bonusManager.collectBonus(collectedBonus, gameHUD);
-                
+
                 // Ефект бонусу
                 final float bonusX = collectedBonus.getX() + collectedBonus.getWidth() / 2;
                 final float bonusY = collectedBonus.getY() + collectedBonus.getHeight() / 2;
-                
+
                 Timer.schedule(new Timer.Task() {
                     @Override
                     public void run() {
@@ -1132,18 +1144,18 @@ public class BasicLevel extends ApplicationAdapter {
             String fishType = availableFish.get(i).path;
             int eatenCount = getEatenFishCount(fishType);
             int required = getFishUnlockRequirement(i);
-            
+
             // Якщо цей тип ще не завершений - повертаємо його вимогу
             if (eatenCount < required) {
                 return required;
             }
         }
-        
+
         // Якщо всі типи завершені - повертаємо вимогу для останнього типу
         if (availableFish.size > 0) {
             return getFishUnlockRequirement(availableFish.size - 1);
         }
-        
+
         return 10; // Значення за замовчуванням
     }
 
@@ -1162,15 +1174,15 @@ public class BasicLevel extends ApplicationAdapter {
         int level = calculateSharkLevel();
         float newScale;
 
-        switch (level) { 
+        switch (level) {
             case 1:
-                newScale = 2f;
+                newScale = 0.5f;
                 break;
             case 2:
-                newScale = 0.8f;
+                newScale = 1.3f;
                 break;
             case 3:
-                newScale = 1.2f;
+                newScale = 1.7f;
                 break;
             default:
                 newScale = 0.6f;

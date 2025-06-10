@@ -1,4 +1,4 @@
-package com.naukma;
+package com.naukma.bonuses;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;

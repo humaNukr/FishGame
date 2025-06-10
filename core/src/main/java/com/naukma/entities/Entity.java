@@ -1,4 +1,4 @@
-package com.naukma;
+package com.naukma.entities;
 
 public class Entity {
     protected float x, y;

@@ -1,8 +1,9 @@
-package com.naukma;
+package com.naukma.bonuses;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
+import com.naukma.ui.GameHUD;
 
 public class ShellBonus extends Bonus {
 
