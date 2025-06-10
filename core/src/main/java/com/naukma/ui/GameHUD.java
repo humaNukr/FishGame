@@ -520,7 +520,7 @@ public class GameHUD {
     }
 
     public float getHudHeight() {
-        return hudHeight;
+        return 100f; // Повертаємо фіксовану висоту HUD
     }
 
     public float getTimeRemaining() {
@@ -599,6 +599,15 @@ public class GameHUD {
     public void addLife() {
         // Логіка додавання життя має бути в BasicLevel,
         // цей метод тут для сумісності
+    }
+
+    public void setScore(int newScore) {
+        this.score = newScore;
+        this.targetScore = newScore; // Скидаємо також і ціль
+    }
+
+    public void setStamina(float staminaValue) {
+        this.stamina = Math.max(0f, Math.min(1f, staminaValue));
     }
 
     // Fonts

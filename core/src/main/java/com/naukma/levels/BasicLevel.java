@@ -422,6 +422,9 @@ public class BasicLevel extends ApplicationAdapter {
             } else if (victoryWindow.isMenuRequested()) {
                 isFailed = true;
                 victoryWindow.setActive(false);
+            } else if (victoryWindow.shouldRestart()) {
+                resetGame();
+                victoryWindow.setActive(false);
             }
         }
     }
@@ -643,6 +646,9 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     public void resetGame() {
+        this.score = 0; // Скидаємо внутрішній рахунок рівня
+        gameHUD.setScore(0); // Скидаємо рахунок в HUD
+
         for (SwimmingFish fish : fishes) {
             fish.dispose();
         }
@@ -650,7 +656,6 @@ public class BasicLevel extends ApplicationAdapter {
 
         createInitialFishes();
 
-        score = 0;
         lives = livesCount; // Скидаємо до кількості життів рівня
         sharkX = (scrollingBackground.getWorldWidth() - sharkWidth) / 2f;
         sharkY = (scrollingBackground.getWorldHeight() - sharkHeight) / 2f;
@@ -672,6 +677,11 @@ public class BasicLevel extends ApplicationAdapter {
             bonusManager.reset();
         }
 
+        // Скидаємо витривалість
+        if (sprintHandler != null) {
+            sprintHandler.resetStamina();
+        }
+
         // Скидаємо стани Game Over
         isGameOver = false;
         showGameOverEffect = false;
@@ -684,6 +694,7 @@ public class BasicLevel extends ApplicationAdapter {
         isCompleted = false;
         isFailed = false;
         isVictory = false; // Скидаємо прапор перемоги
+        victoryWindow.resetFlags();
     }
 
     @Override

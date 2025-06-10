@@ -43,4 +43,8 @@ public class SharkSprintHandler {
     public boolean isSprintActive() {
         return isSprintActive;
     }
+
+    public void resetStamina() {
+        gameHUD.setStamina(1.0f); // 1.0f відповідає 100%
+    }
 }

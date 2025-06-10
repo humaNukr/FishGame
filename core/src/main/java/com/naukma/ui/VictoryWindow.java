@@ -26,6 +26,7 @@ public class VictoryWindow {
     private boolean active = false;
     private boolean nextLevelPressed = false;
     private boolean mainMenuPressed = false;
+    private boolean shouldRestart = false;
     
     // Дані рівня
     private int levelNumber;
@@ -36,8 +37,10 @@ public class VictoryWindow {
     // Кнопки
     private float nextButtonX, nextButtonY, nextButtonWidth, nextButtonHeight;
     private float menuButtonX, menuButtonY, menuButtonWidth, menuButtonHeight;
+    private float restartButtonX, restartButtonY, restartButtonWidth, restartButtonHeight;
     private boolean nextButtonHovered = false;
     private boolean menuButtonHovered = false;
+    private boolean restartButtonHovered = false;
     
     // Анімація
     private float animationTimer = 0f;
@@ -57,15 +60,20 @@ public class VictoryWindow {
         float screenWidth = Gdx.graphics.getWidth();
         float screenHeight = Gdx.graphics.getHeight();
         
-        nextButtonWidth = 300f;
-        nextButtonHeight = 60f;
-        menuButtonWidth = 300f;
-        menuButtonHeight = 60f;
+        nextButtonWidth = 250f;
+        nextButtonHeight = 50f;
+        menuButtonWidth = 250f;
+        menuButtonHeight = 50f;
+        restartButtonWidth = 250f;
+        restartButtonHeight = 50f;
         
         // Позиції кнопок
         nextButtonX = (screenWidth - nextButtonWidth) / 2f;
-        nextButtonY = screenHeight * 0.35f;
+        nextButtonY = screenHeight * 0.45f;
         
+        restartButtonX = (screenWidth - restartButtonWidth) / 2f;
+        restartButtonY = screenHeight * 0.35f;
+
         menuButtonX = (screenWidth - menuButtonWidth) / 2f;
         menuButtonY = screenHeight * 0.25f;
     }
@@ -162,6 +170,7 @@ public class VictoryWindow {
         recordGlowTimer = 0f;
         nextLevelPressed = false;
         mainMenuPressed = false;
+        shouldRestart = false;
     }
     
     public void update(float deltaTime) {
@@ -174,7 +183,8 @@ public class VictoryWindow {
         float mouseX = Gdx.input.getX();
         float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY(); // Інвертуємо Y
         
-        nextButtonHovered = isPointInButton(mouseX, mouseY, nextButtonX, nextButtonY, nextButtonWidth, nextButtonHeight);
+        nextButtonHovered = levelNumber < 3 && isPointInButton(mouseX, mouseY, nextButtonX, nextButtonY, nextButtonWidth, nextButtonHeight);
+        restartButtonHovered = isPointInButton(mouseX, mouseY, restartButtonX, restartButtonY, restartButtonWidth, restartButtonHeight);
         menuButtonHovered = isPointInButton(mouseX, mouseY, menuButtonX, menuButtonY, menuButtonWidth, menuButtonHeight);
     }
     
@@ -188,6 +198,9 @@ public class VictoryWindow {
             // Кнопка "Next Level" активна тільки якщо це не 3-й рівень
             if (levelNumber < 3 && isPointInButton(mouseX, mouseY, nextButtonX, nextButtonY, nextButtonWidth, nextButtonHeight)) {
                 nextLevelPressed = true;
+                active = false;
+            } else if (isPointInButton(mouseX, mouseY, restartButtonX, restartButtonY, restartButtonWidth, restartButtonHeight)) {
+                shouldRestart = true;
                 active = false;
             } else if (isPointInButton(mouseX, mouseY, menuButtonX, menuButtonY, menuButtonWidth, menuButtonHeight)) {
                 mainMenuPressed = true;
@@ -250,33 +263,28 @@ public class VictoryWindow {
         String recordText = "Best Score: " + String.format("%,d", bestScore);
         glyphLayout.setText(textFont, recordText);
         float recordX = (screenWidth - glyphLayout.width) / 2f;
-        float recordY = screenHeight * 0.52f;
+        float recordY = screenHeight * 0.55f;
         
         if (isNewRecord) {
-            // Мигаючий ефект для нового рекорду
-            float alpha = 0.7f + 0.3f * (float) Math.sin(recordGlowTimer * 8f);
-            Color recordColor = new Color(1f, 0.3f, 0.3f, alpha); // Червоний
-            drawTextWithOutline(batch, textFont, recordText, recordX, recordY, recordColor, new Color(0f, 0f, 0f, alpha));
+            // Анімація для нового рекорду
+            float recordScale = 1f + (float) Math.abs(Math.sin(recordGlowTimer * 5f)) * 0.1f;
+            textFont.getData().setScale(2.0f * recordScale);
             
-            // Текст "NEW RECORD!"
-            String newRecordText = "NEW RECORD!";
-            glyphLayout.setText(textFont, newRecordText);
-            float newRecordX = (screenWidth - glyphLayout.width) / 2f;
-            float newRecordY = screenHeight * 0.45f;
+            drawTextWithOutline(batch, textFont, "NEW RECORD!", 
+                (screenWidth - glyphLayout.width) / 2f, recordY + 40, 
+                Color.YELLOW, Color.RED);
             
-            float newRecordAlpha = 0.8f + 0.2f * (float) Math.sin(recordGlowTimer * 10f);
-            Color newRecordColor = new Color(1f, 1f, 0f, newRecordAlpha); // Золотий
-            drawTextWithOutline(batch, textFont, newRecordText, newRecordX, newRecordY, newRecordColor, new Color(0f, 0f, 0f, newRecordAlpha));
-        } else {
-            drawTextWithOutline(batch, textFont, recordText, recordX, recordY, 
-                new Color(0.8f, 0.8f, 0.8f, 1f), new Color(0f, 0f, 0f, 1f));
+            textFont.getData().setScale(2.0f); // Відновлюємо розмір
         }
         
+        drawTextWithOutline(batch, textFont, recordText, recordX, recordY, 
+            Color.WHITE, Color.BLACK);
+        
         // Кнопки
-        // Кнопка "Next Level" показується тільки якщо це не 3-й рівень
         if (levelNumber < 3) {
             renderButton(batch, nextButtonX, nextButtonY, nextButtonWidth, nextButtonHeight, "Next Level", nextButtonHovered);
         }
+        renderButton(batch, restartButtonX, restartButtonY, restartButtonWidth, restartButtonHeight, "Restart", restartButtonHovered);
         renderButton(batch, menuButtonX, menuButtonY, menuButtonWidth, menuButtonHeight, "Main Menu", menuButtonHovered);
     }
     
@@ -320,11 +328,13 @@ public class VictoryWindow {
     public boolean isActive() { return active; }
     public boolean isNextLevelRequested() { return nextLevelPressed; }
     public boolean isMenuRequested() { return mainMenuPressed; }
+    public boolean shouldRestart() { return shouldRestart; }
     public void setActive(boolean active) { this.active = active; }
     
     public void resetFlags() {
         nextLevelPressed = false;
         mainMenuPressed = false;
+        shouldRestart = false;
     }
     
     public void dispose() {
