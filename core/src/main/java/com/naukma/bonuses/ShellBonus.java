@@ -148,10 +148,18 @@ public class ShellBonus extends Bonus {
         if (isOpen && hasPearl) {
             // Якщо мушля відкрита, перевіряємо зіткнення тільки з перлиною
             return checkPearlCollision(pointX, pointY);
-        } else {
-            // Якщо закрита, перевіряємо зіткнення з самою мушлею
-            return super.checkCollision(pointX, pointY);
+        } else if (!isOpen) {
+            // Якщо закрита, перевіряємо зіткнення зі зменшеним hitbox-ом
+            float hitboxWidth = this.width * 0.6f; // 60% від початкової ширини
+            float hitboxHeight = this.height * 0.6f;
+            float hitboxX = this.x + (this.width - hitboxWidth) / 2;
+            float hitboxY = this.y + (this.height - hitboxHeight) / 2;
+
+            return pointX >= hitboxX && pointX <= hitboxX + hitboxWidth &&
+                   pointY >= hitboxY && pointY <= hitboxY + hitboxHeight;
         }
+        // Якщо мушля відкрита і без перлини - зіткнення немає
+        return false;
     }
 
     @Override
