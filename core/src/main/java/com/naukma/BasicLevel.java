@@ -85,6 +85,7 @@ public class BasicLevel extends ApplicationAdapter {
 
     // Додаємо поля для затримки перемоги (залишаємо тільки один раз!)
     private boolean pendingVictory = false;
+    private boolean isVictory = false; // Новий прапор, що сигналізує про перемогу
     private float victoryDelayTimer = 0f;
     private float lastFishX = 0f;
     private float lastFishY = 0f;
@@ -358,6 +359,9 @@ public class BasicLevel extends ApplicationAdapter {
         // --- Порядок рендерингу ---
         // 1. Якщо вікно перемоги активне - рендеримо тільки його
         if (victoryWindow != null && victoryWindow.isActive()) {
+            // Встановлюємо проекцію для екрану, щоб вікно не залежало від камери світу
+            batch.setProjectionMatrix(batch.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+
             victoryWindow.handleInput();
             victoryWindow.update(Gdx.graphics.getDeltaTime());
             victoryWindow.render(batch);
@@ -704,8 +708,8 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void checkLevelConditions() {
-        // Не перевіряємо умови, якщо перемога вже очікується або гра на паузі/завершена
-        if (pendingVictory || isPaused || isGameOver || showGameOverEffect) {
+        // Не перевіряємо умови, якщо перемога вже відбулася, очікується або гра на паузі/завершена
+        if (isVictory || pendingVictory || isPaused || isGameOver || showGameOverEffect) {
             return;
         }
 
@@ -714,6 +718,7 @@ public class BasicLevel extends ApplicationAdapter {
         // 1. Перевірка умови перемоги
         if (checkWinCondition(gameHUD.getScore(), timeRemaining, getTotalEatenFishCount())) {
             pendingVictory = true;
+            isVictory = true; // Встановлюємо прапор перемоги, щоб не запускати логіку знову
             victoryDelayTimer = 1.0f; // 1 секунда затримки
             eatingShark.startEating(); // Запускаємо анімацію поїдання
             return; // Виходимо, щоб уникнути перевірки програшу в тому ж кадрі
@@ -768,6 +773,7 @@ public class BasicLevel extends ApplicationAdapter {
 
         isCompleted = false;
         isFailed = false;
+        isVictory = false; // Скидаємо прапор перемоги
     }
 
     @Override
