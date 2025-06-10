@@ -1162,9 +1162,9 @@ public class BasicLevel extends ApplicationAdapter {
         int level = calculateSharkLevel();
         float newScale;
 
-        switch (level) {
+        switch (level) { 
             case 1:
-                newScale = 0.5f;
+                newScale = 2f;
                 break;
             case 2:
                 newScale = 0.8f;
