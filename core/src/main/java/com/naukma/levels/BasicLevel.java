@@ -302,11 +302,15 @@ public class BasicLevel extends ApplicationAdapter {
             updateGameOverEffect(Gdx.graphics.getDeltaTime());
         } else if (isGameOver) {
             Main main = (Main) Gdx.app.getApplicationListener();
-            main.showGameOverMenu();
+            if (!gameOverMusicPlayed) {
+                main.showGameOverMenu();
+                gameOverMusicPlayed = true;
+            }
             gameOverMenu.handleInput();
             if (gameOverMenu.shouldRestart()) {
                 resetGame();
                 gameOverMenu.resetFlags();
+                gameOverMusicPlayed = false;
                 switch (levelNumber) {
                     case 1:
                         main.setMusic("background_1.mp3");
@@ -445,7 +449,10 @@ public class BasicLevel extends ApplicationAdapter {
 
         if (victoryWindow.isActive()) {
             Main main = (Main) Gdx.app.getApplicationListener();
-            main.showVictoryWindow();
+            if (!victoryMusicPlayed) {
+                main.showVictoryWindow();
+                victoryMusicPlayed = true;
+            }
             victoryWindow.render(batch);
         }
 
@@ -464,12 +471,15 @@ public class BasicLevel extends ApplicationAdapter {
             if (victoryWindow.isNextLevelRequested()) {
                 isCompleted = true;
                 victoryWindow.setActive(false);
+                victoryMusicPlayed = false;
             } else if (victoryWindow.isMenuRequested()) {
                 isFailed = true;
                 victoryWindow.setActive(false);
+                victoryMusicPlayed = false;
             } else if (victoryWindow.shouldRestart()) {
                 resetGame();
                 victoryWindow.setActive(false);
+                victoryMusicPlayed = false;
                 Main main = (Main) Gdx.app.getApplicationListener();
                 switch (levelNumber) {
                     case 1:
@@ -752,6 +762,7 @@ public class BasicLevel extends ApplicationAdapter {
         isFailed = false;
         isVictory = false; // Скидаємо прапор перемоги
         victoryWindow.resetFlags();
+        gameOverMusicPlayed = false;
     }
 
     @Override
@@ -1345,4 +1356,6 @@ public class BasicLevel extends ApplicationAdapter {
     private static final float TARGET_VICTORY_SCALE = 0.4f;
 
     private VictoryWindow victoryWindow;
+    private boolean gameOverMusicPlayed = false;
+    private boolean victoryMusicPlayed = false;
 }
