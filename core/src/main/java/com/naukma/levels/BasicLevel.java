@@ -70,12 +70,24 @@ public class BasicLevel extends ApplicationAdapter {
             scrollingBackground = new ScrollingBackground("output (5).jpg");
         }
 
-        shark = new Texture(Gdx.files.internal("shark/frame_00.png"));
+        // Ініціалізуємо модель акули та анімацію залежно від рівня
+        if (levelNumber == 1) {
+            shark = new Texture(Gdx.files.internal("shark/frame_00.png"));
+            swimmingShark = new SwimmingShark(0.4f, "shark_moving/");
+            eatingShark = new EatingShark("shark/");
+        } else if (levelNumber == 2) {
+            shark = new Texture(Gdx.files.internal("shark_level2/frame_00.png"));
+            swimmingShark = new SwimmingShark(0.4f, "shark_moving_level2/");
+            eatingShark = new EatingShark("shark_level2/");
+        } else if (levelNumber == 3) {
+            shark = new Texture(Gdx.files.internal("shark_level3/frame_00.png"));
+            swimmingShark = new SwimmingShark(0.4f, "shark_moving_level3/");
+            eatingShark = new EatingShark("shark_level3/");
+        }
+
         pauseMenu = new PauseMenu();
         gameOverMenu = new GameOverMenu();
         fishes = new Array<>();
-        eatingShark = new EatingShark();
-        swimmingShark = new SwimmingShark(0.4f); // Початковий розмір для 1-го рівня
         bloodEffect = new BloodEffect();
         bonusEffect = new BloodEffect("bonus_effect.png"); // Ефект для бонусів
 

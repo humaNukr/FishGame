@@ -23,6 +23,21 @@ public class EatingShark {
         biteSound = Gdx.audio.newSound(Gdx.files.internal("chew.wav"));
     }
 
+    public EatingShark(String animationPath) {
+        frames = new Array<>();
+        frames.add(new Texture(Gdx.files.internal(animationPath + "frame_00.png")));
+        for (int i = 0; i < EATING_FRAMES; i++) {
+            frames.add(new Texture(Gdx.files.internal(animationPath + "frame_0" + i + ".png")));
+        }
+
+        Texture baseTexture = frames.get(0);
+        width = baseTexture.getWidth();
+        height = baseTexture.getHeight();
+
+        // Завантаження звуку укусу
+        biteSound = Gdx.audio.newSound(Gdx.files.internal("chew.wav"));
+    }
+
     public void startEating() {
         isEating = true;
         stateTime = 0;

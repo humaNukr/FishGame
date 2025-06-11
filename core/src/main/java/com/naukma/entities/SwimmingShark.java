@@ -15,6 +15,17 @@ public class SwimmingShark extends SwimmingFish {
         );
     }
 
+    public SwimmingShark(float initialScale, String animationPath) {
+        super(
+            animationPath,
+            SHARK_FRAMES,
+            false,
+            200f,
+            initialScale,
+            0.1f
+        );
+    }
+
     public Texture getSharkTexture() {
         return getFrameTexture();
     }
