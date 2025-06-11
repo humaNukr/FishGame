@@ -607,7 +607,11 @@ public class GameHUD {
     }
 
     public void setStamina(float staminaValue) {
-        this.stamina = Math.max(0f, Math.min(1f, staminaValue));
+        this.stamina = Math.max(0f, Math.min(maxStamina, staminaValue * maxStamina));
+    }
+
+    public void setStaminaAbsolute(float value) {
+        this.stamina = Math.max(0f, Math.min(maxStamina, value));
     }
 
     // Fonts

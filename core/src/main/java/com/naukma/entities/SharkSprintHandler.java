@@ -45,6 +45,6 @@ public class SharkSprintHandler {
     }
 
     public void resetStamina() {
-        gameHUD.setStamina(1.0f); // 1.0f відповідає 100%
+        gameHUD.setStaminaAbsolute(100f); // 100 — це повна стаміна
     }
 }

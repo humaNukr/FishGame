@@ -28,6 +28,7 @@ import com.naukma.entities.SwimmingShark;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.audio.Music;
+import com.naukma.Main;
 
 public class BasicLevel extends ApplicationAdapter {
 
@@ -113,34 +114,6 @@ public class BasicLevel extends ApplicationAdapter {
         // Встановлюємо видимі межі для всіх рибок (без HUD зверху)
         setVisibleBoundsForAllFish();
         updateBonusVisibleBounds();
-        initializeBackgroundMusic();
-        if (backgroundMusic != null) {
-            backgroundMusic.play();
-        }
-    }
-    private void initializeBackgroundMusic() {
-        String musicFile = null;
-
-        switch (levelNumber) {
-            case 1:
-                musicFile = "background_music.mp3";
-                break;
-            case 2:
-                musicFile = "background_music.mp3";
-                break;
-            case 3:
-                musicFile = "background_music.mp3";
-                break;
-            default:
-                musicFile = "background_music.mp3";
-                break;
-        }
-
-        if (musicFile != null) {
-            backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal(musicFile));
-            backgroundMusic.setLooping(true);
-            backgroundMusic.setVolume(0.5f); // Встановіть бажану гучність
-        }
     }
 
     protected void initializeLevel() {
@@ -292,14 +265,12 @@ public class BasicLevel extends ApplicationAdapter {
             if (!isGameOver && !showGameOverEffect) {
                 isPaused = !isPaused;
                 pauseMenu.setActive(isPaused);
-
-                // Керування музикою при паузі
-                if (backgroundMusic != null) {
-                    if (isPaused) {
-                        backgroundMusic.pause();
-                    } else {
-                        backgroundMusic.play();
-                    }
+                if (isPaused) {
+                    Main main = (Main) Gdx.app.getApplicationListener();
+                    main.pauseMusic();
+                } else {
+                    Main main = (Main) Gdx.app.getApplicationListener();
+                    main.resumeMusic();
                 }
             }
             return;
@@ -330,7 +301,24 @@ public class BasicLevel extends ApplicationAdapter {
         } else if (showGameOverEffect) {
             updateGameOverEffect(Gdx.graphics.getDeltaTime());
         } else if (isGameOver) {
-            handleGameOverMenu();
+            Main main = (Main) Gdx.app.getApplicationListener();
+            main.showGameOverMenu();
+            gameOverMenu.handleInput();
+            if (gameOverMenu.shouldRestart()) {
+                resetGame();
+                gameOverMenu.resetFlags();
+                switch (levelNumber) {
+                    case 1:
+                        main.setMusic("background_1.mp3");
+                        break;
+                    case 2:
+                        main.setMusic("background_2.mp3");
+                        break;
+                    case 3:
+                        main.setMusic("background_3.mp3");
+                        break;
+                }
+            }
         }
 
         if (isShrinkingForVictory) {
@@ -384,16 +372,25 @@ public class BasicLevel extends ApplicationAdapter {
 
         if (!pauseMenu.isActive()) {
             isPaused = false;
-            // Відновлюємо музику при виході з паузи
-            if (backgroundMusic != null) {
-                backgroundMusic.play();
-            }
         }
 
         if (pauseMenu.shouldRestart()) {
             resetGame();
             isPaused = false;
             pauseMenu.resetRestartFlag();
+            Main main = (Main) Gdx.app.getApplicationListener();
+            // Відновлюємо музику для поточного рівня
+            switch (levelNumber) {
+                case 1:
+                    main.setMusic("background_1.mp3");
+                    break;
+                case 2:
+                    main.setMusic("background_2.mp3");
+                    break;
+                case 3:
+                    main.setMusic("background_3.mp3");
+                    break;
+            }
         }
     }
 
@@ -447,6 +444,8 @@ public class BasicLevel extends ApplicationAdapter {
         }
 
         if (victoryWindow.isActive()) {
+            Main main = (Main) Gdx.app.getApplicationListener();
+            main.showVictoryWindow();
             victoryWindow.render(batch);
         }
 
@@ -471,6 +470,18 @@ public class BasicLevel extends ApplicationAdapter {
             } else if (victoryWindow.shouldRestart()) {
                 resetGame();
                 victoryWindow.setActive(false);
+                Main main = (Main) Gdx.app.getApplicationListener();
+                switch (levelNumber) {
+                    case 1:
+                        main.setMusic("background_1.mp3");
+                        break;
+                    case 2:
+                        main.setMusic("background_2.mp3");
+                        break;
+                    case 3:
+                        main.setMusic("background_3.mp3");
+                        break;
+                }
             }
         }
     }
@@ -741,9 +752,6 @@ public class BasicLevel extends ApplicationAdapter {
         isFailed = false;
         isVictory = false; // Скидаємо прапор перемоги
         victoryWindow.resetFlags();
-        if (backgroundMusic != null && !isPaused) {
-            backgroundMusic.play();
-        }
     }
 
     @Override
@@ -763,13 +771,8 @@ public class BasicLevel extends ApplicationAdapter {
         bonusEffect.dispose(); // Очищуємо ефект бонусів
         gameHUD.dispose();
         swimmingShark.dispose();
-
-        // Очищуємо систему бонусів
         if (bonusManager != null) {
             bonusManager.dispose();
-        }
-        if (backgroundMusic != null) {
-            backgroundMusic.dispose();
         }
     }
 
@@ -1143,7 +1146,6 @@ public class BasicLevel extends ApplicationAdapter {
             isGameOver = false;
             gameOverMenu.resetFlags();
         }
-
     }
 
     private void checkBonusCollisions() {
@@ -1343,6 +1345,4 @@ public class BasicLevel extends ApplicationAdapter {
     private static final float TARGET_VICTORY_SCALE = 0.4f;
 
     private VictoryWindow victoryWindow;
-
-    private Music backgroundMusic;
 }

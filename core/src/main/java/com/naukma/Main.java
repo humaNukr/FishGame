@@ -25,12 +25,7 @@ public class Main extends ApplicationAdapter {
         mainMenu = new MainMenu();
         currentLevel = levelManager.createLevel(1);
         currentLevel.create();
-
-//        // Завантаження фонової музики
-//        backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("background_music.mp3"));
-//        backgroundMusic.setLooping(true); // Зациклюємо музику
-//        backgroundMusic.setVolume(0.5f); // Гучність 50%
-//        backgroundMusic.play(); // Запуск
+        setMusic("main_menu.mp3");
     }
 
     @Override
@@ -88,6 +83,18 @@ public class Main extends ApplicationAdapter {
             if (selectedLevel >= 0) {
                 // Створюємо новий рівень через поліморфізм
                 switchToLevel(selectedLevel + 1); // +1 тому що рівні в меню починаються з 0
+                // Встановлюємо музику для відповідного рівня
+                switch (selectedLevel + 1) {
+                    case 1:
+                        setMusic("background_1.mp3");
+                        break;
+                    case 2:
+                        setMusic("background_2.mp3");
+                        break;
+                    case 3:
+                        setMusic("background_3.mp3");
+                        break;
+                }
             }
         }
 
@@ -108,6 +115,18 @@ public class Main extends ApplicationAdapter {
 
         currentLevel = levelManager.createLevel(levelNumber);
         currentLevel.create();
+        // Встановлюємо музику для відповідного рівня
+        switch (levelNumber) {
+            case 1:
+                setMusic("background_1.mp3");
+                break;
+            case 2:
+                setMusic("background_2.mp3");
+                break;
+            case 3:
+                setMusic("background_3.mp3");
+                break;
+        }
     }
 
     private void checkLevelCompletion() {
@@ -120,11 +139,13 @@ public class Main extends ApplicationAdapter {
                 // Всі рівні завершено, повертаємось до меню
                 showingMenu = true;
                 mainMenu.setActive(true);
+                setMusic("main_menu.mp3");
             }
         } else if (currentLevel.isFailed()) {
             // Якщо рівень "провалено" (наприклад, вихід з вікна перемоги), повертаємось до меню
             showingMenu = true;
             mainMenu.setActive(true);
+            setMusic("main_menu.mp3");
         }
     }
 
@@ -158,5 +179,30 @@ public class Main extends ApplicationAdapter {
 
     public boolean isShowingMenu() {
         return showingMenu;
+    }
+
+    public void setMusic(String musicFile) {
+        if (backgroundMusic != null) {
+            backgroundMusic.stop();
+            backgroundMusic.dispose();
+        }
+        backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal(musicFile));
+        backgroundMusic.setLooping(true);
+        backgroundMusic.setVolume(0.5f);
+        backgroundMusic.play();
+    }
+
+    // Додати методи для перемоги та поразки
+    public void showGameOverMenu() {
+        setMusic("lose.mp3");
+    }
+    public void showVictoryWindow() {
+        setMusic("win.mp3");
+    }
+    public void pauseMusic() {
+        if (backgroundMusic != null) backgroundMusic.pause();
+    }
+    public void resumeMusic() {
+        if (backgroundMusic != null) backgroundMusic.play();
     }
 }
