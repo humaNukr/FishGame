@@ -27,6 +27,7 @@ import com.naukma.entities.SwimmingFish;
 import com.naukma.entities.SwimmingShark;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.audio.Music;
 
 public class BasicLevel extends ApplicationAdapter {
 
@@ -60,8 +61,14 @@ public class BasicLevel extends ApplicationAdapter {
 
         // Оновлюємо іконки рибок згідно з поточним рівнем
         gameHUD.updateLevelFishIcons(availableFish);
+        if(levelNumber==1){
+            scrollingBackground = new ScrollingBackground("output.jpg");
+        }if(levelNumber==2){
+            scrollingBackground = new ScrollingBackground("output (6).jpg");
+        }if(levelNumber==3){
+            scrollingBackground = new ScrollingBackground("output (5).jpg");
+        }
 
-        scrollingBackground = new ScrollingBackground("output.jpg");
         shark = new Texture(Gdx.files.internal("shark/frame_00.png"));
         pauseMenu = new PauseMenu();
         gameOverMenu = new GameOverMenu();
@@ -106,6 +113,34 @@ public class BasicLevel extends ApplicationAdapter {
         // Встановлюємо видимі межі для всіх рибок (без HUD зверху)
         setVisibleBoundsForAllFish();
         updateBonusVisibleBounds();
+        initializeBackgroundMusic();
+        if (backgroundMusic != null) {
+            backgroundMusic.play();
+        }
+    }
+    private void initializeBackgroundMusic() {
+        String musicFile = null;
+
+        switch (levelNumber) {
+            case 1:
+                musicFile = "background_music.mp3";
+                break;
+            case 2:
+                musicFile = "background_music.mp3";
+                break;
+            case 3:
+                musicFile = "background_music.mp3";
+                break;
+            default:
+                musicFile = "background_music.mp3";
+                break;
+        }
+
+        if (musicFile != null) {
+            backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal(musicFile));
+            backgroundMusic.setLooping(true);
+            backgroundMusic.setVolume(0.5f); // Встановіть бажану гучність
+        }
     }
 
     protected void initializeLevel() {
@@ -257,6 +292,15 @@ public class BasicLevel extends ApplicationAdapter {
             if (!isGameOver && !showGameOverEffect) {
                 isPaused = !isPaused;
                 pauseMenu.setActive(isPaused);
+
+                // Керування музикою при паузі
+                if (backgroundMusic != null) {
+                    if (isPaused) {
+                        backgroundMusic.pause();
+                    } else {
+                        backgroundMusic.play();
+                    }
+                }
             }
             return;
         }
@@ -340,6 +384,10 @@ public class BasicLevel extends ApplicationAdapter {
 
         if (!pauseMenu.isActive()) {
             isPaused = false;
+            // Відновлюємо музику при виході з паузи
+            if (backgroundMusic != null) {
+                backgroundMusic.play();
+            }
         }
 
         if (pauseMenu.shouldRestart()) {
@@ -347,8 +395,6 @@ public class BasicLevel extends ApplicationAdapter {
             isPaused = false;
             pauseMenu.resetRestartFlag();
         }
-
-        // Логіка повернення до головного меню обробляється в Main.java
     }
 
     private void renderGame() {
@@ -695,6 +741,9 @@ public class BasicLevel extends ApplicationAdapter {
         isFailed = false;
         isVictory = false; // Скидаємо прапор перемоги
         victoryWindow.resetFlags();
+        if (backgroundMusic != null && !isPaused) {
+            backgroundMusic.play();
+        }
     }
 
     @Override
@@ -719,8 +768,9 @@ public class BasicLevel extends ApplicationAdapter {
         if (bonusManager != null) {
             bonusManager.dispose();
         }
-
-        // mainMenu тепер в Main.java
+        if (backgroundMusic != null) {
+            backgroundMusic.dispose();
+        }
     }
 
 
@@ -1293,4 +1343,6 @@ public class BasicLevel extends ApplicationAdapter {
     private static final float TARGET_VICTORY_SCALE = 0.4f;
 
     private VictoryWindow victoryWindow;
+
+    private Music backgroundMusic;
 }

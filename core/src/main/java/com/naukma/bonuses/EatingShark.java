@@ -1,6 +1,7 @@
 package com.naukma.bonuses;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
@@ -9,20 +10,27 @@ public class EatingShark {
 
     public EatingShark() {
         frames = new Array<>();
-        frames.add(new Texture(Gdx.files.internal("shark/frame_00.png")));
+        frames.add(new Texture(Gdx.files.internal("shark_level2/frame_00.png")));
         for (int i = 0; i < EATING_FRAMES; i++) {
-            frames.add(new Texture(Gdx.files.internal("shark/frame_0" + i + ".png")));
+            frames.add(new Texture(Gdx.files.internal("shark_level2/frame_0" + i + ".png")));
         }
 
         Texture baseTexture = frames.get(0);
         width = baseTexture.getWidth();
         height = baseTexture.getHeight();
-    }
 
+        // Завантаження звуку укусу
+        biteSound = Gdx.audio.newSound(Gdx.files.internal("chew.wav"));
+    }
 
     public void startEating() {
         isEating = true;
         stateTime = 0;
+
+        // Програвання звуку
+        if (biteSound != null) {
+            biteSound.play();
+        }
     }
 
     public void update(float delta) {
@@ -40,18 +48,18 @@ public class EatingShark {
         if (!isEating) return;
 
         Texture currentTexture = getCurrentTexture();
-        float width = currentTexture.getWidth() * 0.5f; // Припускаючи, що масштаб 0.5
+        float width = currentTexture.getWidth() * 0.5f;
         float height = currentTexture.getHeight() * 0.5f;
 
         batch.draw(currentTexture,
-                x, y,
-                width / 2, height / 2,
-                width, height,
-                1, 1,
-                rotation,
-                0, 0,
-                currentTexture.getWidth(), currentTexture.getHeight(),
-                true, flipY);
+            x, y,
+            width / 2, height / 2,
+            width, height,
+            1, 1,
+            rotation,
+            0, 0,
+            currentTexture.getWidth(), currentTexture.getHeight(),
+            true, flipY);
     }
 
     public Texture getCurrentTexture() {
@@ -67,6 +75,10 @@ public class EatingShark {
         for (Texture frame : frames) {
             frame.dispose();
         }
+
+        if (biteSound != null) {
+            biteSound.dispose();
+        }
     }
 
     private Array<Texture> frames;
@@ -77,4 +89,7 @@ public class EatingShark {
     private int currentFrame = 0;
     private float width, height;
     private static final float FRAME_DURATION = 0.1f;
+
+    // Звук укусу
+    private Sound biteSound;
 }

@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
+import com.badlogic.gdx.audio.Sound;
 
 public class MainMenu {
     private BitmapFont titleFont;
@@ -31,8 +32,9 @@ public class MainMenu {
     private int selectedLevel = -1; // -1 означає, що рівень не обрано
     private boolean isActive = true;
 
-
     private GlyphLayout glyphLayout;
+
+    private Sound clickSound;
 
     public MainMenu() {
 
@@ -74,6 +76,7 @@ public class MainMenu {
 
         initializeButtonBounds();
         initializeLevelButtonBounds();
+        clickSound = Gdx.audio.newSound(Gdx.files.internal("button.wav"));
     }
 
     private void createButtonTextures() {
@@ -163,7 +166,8 @@ public class MainMenu {
             for (int i = 0; i < levelButtonBounds.length; i++) {
                 if (levelButtonBounds[i].contains(mouseX, mouseY)) {
                     selectedLevel = i;
-                    return; // Якщо клікнули на рівень, більше нічого не робимо
+                    if (clickSound != null) clickSound.play();
+                    return;
                 }
             }
 
@@ -171,7 +175,8 @@ public class MainMenu {
             for (int i = 0; i < buttonBounds.length; i++) {
                 if (buttonBounds[i].contains(mouseX, mouseY)) {
                     handleSelection(i);
-                    return; // Якщо клікнули на кнопку меню, виходимо
+                    if (clickSound != null) clickSound.play();
+                    return;
                 }
             }
         }
@@ -188,11 +193,13 @@ public class MainMenu {
         if (!mouseHoverDetected) {
             // Клавіатура працює тільки якщо миша не навела на кнопку
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+                if (clickSound != null) clickSound.play();
                 selectedItem--;
                 if (selectedItem < 0) selectedItem = menuItems.length - 1;
             }
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+                if (clickSound != null) clickSound.play();
                 selectedItem++;
                 if (selectedItem >= menuItems.length) selectedItem = 0;
             }
@@ -201,15 +208,19 @@ public class MainMenu {
         // Обробка вибору рівня клавіатурою
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {
             selectedLevel = 0;
+            if (clickSound != null) clickSound.play();
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) {
             selectedLevel = 1;
+            if (clickSound != null) clickSound.play();
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) {
             selectedLevel = 2;
+            if (clickSound != null) clickSound.play();
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) && selectedItem >= 0) {
+            if (clickSound != null) clickSound.play();
             handleSelection(selectedItem);
         }
     }
@@ -355,7 +366,7 @@ public class MainMenu {
 
     public void dispose() {
         if (titleFont != null) titleFont.dispose();
-//        if (menuFont != null) menuFont.dispose();
+        if (menuFont != null) menuFont.dispose();
         if (levelFont != null) levelFont.dispose();
         if (backgroundTexture != null) backgroundTexture.dispose();
         if (buttonTexture != null) buttonTexture.dispose();
@@ -363,5 +374,6 @@ public class MainMenu {
         if (buttonDisabledTexture != null) buttonDisabledTexture.dispose();
         if (levelButtonTexture != null) levelButtonTexture.dispose();
         if (levelButtonSelectedTexture != null) levelButtonSelectedTexture.dispose();
+        if (clickSound != null) clickSound.dispose();
     }
 }

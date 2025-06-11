@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 public class SwimmingShark extends SwimmingFish {
     public SwimmingShark(float initialScale) {
         super(
-            "shark_moving/",
+            "shark_moving_level2/",
             SHARK_FRAMES,
             false,
             200f,

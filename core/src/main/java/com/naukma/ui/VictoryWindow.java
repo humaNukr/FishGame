@@ -9,118 +9,148 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.ObjectMap;
+import com.badlogic.gdx.audio.Sound;
 
 public class VictoryWindow {
     private BitmapFont titleFont;
     private BitmapFont textFont;
     private BitmapFont buttonFont;
     private GlyphLayout glyphLayout;
-    
+
     private Texture backgroundTexture;
-    private Texture victoryBgTexture;
     private Texture buttonTexture;
     private Texture buttonHoverTexture;
-    
+    private Texture buttonDisabledTexture;
+
     private boolean active = false;
     private boolean nextLevelPressed = false;
     private boolean mainMenuPressed = false;
     private boolean shouldRestart = false;
-    
+
     // Дані рівня
     private int levelNumber;
     private int currentScore;
     private int bestScore;
     private boolean isNewRecord = false;
-    
-    // Кнопки
-    private float nextButtonX, nextButtonY, nextButtonWidth, nextButtonHeight;
-    private float menuButtonX, menuButtonY, menuButtonWidth, menuButtonHeight;
-    private float restartButtonX, restartButtonY, restartButtonWidth, restartButtonHeight;
-    private boolean nextButtonHovered = false;
-    private boolean menuButtonHovered = false;
-    private boolean restartButtonHovered = false;
-    
+
+    // Кнопки (як у MainMenu)
+    private String[] buttonItems = {"NEXT LEVEL", "RESTART", "MAIN MENU"};
+    private Rectangle[] buttonBounds;
+    private int selectedItem = 0;
+
     // Анімація
     private float animationTimer = 0f;
     private float recordGlowTimer = 0f;
-    
+
     // Система рекордів
     private static final String RECORDS_FILE = "records.json";
     private ObjectMap<String, Integer> levelRecords;
-    
+
+    private Sound clickSound;
+
     public VictoryWindow() {
         initializeFonts();
         createTextures();
         loadRecords();
         glyphLayout = new GlyphLayout();
-        
-        // Розміри кнопок
-        float screenWidth = Gdx.graphics.getWidth();
-        float screenHeight = Gdx.graphics.getHeight();
-        
-        nextButtonWidth = 250f;
-        nextButtonHeight = 50f;
-        menuButtonWidth = 250f;
-        menuButtonHeight = 50f;
-        restartButtonWidth = 250f;
-        restartButtonHeight = 50f;
-        
-        // Позиції кнопок
-        nextButtonX = (screenWidth - nextButtonWidth) / 2f;
-        nextButtonY = screenHeight * 0.45f;
-        
-        restartButtonX = (screenWidth - restartButtonWidth) / 2f;
-        restartButtonY = screenHeight * 0.35f;
-
-        menuButtonX = (screenWidth - menuButtonWidth) / 2f;
-        menuButtonY = screenHeight * 0.25f;
+        initializeButtonBounds();
+        clickSound = Gdx.audio.newSound(Gdx.files.internal("button.wav"));
     }
-    
+
     private void initializeFonts() {
-        titleFont = new BitmapFont();
-        titleFont.getData().setScale(3.5f);
-        titleFont.setColor(1f, 1f, 0f, 1f); // Золотий
-        
-        textFont = new BitmapFont();
-        textFont.getData().setScale(2.0f);
-        textFont.setColor(1f, 1f, 1f, 1f); // Білий
-        
-        buttonFont = new BitmapFont();
-        buttonFont.getData().setScale(1.8f);
-        buttonFont.setColor(1f, 1f, 1f, 1f); // Білий
-    }
-    
-    private void createTextures() {
-        // Напівпрозорий фон (залишимо як запасний)
-        Pixmap bgPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        bgPixmap.setColor(0f, 0f, 0f, 0.8f);
-        bgPixmap.fill();
-        backgroundTexture = new Texture(bgPixmap);
-        bgPixmap.dispose();
+        // Використовуємо той же шрифт і налаштування як у MainMenu
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/HennyPenny.ttf"));
+        FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 
-        // Завантажуємо фон з файлу
-        victoryBgTexture = new Texture(Gdx.files.internal("victory_bg.jpeg"));
-        
-        // Кнопка (звичайна)
-        Pixmap buttonPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        buttonPixmap.setColor(0.2f, 0.4f, 0.8f, 0.9f);
-        buttonPixmap.fill();
-        buttonTexture = new Texture(buttonPixmap);
-        buttonPixmap.dispose();
-        
-        // Кнопка (при наведенні)
-        Pixmap hoverPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        hoverPixmap.setColor(0.3f, 0.5f, 1f, 0.9f);
-        hoverPixmap.fill();
-        buttonHoverTexture = new Texture(hoverPixmap);
-        hoverPixmap.dispose();
+        // Налаштування для заголовка (як у MainMenu)
+        parameter.size = 64;
+        parameter.color = Color.CYAN;
+        parameter.borderWidth = 2;
+        parameter.borderColor = Color.BLACK;
+        titleFont = generator.generateFont(parameter);
+
+        // Налаштування для тексту
+        parameter.size = 32;
+        parameter.color = Color.WHITE;
+        parameter.borderWidth = 1;
+        textFont = generator.generateFont(parameter);
+
+        // Налаштування для кнопок (як у MainMenu)
+        parameter.size = 25;
+        parameter.color = Color.WHITE;
+        parameter.borderWidth = 1;
+        buttonFont = generator.generateFont(parameter);
+
+        generator.dispose();
     }
-    
+
+    private void createTextures() {
+        // Використовуємо той же фон як у MainMenu
+        try {
+            backgroundTexture = new Texture(Gdx.files.internal("output.jpg"));
+        } catch (Exception e) {
+            // Створюємо запасний фон
+            Pixmap bgPixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+            bgPixmap.setColor(0f, 0f, 0f, 0.8f);
+            bgPixmap.fill();
+            backgroundTexture = new Texture(bgPixmap);
+            bgPixmap.dispose();
+        }
+
+        createButtonTextures();
+    }
+
+    private void createButtonTextures() {
+        // Звичайна кнопка
+        Pixmap pixmap = new Pixmap(300, 60, Pixmap.Format.RGBA8888);
+        pixmap.setColor(0.2f, 0.3f, 0.8f, 0.8f);
+        pixmap.fill();
+        pixmap.setColor(0.4f, 0.5f, 1f, 1f);
+        pixmap.drawRectangle(0, 0, 300, 60);
+        buttonTexture = new Texture(pixmap);
+        pixmap.dispose();
+
+        // Кнопка при наведенні
+        pixmap = new Pixmap(300, 60, Pixmap.Format.RGBA8888);
+        pixmap.setColor(0.4f, 0.5f, 1f, 0.9f);
+        pixmap.fill();
+        pixmap.setColor(0.6f, 0.7f, 1f, 1f);
+        pixmap.drawRectangle(0, 0, 300, 60);
+        buttonHoverTexture = new Texture(pixmap);
+        pixmap.dispose();
+
+        // Відключена кнопка
+        pixmap = new Pixmap(300, 60, Pixmap.Format.RGBA8888);
+        pixmap.setColor(0.1f, 0.1f, 0.1f, 0.6f);
+        pixmap.fill();
+        pixmap.setColor(0.3f, 0.3f, 0.3f, 0.8f);
+        pixmap.drawRectangle(0, 0, 300, 60);
+        buttonDisabledTexture = new Texture(pixmap);
+        pixmap.dispose();
+    }
+
+    private void initializeButtonBounds() {
+        buttonBounds = new Rectangle[buttonItems.length];
+        float startY = Gdx.graphics.getHeight() / 2 + 50; // Підняли кнопки вище
+        float spacing = 80;
+        float buttonWidth = 300;
+        float buttonHeight = 60;
+
+        for (int i = 0; i < buttonItems.length; i++) {
+            float buttonX = (Gdx.graphics.getWidth() - buttonWidth) / 2;
+            float buttonY = startY - i * spacing - buttonHeight;
+            buttonBounds[i] = new Rectangle(buttonX, buttonY, buttonWidth, buttonHeight);
+        }
+    }
+
     private void loadRecords() {
         levelRecords = new ObjectMap<>();
-        
+
         try {
             FileHandle file = Gdx.files.local(RECORDS_FILE);
             if (file.exists()) {
@@ -135,7 +165,7 @@ public class VictoryWindow {
             levelRecords.clear();
         }
     }
-    
+
     private void saveRecords() {
         try {
             Json json = new Json();
@@ -146,15 +176,15 @@ public class VictoryWindow {
             System.out.println("Помилка збереження рекордів: " + e.getMessage());
         }
     }
-    
+
     public void show(int levelNumber, int score) {
         this.levelNumber = levelNumber;
         this.currentScore = score;
-        
+
         // Отримуємо попередній рекорд
         String levelKey = "level_" + levelNumber;
         this.bestScore = levelRecords.get(levelKey, 0);
-        
+
         // Перевіряємо новий рекорд
         if (score > bestScore) {
             isNewRecord = true;
@@ -164,186 +194,202 @@ public class VictoryWindow {
         } else {
             isNewRecord = false;
         }
-        
+
         active = true;
         animationTimer = 0f;
         recordGlowTimer = 0f;
+        selectedItem = 0;
         nextLevelPressed = false;
         mainMenuPressed = false;
         shouldRestart = false;
+
+        // Оновлюємо межі кнопок
+        initializeButtonBounds();
     }
-    
+
     public void update(float deltaTime) {
         if (!active) return;
-        
+
         animationTimer += deltaTime;
         recordGlowTimer += deltaTime;
-        
-        // Оновлення позицій миші для hover ефектів
-        float mouseX = Gdx.input.getX();
-        float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY(); // Інвертуємо Y
-        
-        nextButtonHovered = levelNumber < 3 && isPointInButton(mouseX, mouseY, nextButtonX, nextButtonY, nextButtonWidth, nextButtonHeight);
-        restartButtonHovered = isPointInButton(mouseX, mouseY, restartButtonX, restartButtonY, restartButtonWidth, restartButtonHeight);
-        menuButtonHovered = isPointInButton(mouseX, mouseY, menuButtonX, menuButtonY, menuButtonWidth, menuButtonHeight);
     }
-    
+
     public void handleInput() {
         if (!active) return;
-        
+
+        int mouseX = Gdx.input.getX();
+        int mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
+
         if (Gdx.input.justTouched()) {
-            float mouseX = Gdx.input.getX();
-            float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
-            
-            // Кнопка "Next Level" активна тільки якщо це не 3-й рівень
-            if (levelNumber < 3 && isPointInButton(mouseX, mouseY, nextButtonX, nextButtonY, nextButtonWidth, nextButtonHeight)) {
-                nextLevelPressed = true;
-                active = false;
-            } else if (isPointInButton(mouseX, mouseY, restartButtonX, restartButtonY, restartButtonWidth, restartButtonHeight)) {
-                shouldRestart = true;
-                active = false;
-            } else if (isPointInButton(mouseX, mouseY, menuButtonX, menuButtonY, menuButtonWidth, menuButtonHeight)) {
-                mainMenuPressed = true;
-                active = false;
+            for (int i = 0; i < buttonBounds.length; i++) {
+                if (buttonBounds[i].contains(mouseX, mouseY)) {
+                    handleSelection(i);
+                    if (clickSound != null) clickSound.play();
+                    return;
+                }
             }
         }
-        
-        // Клавіші
-        if (levelNumber < 3 && (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE))) {
-            nextLevelPressed = true;
-            active = false;
+
+        // Обробка наведення миші
+        boolean mouseHoverDetected = false;
+        for (int i = 0; i < buttonBounds.length; i++) {
+            if (buttonBounds[i].contains(mouseX, mouseY)) {
+                selectedItem = i;
+                mouseHoverDetected = true;
+
+                break;
+            }
         }
-        
+
+        // Клавіатура працює тільки якщо миша не навела на кнопку
+        if (!mouseHoverDetected) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+                selectedItem--;
+                if (selectedItem < 0) selectedItem = buttonItems.length - 1;
+                if (clickSound != null) clickSound.play();
+            }
+
+            if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+                selectedItem++;
+                if (selectedItem >= buttonItems.length) selectedItem = 0;
+                if (clickSound != null) clickSound.play();
+            }
+        }
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) && selectedItem >= 0) {
+            handleSelection(selectedItem);
+        }
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            mainMenuPressed = true;
-            active = false;
+            handleSelection(2); // Main Menu
         }
     }
-    
-    private boolean isPointInButton(float x, float y, float buttonX, float buttonY, float buttonW, float buttonH) {
-        return x >= buttonX && x <= buttonX + buttonW && y >= buttonY && y <= buttonY + buttonH;
+
+    private void handleSelection(int itemIndex) {
+        switch (itemIndex) {
+            case 0: // NEXT LEVEL
+                if (levelNumber < 3) {
+                    nextLevelPressed = true;
+                    active = false;
+                }
+                break;
+            case 1: // RESTART
+                shouldRestart = true;
+                active = false;
+                break;
+            case 2: // MAIN MENU
+                mainMenuPressed = true;
+                active = false;
+                break;
+        }
     }
-    
+
     public void render(SpriteBatch batch) {
         if (!active) return;
-        
+
         float screenWidth = Gdx.graphics.getWidth();
         float screenHeight = Gdx.graphics.getHeight();
-        
-        // Фон
-        batch.setColor(Color.WHITE); // Скидаємо колір, щоб фон не був прозорим
-        batch.draw(victoryBgTexture, 0, 0, screenWidth, screenHeight);
-        
-        // Заголовок
+
+        // Фон (як у MainMenu)
+        if (backgroundTexture != null) {
+            batch.setColor(0.3f, 0.3f, 0.3f, 1f);
+            batch.draw(backgroundTexture, 0, 0, screenWidth, screenHeight);
+            batch.setColor(1f, 1f, 1f, 1f);
+        }
+
+        // Заголовок (стиль MainMenu)
         String titleText = "LEVEL " + levelNumber + " COMPLETED!";
         glyphLayout.setText(titleFont, titleText);
-        
-        float titleX = (screenWidth - glyphLayout.width) / 2f;
-        float titleY = screenHeight * 0.75f;
-        
-        // Анімований заголовок
-        float titleScale = 1f + (float) Math.sin(animationTimer * 3f) * 0.1f;
-        titleFont.getData().setScale(3.5f * titleScale);
-        
-        drawTextWithOutline(batch, titleFont, titleText, titleX, titleY, 
-            new Color(1f, 1f, 0f, 1f), new Color(0f, 0f, 0f, 1f));
-        
-        titleFont.getData().setScale(3.5f); // Відновлюємо розмір
-        
-        // Рахунок
+        float titleX = (screenWidth - glyphLayout.width) / 2;
+        float titleY = screenHeight - 100;
+        titleFont.draw(batch, titleText, titleX, titleY);
+
+        // Рахунок (опустили нижче)
+        textFont.setColor(Color.YELLOW);
         String scoreText = "Your Score: " + String.format("%,d", currentScore);
         glyphLayout.setText(textFont, scoreText);
-        float scoreX = (screenWidth - glyphLayout.width) / 2f;
-        float scoreY = screenHeight * 0.6f;
-        
-        drawTextWithOutline(batch, textFont, scoreText, scoreX, scoreY, 
-            new Color(1f, 1f, 1f, 1f), new Color(0f, 0f, 0f, 1f));
-        
+        float scoreX = (screenWidth - glyphLayout.width) / 2;
+        float scoreY = screenHeight - 280;
+        textFont.draw(batch, scoreText, scoreX, scoreY);
+
         // Рекорд
+        if (isNewRecord) {
+            textFont.setColor(Color.GREEN);
+            String newRecordText = "NEW RECORD!";
+            glyphLayout.setText(textFont, newRecordText);
+            float newRecordX = (screenWidth - glyphLayout.width) / 2;
+            float newRecordY = scoreY - 50;
+
+            // Анімація для нового рекорду
+            float scale = 1f + (float) Math.abs(Math.sin(recordGlowTimer * 5f)) * 0.1f;
+            textFont.getData().setScale(scale);
+            textFont.draw(batch, newRecordText, newRecordX, newRecordY);
+            textFont.getData().setScale(1f);
+        }
+
+        textFont.setColor(Color.WHITE);
         String recordText = "Best Score: " + String.format("%,d", bestScore);
         glyphLayout.setText(textFont, recordText);
-        float recordX = (screenWidth - glyphLayout.width) / 2f;
-        float recordY = screenHeight * 0.55f;
-        
-        if (isNewRecord) {
-            // Анімація для нового рекорду
-            float recordScale = 1f + (float) Math.abs(Math.sin(recordGlowTimer * 5f)) * 0.1f;
-            textFont.getData().setScale(2.0f * recordScale);
-            
-            drawTextWithOutline(batch, textFont, "NEW RECORD!", 
-                (screenWidth - glyphLayout.width) / 2f, recordY + 40, 
-                Color.YELLOW, Color.RED);
-            
-            textFont.getData().setScale(2.0f); // Відновлюємо розмір
+        float recordX = (screenWidth - glyphLayout.width) / 2;
+        float recordY = isNewRecord ? scoreY - 100 : scoreY - 50;
+        textFont.draw(batch, recordText, recordX, recordY);
+
+        // Кнопки (стиль MainMenu)
+        for (int i = 0; i < buttonItems.length; i++) {
+            Rectangle bounds = buttonBounds[i];
+
+            Texture currentButtonTexture;
+            if (i == 0 && levelNumber >= 3) { // NEXT LEVEL відключена для останнього рівня
+                currentButtonTexture = buttonDisabledTexture;
+            } else {
+                currentButtonTexture = (i == selectedItem) ? buttonHoverTexture : buttonTexture;
+            }
+
+            batch.draw(currentButtonTexture, bounds.x, bounds.y, bounds.width, bounds.height);
+
+            String item = buttonItems[i];
+            glyphLayout.setText(buttonFont, item);
+            float textX = bounds.x + (bounds.width - glyphLayout.width) / 2;
+            float textY = bounds.y + (bounds.height + glyphLayout.height) / 2;
+
+            if (i == 0 && levelNumber >= 3) { // NEXT LEVEL відключена
+                buttonFont.setColor(Color.GRAY);
+            } else if (i == selectedItem) {
+                buttonFont.setColor(Color.YELLOW);
+            } else {
+                buttonFont.setColor(Color.WHITE);
+            }
+
+            buttonFont.draw(batch, item, textX, textY);
         }
-        
-        drawTextWithOutline(batch, textFont, recordText, recordX, recordY, 
-            Color.WHITE, Color.BLACK);
-        
-        // Кнопки
-        if (levelNumber < 3) {
-            renderButton(batch, nextButtonX, nextButtonY, nextButtonWidth, nextButtonHeight, "Next Level", nextButtonHovered);
-        }
-        renderButton(batch, restartButtonX, restartButtonY, restartButtonWidth, restartButtonHeight, "Restart", restartButtonHovered);
-        renderButton(batch, menuButtonX, menuButtonY, menuButtonWidth, menuButtonHeight, "Main Menu", menuButtonHovered);
     }
-    
-    private void renderButton(SpriteBatch batch, float x, float y, float width, float height, 
-                              String text, boolean hovered) {
-        
-        Texture buttonTex = hovered ? buttonHoverTexture : buttonTexture;
-        batch.draw(buttonTex, x, y, width, height);
-        
-        glyphLayout.setText(buttonFont, text);
-        float textX = x + (width - glyphLayout.width) / 2f;
-        float textY = y + (height + glyphLayout.height) / 2f;
-        
-        Color textColor = hovered ? new Color(1f, 1f, 1f, 1f) : new Color(0.9f, 0.9f, 0.9f, 1f);
-        drawTextWithOutline(batch, buttonFont, text, textX, textY, textColor, new Color(0f, 0f, 0f, 1f));
-    }
-    
-    private void drawTextWithOutline(SpriteBatch batch, BitmapFont font, String text, float x, float y, 
-                                     Color textColor, Color outlineColor) {
-        Color originalColor = font.getColor();
-        
-        // Контур
-        font.setColor(outlineColor);
-        font.draw(batch, text, x - 2, y);
-        font.draw(batch, text, x + 2, y);
-        font.draw(batch, text, x, y - 2);
-        font.draw(batch, text, x, y + 2);
-        font.draw(batch, text, x - 1, y - 1);
-        font.draw(batch, text, x + 1, y - 1);
-        font.draw(batch, text, x - 1, y + 1);
-        font.draw(batch, text, x + 1, y + 1);
-        
-        // Основний текст
-        font.setColor(textColor);
-        font.draw(batch, text, x, y);
-        
-        font.setColor(originalColor);
-    }
-    
+
     // Геттери
     public boolean isActive() { return active; }
     public boolean isNextLevelRequested() { return nextLevelPressed; }
     public boolean isMenuRequested() { return mainMenuPressed; }
     public boolean shouldRestart() { return shouldRestart; }
-    public void setActive(boolean active) { this.active = active; }
-    
+    public void setActive(boolean active) {
+        this.active = active;
+        if (active) {
+            initializeButtonBounds();
+        }
+    }
+
     public void resetFlags() {
         nextLevelPressed = false;
         mainMenuPressed = false;
         shouldRestart = false;
     }
-    
+
     public void dispose() {
-        titleFont.dispose();
-        textFont.dispose();
-        buttonFont.dispose();
-        backgroundTexture.dispose();
-        victoryBgTexture.dispose();
-        buttonTexture.dispose();
-        buttonHoverTexture.dispose();
+        if (titleFont != null) titleFont.dispose();
+        if (textFont != null) textFont.dispose();
+        if (buttonFont != null) buttonFont.dispose();
+        if (backgroundTexture != null) backgroundTexture.dispose();
+        if (buttonTexture != null) buttonTexture.dispose();
+        if (buttonHoverTexture != null) buttonHoverTexture.dispose();
+        if (buttonDisabledTexture != null) buttonDisabledTexture.dispose();
+        if (clickSound != null) clickSound.dispose();
     }
-} 
+}

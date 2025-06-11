@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.naukma.levels.BasicLevel;
 import com.naukma.levels.LevelManager;
 import com.naukma.ui.MainMenu;
+import com.badlogic.gdx.audio.Music;
 
 public class Main extends ApplicationAdapter {
 
@@ -15,6 +16,7 @@ public class Main extends ApplicationAdapter {
     private MainMenu mainMenu;
     private boolean showingMenu = true;
     private SpriteBatch batch;
+    private Music backgroundMusic;
 
     @Override
     public void create() {
@@ -23,6 +25,12 @@ public class Main extends ApplicationAdapter {
         mainMenu = new MainMenu();
         currentLevel = levelManager.createLevel(1);
         currentLevel.create();
+
+//        // Завантаження фонової музики
+//        backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("background_music.mp3"));
+//        backgroundMusic.setLooping(true); // Зациклюємо музику
+//        backgroundMusic.setVolume(0.5f); // Гучність 50%
+//        backgroundMusic.play(); // Запуск
     }
 
     @Override
@@ -131,6 +139,12 @@ public class Main extends ApplicationAdapter {
         if (mainMenu != null) {
             mainMenu.dispose();
         }
+
+        if (backgroundMusic != null) {
+            backgroundMusic.stop();
+            backgroundMusic.dispose();
+        }
+
     }
 
     // Геттери для доступу до поточного стану

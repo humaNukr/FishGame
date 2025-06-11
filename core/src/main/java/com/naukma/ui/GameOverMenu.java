@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.audio.Sound;
 
 public class GameOverMenu {
     private BitmapFont titleFont;
@@ -33,6 +34,8 @@ public class GameOverMenu {
     private float menuX, menuY;
     private float menuWidth, menuHeight;
     private GlyphLayout glyphLayout;
+
+    private Sound clickSound;
 
     public GameOverMenu() {
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/HennyPenny.ttf"));
@@ -77,6 +80,7 @@ public class GameOverMenu {
 
         createTextures();
         initializeButtonBounds();
+        clickSound = Gdx.audio.newSound(Gdx.files.internal("button.wav"));
     }
 
     private void createTextures() {
@@ -137,10 +141,12 @@ public class GameOverMenu {
         if (!mouseHoverDetected) {
             // Клавіатура працює тільки якщо миша не навела на кнопку
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+                if (clickSound != null) clickSound.play();
                 moveUp();
             }
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+                if (clickSound != null) clickSound.play();
                 moveDown();
             }
         }
@@ -157,6 +163,7 @@ public class GameOverMenu {
         if (Gdx.input.justTouched()) {
             for (int i = 0; i < buttonBounds.length; i++) {
                 if (buttonBounds[i].contains(mouseX, mouseY)) {
+                    if (clickSound != null) clickSound.play();
                     handleSelection(i);
                     break;
                 }
@@ -316,5 +323,6 @@ public class GameOverMenu {
         if (buttonTexture != null) buttonTexture.dispose();
         if (buttonHoverTexture != null) buttonHoverTexture.dispose();
         if (overlayTexture != null) overlayTexture.dispose();
+        if (clickSound != null) clickSound.dispose();
     }
 }

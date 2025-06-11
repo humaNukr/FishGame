@@ -2,6 +2,7 @@ package com.naukma.ui;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -10,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.audio.Sound;
 
 public class PauseMenu {
     private BitmapFont titleFont;
@@ -29,6 +31,8 @@ public class PauseMenu {
     private float menuX, menuY;
     private float menuWidth, menuHeight;
     private GlyphLayout glyphLayout;
+
+    private Sound clickSound;
 
     public PauseMenu() {
 
@@ -67,6 +71,7 @@ public class PauseMenu {
 
         createTextures();
         initializeButtonBounds();
+        clickSound = Gdx.audio.newSound(Gdx.files.internal("button.wav"));
     }
 
     private void createTextures() {
@@ -127,10 +132,12 @@ public class PauseMenu {
         if (!mouseHoverDetected) {
             // Клавіатура працює тільки якщо миша не навела на кнопку
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+                if (clickSound != null) clickSound.dispose();
                 moveUp();
             }
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+                if (clickSound != null) clickSound.play();
                 moveDown();
             }
         }
@@ -147,6 +154,7 @@ public class PauseMenu {
         if (Gdx.input.justTouched()) {
             for (int i = 0; i < buttonBounds.length; i++) {
                 if (buttonBounds[i].contains(mouseX, mouseY)) {
+                    if (clickSound != null) clickSound.play();
                     handleSelection(i);
                     break;
                 }
