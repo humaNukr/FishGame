@@ -705,11 +705,11 @@ public class BasicLevel extends ApplicationAdapter {
             return;
         }
 
-        // Перевіряємо умову поразки
-        if (checkLoseCondition(score, timeRemaining, lives)) {
-            triggerGameOver("Out of Lives!");
-        } else if (timeRemaining <= 0) {
+        // Спочатку перевіряємо час
+        if (timeRemaining <= 0) {
             triggerGameOver("Time's Up!");
+        } else if (lives < 0) {
+            triggerGameOver("Out of Lives!");
         }
     }
 
