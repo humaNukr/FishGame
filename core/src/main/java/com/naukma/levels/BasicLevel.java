@@ -289,9 +289,11 @@ public class BasicLevel extends ApplicationAdapter {
         }
 
         if (!isPaused && !isGameOver && !showGameOverEffect) {
-            handleInput(Gdx.graphics.getDeltaTime());
-            sprintHandler.handleInput();
-            sprintHandler.updateSpeed();
+            if (!isDamagePause) {
+                handleInput(Gdx.graphics.getDeltaTime());
+                sprintHandler.handleInput();
+                sprintHandler.updateSpeed();
+            }
             gameHUD.update(Gdx.graphics.getDeltaTime());
             eatingShark.update(Gdx.graphics.getDeltaTime());
             bloodEffect.update(Gdx.graphics.getDeltaTime());
@@ -301,7 +303,9 @@ public class BasicLevel extends ApplicationAdapter {
             scrollingBackground.updateCamera(sharkX, sharkY, sharkWidth, sharkHeight);
 
             checkCollisions();
-            updateFishes(Gdx.graphics.getDeltaTime());
+            if (!isDamagePause) {
+                updateFishes(Gdx.graphics.getDeltaTime());
+            }
             checkLevelConditions();
 
             // Оновлюємо систему бонусів
@@ -380,6 +384,38 @@ public class BasicLevel extends ApplicationAdapter {
             }
         }
 
+        // ОНОВЛЕННЯ СТАНІВ ПОШКОДЖЕННЯ, МИГОТІННЯ ТА ІМУНІТЕТУ
+        if (isDamagePause) {
+            damagePauseTimer += Gdx.graphics.getDeltaTime();
+            blinkTimer += Gdx.graphics.getDeltaTime();
+            if (blinkTimer >= BLINK_INTERVAL) {
+                isSharkBlinking = !isSharkBlinking;
+                blinkTimer = 0f;
+            }
+            if (damagePauseTimer >= DAMAGE_PAUSE_DURATION) {
+                // Переспавнити акулу у центр
+                sharkX = (scrollingBackground.getWorldWidth() - sharkWidth) / 2f;
+                sharkY = (scrollingBackground.getWorldHeight() - sharkHeight) / 2f;
+                rotation = 0f;
+                isDamagePause = false;
+                isInvulnerable = true;
+                invulnerableTimer = 0f;
+                blinkTimer = 0f;
+                isSharkBlinking = true;
+            }
+        } else if (isInvulnerable) {
+            invulnerableTimer += Gdx.graphics.getDeltaTime();
+            blinkTimer += Gdx.graphics.getDeltaTime();
+            if (blinkTimer >= BLINK_INTERVAL) {
+                isSharkBlinking = !isSharkBlinking;
+                blinkTimer = 0f;
+            }
+            if (invulnerableTimer >= INVULNERABLE_DURATION) {
+                isInvulnerable = false;
+                isSharkBlinking = false;
+            }
+        }
+
         renderGame();
     }
 
@@ -430,7 +466,9 @@ public class BasicLevel extends ApplicationAdapter {
                 currentSharkTexture.getWidth(), currentSharkTexture.getHeight(),
                 true, rotation > 90 && rotation < 270);
         } else if (!isVictory) {
-            swimmingShark.renderAt(batch, sharkX, sharkY, rotation, victoryAnimationActive ? victorySpeedX < 0 : (rotation > 90 && rotation < 270));
+            if (!isSharkBlinking) {
+                swimmingShark.renderAt(batch, sharkX, sharkY, rotation, victoryAnimationActive ? victorySpeedX < 0 : (rotation > 90 && rotation < 270));
+            }
         }
 
         // Рендеримо HUD та меню
@@ -536,7 +574,7 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void checkCollisions() {
-        if (eatingShark.isEating() || victoryAnimationActive || isShrinkingForVictory) return;
+        if (eatingShark.isEating() || victoryAnimationActive || isShrinkingForVictory || isDamagePause || isInvulnerable) return;
 
         double rotationRad = Math.toRadians(rotation);
         float sharkCenterX = sharkX + sharkWidth / 2;
@@ -565,7 +603,7 @@ public class BasicLevel extends ApplicationAdapter {
                 rectCenterX, rectCenterY, zoneLength, zoneWidth, rotation,
                 fishCenterX, fishCenterY, fishWidth, fishHeight, 0f
             );
-            float minRequiredPenetration = fishWidth * 0.10f;
+             float minRequiredPenetration = fishWidth * 0.10f;
             if (penetration > minRequiredPenetration) {
                 float sharkSize = sharkWidth * sharkHeight;
                 float fishSize = fishWidth * fishHeight;
@@ -659,7 +697,7 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void takeDamage(SwimmingFish fish, float fishX, float fishY) {
-        if (isPaused || isGameOver || showGameOverEffect || isVictory || pendingVictory || victoryAnimationActive) {
+        if (isPaused || isGameOver || showGameOverEffect || isVictory || pendingVictory || victoryAnimationActive || isDamagePause || isInvulnerable) {
             return;
         }
         lives--;
@@ -667,6 +705,11 @@ public class BasicLevel extends ApplicationAdapter {
         fish.setActive(false);
         if (lives < 0) {
             triggerGameOver("Out of Lives!");
+        } else {
+            // Запускаємо паузу, миготіння та блокуємо колізії
+            isDamagePause = true;
+            damagePauseTimer = 0f;
+            blinkTimer = 0f;
         }
     }
 
@@ -1223,7 +1266,7 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void checkBonusCollisions() {
-        if (eatingShark.isEating() || victoryAnimationActive || isShrinkingForVictory) return;
+        if (eatingShark.isEating() || victoryAnimationActive || isShrinkingForVictory || isDamagePause || isInvulnerable) return;
 
         // Визначаємо смугу підбору бонусу: останні 20% ширини акули по напрямку руху
         double rotationRad = Math.toRadians(rotation);
@@ -1422,4 +1465,15 @@ public class BasicLevel extends ApplicationAdapter {
     private boolean victoryMusicPlayed = false;
 
     private boolean returnToMainMenu = false;
+
+    // Додаю поля для станів пошкодження та імунітету
+    private boolean isDamagePause = false;
+    private float damagePauseTimer = 0f;
+    private boolean isInvulnerable = false;
+    private float invulnerableTimer = 0f;
+    private boolean isSharkBlinking = false;
+    private float blinkTimer = 0f;
+    private static final float DAMAGE_PAUSE_DURATION = 2f;
+    private static final float INVULNERABLE_DURATION = 2f;
+    private static final float BLINK_INTERVAL = 0.22f;
 }
