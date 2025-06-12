@@ -305,6 +305,7 @@ public class BasicLevel extends ApplicationAdapter {
             checkCollisions();
             if (!isDamagePause) {
                 updateFishes(Gdx.graphics.getDeltaTime());
+                spawnEdibleFishIfNeeded();
             }
             checkLevelConditions();
 
@@ -1474,4 +1475,34 @@ public class BasicLevel extends ApplicationAdapter {
     private static final float DAMAGE_PAUSE_DURATION = 2f;
     private static final float INVULNERABLE_DURATION = 2f;
     private static final float BLINK_INTERVAL = 0.22f;
+
+    // Гарантуємо мінімум їстівних рибок на екрані
+    private void spawnEdibleFishIfNeeded() {
+        int edibleCount = 0;
+        for (SwimmingFish fish : fishes) {
+            if (fish.isActive() && canEatFishType(fish.getFishType())) {
+                edibleCount++;
+            }
+        }
+        int minEdible = 3;
+        while (edibleCount < minEdible) {
+            if (unlockedFishTypes.size == 0) break;
+            String fishType = unlockedFishTypes.random();
+            FishSpawnData data = getFishDataForType(fishType);
+            if (data != null) {
+                createFishFromDataWithBounds(data);
+                edibleCount++;
+            } else {
+                break;
+            }
+        }
+    }
+
+    // Пошук FishSpawnData за типом
+    private FishSpawnData getFishDataForType(String fishType) {
+        for (FishSpawnData d : availableFish) {
+            if (d.path.equals(fishType)) return d;
+        }
+        return null;
+    }
 }
