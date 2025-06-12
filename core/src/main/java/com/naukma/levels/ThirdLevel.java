@@ -10,8 +10,9 @@ public class ThirdLevel extends BasicLevel {
 
     @Override
     protected void initializeLevel() {
-        timeLimit = 120f; // Збільшуємо час для найскладнішого рівня
-        targetScore = -1; // Відключаємо цільовий рахунок
+        availableFish.clear();
+        timeLimit = 120f; // Більше часу для складного рівня
+        targetScore = -1; // Без цільового рахунку
         targetFishCount = -1; // Не показуємо цільову кількість риб в HUD
         maxFishCount = 15; // 15 рибок на екрані
         livesCount = 0; // 0 життів на третьому рівні (найскладніший)

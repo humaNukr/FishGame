@@ -65,6 +65,12 @@ public class Main extends ApplicationAdapter {
                     Gdx.app.exit();
                     return;
                 }
+
+                if (basicLevel.shouldRestartLevel()) {
+                    switchToLevel(currentLevel.getLevelNumber());
+                    currentLevel.resetRestartFlags();
+                    return;
+                }
             }
 
             // Перевіряємо умови завершення рівня

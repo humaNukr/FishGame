@@ -388,25 +388,14 @@ public class BasicLevel extends ApplicationAdapter {
 
         if (!pauseMenu.isActive()) {
             isPaused = false;
+            if (Gdx.app.getApplicationListener() instanceof Main) {
+                ((Main) Gdx.app.getApplicationListener()).resumeMusic();
+            }
         }
 
-        if (pauseMenu.shouldRestart()) {
-            resetGame();
+        if (pauseMenu.shouldReturnToMainMenu()) {
             isPaused = false;
-            pauseMenu.resetRestartFlag();
-            Main main = (Main) Gdx.app.getApplicationListener();
-            // Відновлюємо музику для поточного рівня
-            switch (levelNumber) {
-                case 1:
-                    main.setMusic("background_1.mp3");
-                    break;
-                case 2:
-                    main.setMusic("background_2.mp3");
-                    break;
-                case 3:
-                    main.setMusic("background_3.mp3");
-                    break;
-            }
+            returnToMainMenu = true;
         }
     }
 
@@ -815,13 +804,20 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     public boolean shouldExitGameFromGameOver() {
-        return gameOverMenu != null && gameOverMenu.shouldExitGame();
+        return gameOverMenu.shouldExitGame();
+    }
+
+    public boolean shouldRestartLevel() {
+        return (pauseMenu.shouldRestart() || gameOverMenu.shouldRestart());
+    }
+
+    public void resetRestartFlags() {
+        pauseMenu.resetRestartFlag();
+        gameOverMenu.resetFlags();
     }
 
     public void resetGameOverFlags() {
-        if (gameOverMenu != null) {
-            gameOverMenu.resetFlags();
-        }
+        gameOverMenu.resetFlags();
     }
 
     // Методи для роботи з рибками (з оригінального BasicLevel)
@@ -1117,6 +1113,13 @@ public class BasicLevel extends ApplicationAdapter {
 
             // Додаємо нову рибку до лічильника
             addFish(newFishData.path);
+
+            // Зменшуємо лічильник для старого типу риб (якщо він мав обмеження)
+            FishSpawnData oldFishData = getFishDataFor(fish);
+            if (oldFishData != null && oldFishData.hasFixedCount()) {
+                // ToDo: можливо треба повернути логіку
+                // oldFishData.setFixedCount(oldFishData.fixedCount - 1);
+            }
         } else {
             // Якщо не вдалося створити, деактивуємо рибку
             fish.setActive(false);
@@ -1370,4 +1373,6 @@ public class BasicLevel extends ApplicationAdapter {
     private VictoryWindow victoryWindow;
     private boolean gameOverMusicPlayed = false;
     private boolean victoryMusicPlayed = false;
+
+    private boolean returnToMainMenu = false;
 }

@@ -37,6 +37,7 @@ public abstract class Bonus extends Entity {
         initializePosition();
     }
 
+
     protected abstract void initializePosition();
 
     public abstract void onCollected(GameHUD gameHUD);

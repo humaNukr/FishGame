@@ -10,6 +10,7 @@ public class SecondLevel extends BasicLevel {
 
     @Override
     protected void initializeLevel() {
+        availableFish.clear();
         timeLimit = 100f; // Збільшуємо час для нової логіки
         targetScore = -1; // Відключаємо цільовий рахунок
         targetFishCount = -1; // Не показуємо цільову кількість риб в HUD
