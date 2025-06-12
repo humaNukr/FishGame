@@ -224,4 +224,25 @@ public class BonusManager {
     public Array<Bonus> getActiveBonuses() {
         return activeBonuses;
     }
+
+    // Перевірка накладання прямокутника акули з бонусами
+    public Bonus checkCollisionsRect(float rectX, float rectY, float rectWidth, float rectHeight, float rotation) {
+        for (Bonus bonus : activeBonuses) {
+            if (!bonus.isActive() || bonus.isCollected()) continue;
+            // Просте накладання прямокутників (без обертання бонусу)
+            if (rectsOverlap(rectX, rectY, rectWidth, rectHeight, bonus.getX(), bonus.getY(), bonus.getWidth(), bonus.getHeight())) {
+                return bonus;
+            }
+        }
+        return null;
+    }
+
+    // Допоміжний метод для перевірки накладання прямокутників
+    private boolean rectsOverlap(float x1, float y1, float w1, float h1,
+                                 float x2, float y2, float w2, float h2) {
+        return x1 < x2 + w2 &&
+               x1 + w1 > x2 &&
+               y1 < y2 + h2 &&
+               y1 + h1 > y2;
+    }
 }

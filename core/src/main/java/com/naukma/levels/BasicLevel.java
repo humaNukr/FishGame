@@ -542,8 +542,16 @@ public class BasicLevel extends ApplicationAdapter {
         float sharkCenterX = sharkX + sharkWidth / 2;
         float sharkCenterY = sharkY + sharkHeight / 2;
         float headDistance = sharkWidth / 2;
-        float sharkHeadX = sharkCenterX + (float) (Math.cos(rotationRad) * headDistance);
-        float sharkHeadY = sharkCenterY + (float) (Math.sin(rotationRad) * headDistance);
+        float noseX = sharkCenterX + (float) (Math.cos(rotationRad) * headDistance);
+        float noseY = sharkCenterY + (float) (Math.sin(rotationRad) * headDistance);
+        float zoneLength = sharkWidth * 0.2f;
+        float zoneWidth = sharkHeight * 0.7f;
+        float zoneStartX = noseX - (float) (Math.cos(rotationRad) * zoneLength);
+        float zoneStartY = noseY - (float) (Math.sin(rotationRad) * zoneLength);
+        float rectCenterX = (noseX + zoneStartX) / 2f;
+        float rectCenterY = (noseY + zoneStartY) / 2f;
+        float rectX = rectCenterX - zoneLength / 2;
+        float rectY = rectCenterY - zoneWidth / 2;
 
         for (SwimmingFish fish : fishes) {
             if (!fish.isActive()) continue;
@@ -552,24 +560,20 @@ public class BasicLevel extends ApplicationAdapter {
             float fishY = fish.getY();
             float fishWidth = fish.getWidth();
             float fishHeight = fish.getHeight();
-            float fishFrontX = fish.isMovingRight() ? fishX + fishWidth * 0.75f : fishX + fishWidth * 0.25f;
-            float fishFrontY = fishY + fishHeight / 2;
 
-            float distance = (float) Math.sqrt(Math.pow(sharkHeadX - fishFrontX, 2) + Math.pow(sharkHeadY - fishFrontY, 2));
-
-            float sharkSize = sharkWidth * sharkHeight;
-            float fishSize = fishWidth * fishHeight;
-            float sizeRatio = fishSize / sharkSize;
-
-            if (sizeRatio < 0.3f) {
-                if (distance < BASE_EATING_DISTANCE * swimmingShark.getScale() && canEatFishType(fish.getFishType())) {
-                    eatFish(fish, fishFrontX, fishFrontY);
+            // Колізія: якщо зона з'їдання акули накладається на всю область рибки
+            if (rectsOverlap(rectX, rectY, zoneLength, zoneWidth, fishX, fishY, fishWidth, fishHeight)) {
+                float sharkSize = sharkWidth * sharkHeight;
+                float fishSize = fishWidth * fishHeight;
+                float sizeRatio = fishSize / sharkSize;
+                if (sizeRatio < 0.3f && canEatFishType(fish.getFishType())) {
+                    // Маленька рибка — з'їдаємо
+                    eatFish(fish, fishX + fishWidth / 2, fishY + fishHeight / 2);
+                } else if (sizeRatio > 0.7f) {
+                    // Велика рибка — отримуємо шкоду
+                    takeDamage(fish, fishX + fishWidth / 2, fishY + fishHeight / 2);
                 }
-            } else if (sizeRatio > 0.7f) {
-                if (rectsOverlap(sharkX, sharkY, sharkWidth, sharkHeight,
-                    fishX, fishY, fishWidth * 0.6f, fishHeight * 0.6f)) {
-                    takeDamage(fish, fishFrontX, fishFrontY);
-                }
+                // Середні рибки — ігноруємо (або можна додати логіку)
             }
         }
     }
@@ -1176,33 +1180,36 @@ public class BasicLevel extends ApplicationAdapter {
     private void checkBonusCollisions() {
         if (eatingShark.isEating() || victoryAnimationActive || isShrinkingForVictory) return;
 
-        // Визначаємо координати "носа" акули
+        // Визначаємо смугу підбору бонусу: останні 20% ширини акули по напрямку руху
         double rotationRad = Math.toRadians(rotation);
         float sharkCenterX = sharkX + sharkWidth / 2;
         float sharkCenterY = sharkY + sharkHeight / 2;
-        float headDistance = (swimmingShark.getSharkTexture().getWidth() * swimmingShark.getScale()) / 2f; // Відстань від центру до носа
-        float sharkHeadX = sharkCenterX + (float) (Math.cos(rotationRad) * headDistance);
-        float sharkHeadY = sharkCenterY + (float) (Math.sin(rotationRad) * headDistance);
+        float headDistance = (swimmingShark.getSharkTexture().getWidth() * swimmingShark.getScale()) / 2f;
+        float noseX = sharkCenterX + (float) (Math.cos(rotationRad) * headDistance);
+        float noseY = sharkCenterY + (float) (Math.sin(rotationRad) * headDistance);
+        float zoneLength = sharkWidth * 0.2f;
+        float zoneWidth = sharkHeight * 0.7f;
+        // Початок зони: відступаємо назад по напрямку руху на 0.2*sharkWidth
+        float zoneStartX = noseX - (float) (Math.cos(rotationRad) * zoneLength);
+        float zoneStartY = noseY - (float) (Math.sin(rotationRad) * zoneLength);
+        // Центр прямокутника зони
+        float rectCenterX = (noseX + zoneStartX) / 2f;
+        float rectCenterY = (noseY + zoneStartY) / 2f;
+        // Верхній лівий кут прямокутника
+        float rectX = rectCenterX - zoneLength / 2;
+        float rectY = rectCenterY - zoneWidth / 2;
 
-        Bonus collectedBonus = bonusManager.checkCollisions(sharkHeadX, sharkHeadY);
+        Bonus collectedBonus = bonusManager.checkCollisionsRect(rectX, rectY, zoneLength, zoneWidth, rotation);
         if (collectedBonus != null) {
             // Для ракушки - з'їдаємо тільки перлину, ракушка залишається
             if (collectedBonus instanceof ShellBonus) {
                 ShellBonus shell = (ShellBonus) collectedBonus;
                 if (shell.isOpen() && shell.hasPearl()) {
-                    // Запускаємо анімацію їжі акули (з'їдаємо перлину)
                     eatingShark.startEating();
-
-                    // Збираємо бонус (тільки перлину)
                     bonusManager.collectBonus(collectedBonus, gameHUD);
-
-                    // Додаємо життя за перлину
                     lives++;
-
-                    // Ефект бонусу для перлини
                     final float bonusX = collectedBonus.getX() + collectedBonus.getWidth() / 2;
                     final float bonusY = collectedBonus.getY() + collectedBonus.getHeight() / 2;
-
                     Timer.schedule(new Timer.Task() {
                         @Override
                         public void run() {
@@ -1211,14 +1218,10 @@ public class BasicLevel extends ApplicationAdapter {
                     }, BLOOD_EFFECT_DELAY);
                 }
             } else {
-                // Для інших бонусів - з'їдаємо повністю
                 eatingShark.startEating();
                 bonusManager.collectBonus(collectedBonus, gameHUD);
-
-                // Ефект бонусу
                 final float bonusX = collectedBonus.getX() + collectedBonus.getWidth() / 2;
                 final float bonusY = collectedBonus.getY() + collectedBonus.getHeight() / 2;
-
                 Timer.schedule(new Timer.Task() {
                     @Override
                     public void run() {
