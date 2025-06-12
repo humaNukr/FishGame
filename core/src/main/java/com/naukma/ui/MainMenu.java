@@ -36,6 +36,8 @@ public class MainMenu {
 
     private Sound clickSound;
 
+    private int prevSelectedItem = -1;
+
     public MainMenu() {
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/HennyPenny.ttf"));
@@ -160,6 +162,8 @@ public class MainMenu {
         int mouseX = Gdx.input.getX();
         int mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
 
+        prevSelectedItem = selectedItem;
+
         // Обробка кліків мишкою
         if (Gdx.input.justTouched()) {
             // Спочатку перевіряємо кнопки рівнів
@@ -189,19 +193,20 @@ public class MainMenu {
                 break;
             }
         }
+        if (selectedItem != prevSelectedItem && clickSound != null) clickSound.play();
 
         if (!mouseHoverDetected) {
             // Клавіатура працює тільки якщо миша не навела на кнопку
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-                if (clickSound != null) clickSound.play();
                 selectedItem--;
                 if (selectedItem < 0) selectedItem = menuItems.length - 1;
+                if (clickSound != null) clickSound.play();
             }
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
-                if (clickSound != null) clickSound.play();
                 selectedItem++;
                 if (selectedItem >= menuItems.length) selectedItem = 0;
+                if (clickSound != null) clickSound.play();
             }
         }
 

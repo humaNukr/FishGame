@@ -33,6 +33,7 @@ public class PauseMenu {
     private GlyphLayout glyphLayout;
 
     private Sound clickSound;
+    private int prevSelectedItem = -1;
 
     public PauseMenu() {
 
@@ -120,6 +121,8 @@ public class PauseMenu {
         int mouseX = Gdx.input.getX();
         int mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
 
+        prevSelectedItem = selectedItem;
+
         boolean mouseHoverDetected = false;
         for (int i = 0; i < buttonBounds.length; i++) {
             if (buttonBounds[i].contains(mouseX, mouseY)) {
@@ -128,17 +131,18 @@ public class PauseMenu {
                 break;
             }
         }
+        if (selectedItem != prevSelectedItem && clickSound != null) clickSound.play();
 
         if (!mouseHoverDetected) {
             // Клавіатура працює тільки якщо миша не навела на кнопку
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-                if (clickSound != null) clickSound.dispose();
                 moveUp();
+                if (clickSound != null) clickSound.play();
             }
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
-                if (clickSound != null) clickSound.play();
                 moveDown();
+                if (clickSound != null) clickSound.play();
             }
         }
 

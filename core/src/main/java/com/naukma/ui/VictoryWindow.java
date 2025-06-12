@@ -42,6 +42,7 @@ public class VictoryWindow {
     private String[] buttonItems = {"NEXT LEVEL", "RESTART", "MAIN MENU"};
     private Rectangle[] buttonBounds;
     private int selectedItem = 0;
+    private int prevSelectedItem = -1;
 
     // Анімація
     private float animationTimer = 0f;
@@ -220,6 +221,8 @@ public class VictoryWindow {
         int mouseX = Gdx.input.getX();
         int mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
 
+        prevSelectedItem = selectedItem;
+
         if (Gdx.input.justTouched()) {
             for (int i = 0; i < buttonBounds.length; i++) {
                 if (buttonBounds[i].contains(mouseX, mouseY)) {
@@ -230,25 +233,22 @@ public class VictoryWindow {
             }
         }
 
-        // Обробка наведення миші
         boolean mouseHoverDetected = false;
         for (int i = 0; i < buttonBounds.length; i++) {
             if (buttonBounds[i].contains(mouseX, mouseY)) {
                 selectedItem = i;
                 mouseHoverDetected = true;
-
                 break;
             }
         }
+        if (selectedItem != prevSelectedItem && clickSound != null) clickSound.play();
 
-        // Клавіатура працює тільки якщо миша не навела на кнопку
         if (!mouseHoverDetected) {
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
                 selectedItem--;
                 if (selectedItem < 0) selectedItem = buttonItems.length - 1;
                 if (clickSound != null) clickSound.play();
             }
-
             if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
                 selectedItem++;
                 if (selectedItem >= buttonItems.length) selectedItem = 0;

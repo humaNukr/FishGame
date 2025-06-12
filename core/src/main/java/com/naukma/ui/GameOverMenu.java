@@ -37,6 +37,8 @@ public class GameOverMenu {
 
     private Sound clickSound;
 
+    private int prevSelectedItem = -1;
+
     public GameOverMenu() {
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/HennyPenny.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -129,6 +131,8 @@ public class GameOverMenu {
         int mouseX = Gdx.input.getX();
         int mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
 
+        prevSelectedItem = selectedItem;
+
         boolean mouseHoverDetected = false;
         for (int i = 0; i < buttonBounds.length; i++) {
             if (buttonBounds[i].contains(mouseX, mouseY)) {
@@ -137,17 +141,20 @@ public class GameOverMenu {
                 break;
             }
         }
+        if (selectedItem != prevSelectedItem && clickSound != null) clickSound.play();
 
         if (!mouseHoverDetected) {
             // Клавіатура працює тільки якщо миша не навела на кнопку
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+                selectedItem--;
+                if (selectedItem < 0) selectedItem = menuItems.length - 1;
                 if (clickSound != null) clickSound.play();
-                moveUp();
             }
 
             if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+                selectedItem++;
+                if (selectedItem >= menuItems.length) selectedItem = 0;
                 if (clickSound != null) clickSound.play();
-                moveDown();
             }
         }
 
