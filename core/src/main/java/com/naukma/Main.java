@@ -17,6 +17,7 @@ public class Main extends ApplicationAdapter {
     private boolean showingMenu = true;
     private SpriteBatch batch;
     private Music backgroundMusic;
+    private String currentMusicFile = "";
 
     @Override
     public void create() {
@@ -102,6 +103,11 @@ public class Main extends ApplicationAdapter {
                         break;
                 }
             }
+        }
+
+        // Якщо меню активується після Game Over, повертаємо музику головного меню
+        if (showingMenu && !isMusicMainMenu()) {
+            setMusic("main_menu.mp3");
         }
 
         // Рендеринг меню
@@ -196,6 +202,7 @@ public class Main extends ApplicationAdapter {
         backgroundMusic.setLooping(true);
         backgroundMusic.setVolume(0.5f);
         backgroundMusic.play();
+        currentMusicFile = musicFile;
     }
 
     // Додати методи для перемоги та поразки
@@ -210,5 +217,10 @@ public class Main extends ApplicationAdapter {
     }
     public void resumeMusic() {
         if (backgroundMusic != null) backgroundMusic.play();
+    }
+
+    // Додаю допоміжний метод для перевірки чи грає музика головного меню
+    private boolean isMusicMainMenu() {
+        return "main_menu.mp3".equals(currentMusicFile);
     }
 }

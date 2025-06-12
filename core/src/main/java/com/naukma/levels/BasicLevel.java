@@ -1117,7 +1117,6 @@ public class BasicLevel extends ApplicationAdapter {
             // Зменшуємо лічильник для старого типу риб (якщо він мав обмеження)
             FishSpawnData oldFishData = getFishDataFor(fish);
             if (oldFishData != null && oldFishData.hasFixedCount()) {
-                // ToDo: можливо треба повернути логіку
                 // oldFishData.setFixedCount(oldFishData.fixedCount - 1);
             }
         } else {
