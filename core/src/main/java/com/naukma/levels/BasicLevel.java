@@ -550,8 +550,6 @@ public class BasicLevel extends ApplicationAdapter {
         float zoneStartY = noseY - (float) (Math.sin(rotationRad) * zoneLength);
         float rectCenterX = (noseX + zoneStartX) / 2f;
         float rectCenterY = (noseY + zoneStartY) / 2f;
-        float rectX = rectCenterX - zoneLength / 2;
-        float rectY = rectCenterY - zoneWidth / 2;
 
         for (SwimmingFish fish : fishes) {
             if (!fish.isActive()) continue;
@@ -560,30 +558,77 @@ public class BasicLevel extends ApplicationAdapter {
             float fishY = fish.getY();
             float fishWidth = fish.getWidth();
             float fishHeight = fish.getHeight();
+            float fishCenterX = fishX + fishWidth / 2f;
+            float fishCenterY = fishY + fishHeight / 2f;
 
-            // Колізія: якщо зона з'їдання акули накладається на всю область рибки
-            if (rectsOverlap(rectX, rectY, zoneLength, zoneWidth, fishX, fishY, fishWidth, fishHeight)) {
+            float penetration = getRotatedRectsPenetration(
+                rectCenterX, rectCenterY, zoneLength, zoneWidth, rotation,
+                fishCenterX, fishCenterY, fishWidth, fishHeight, 0f
+            );
+            float minRequiredPenetration = fishWidth * 0.05f;
+            if (penetration > minRequiredPenetration) {
                 float sharkSize = sharkWidth * sharkHeight;
                 float fishSize = fishWidth * fishHeight;
                 float sizeRatio = fishSize / sharkSize;
                 if (sizeRatio < 0.3f && canEatFishType(fish.getFishType())) {
-                    // Маленька рибка — з'їдаємо
                     eatFish(fish, fishX + fishWidth / 2, fishY + fishHeight / 2);
                 } else if (sizeRatio > 0.7f) {
-                    // Велика рибка — отримуємо шкоду
                     takeDamage(fish, fishX + fishWidth / 2, fishY + fishHeight / 2);
                 }
-                // Середні рибки — ігноруємо (або можна додати логіку)
             }
         }
     }
 
-    private boolean rectsOverlap(float x1, float y1, float w1, float h1,
-                                 float x2, float y2, float w2, float h2) {
-        return x1 < x2 + w2 &&
-            x1 + w1 > x2 &&
-            y1 < y2 + h2 &&
-            y1 + h1 > y2;
+    // Обчислення мінімальної penetration depth для двох орієнтованих прямокутників
+    private float getRotatedRectsPenetration(float cx1, float cy1, float w1, float h1, float angle1,
+                                             float cx2, float cy2, float w2, float h2, float angle2) {
+        float[][] rect1 = getRectCorners(cx1, cy1, w1, h1, angle1);
+        float[][] rect2 = getRectCorners(cx2, cy2, w2, h2, angle2);
+        float minPenetration = Float.POSITIVE_INFINITY;
+        // Перевіряємо осі обох прямокутників
+        for (int pass = 0; pass < 2; pass++) {
+            float[][] rectA = (pass == 0) ? rect1 : rect2;
+            for (int i = 0; i < 4; i++) {
+                int j = (i + 1) % 4;
+                float edgeX = rectA[j][0] - rectA[i][0];
+                float edgeY = rectA[j][1] - rectA[i][1];
+                float axisX = -edgeY;
+                float axisY = edgeX;
+                float minA = Float.POSITIVE_INFINITY, maxA = Float.NEGATIVE_INFINITY;
+                float minB = Float.POSITIVE_INFINITY, maxB = Float.NEGATIVE_INFINITY;
+                for (int k = 0; k < 4; k++) {
+                    float projA = rect1[k][0] * axisX + rect1[k][1] * axisY;
+                    minA = Math.min(minA, projA);
+                    maxA = Math.max(maxA, projA);
+                    float projB = rect2[k][0] * axisX + rect2[k][1] * axisY;
+                    minB = Math.min(minB, projB);
+                    maxB = Math.max(maxB, projB);
+                }
+                if (maxA < minB || maxB < minA) return 0f; // Немає перетину
+                float penetration = Math.min(maxA, maxB) - Math.max(minA, minB);
+                minPenetration = Math.min(minPenetration, penetration);
+            }
+        }
+        return minPenetration;
+    }
+
+    // Отримати кути прямокутника (у вигляді масиву [4][2])
+    private float[][] getRectCorners(float cx, float cy, float w, float h, float angleDeg) {
+        double angleRad = Math.toRadians(angleDeg);
+        float cos = (float) Math.cos(angleRad);
+        float sin = (float) Math.sin(angleRad);
+        float hw = w / 2f;
+        float hh = h / 2f;
+        float[][] corners = new float[4][2];
+        corners[0][0] = cx + (-hw * cos - -hh * sin); // top-left
+        corners[0][1] = cy + (-hw * sin + -hh * cos);
+        corners[1][0] = cx + (hw * cos - -hh * sin);  // top-right
+        corners[1][1] = cy + (hw * sin + -hh * cos);
+        corners[2][0] = cx + (hw * cos - hh * sin);   // bottom-right
+        corners[2][1] = cy + (hw * sin + hh * cos);
+        corners[3][0] = cx + (-hw * cos - hh * sin);  // bottom-left
+        corners[3][1] = cy + (-hw * sin + hh * cos);
+        return corners;
     }
 
     private void eatFish(SwimmingFish fish, float fishX, float fishY) {
