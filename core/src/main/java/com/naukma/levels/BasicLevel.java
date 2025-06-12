@@ -565,7 +565,7 @@ public class BasicLevel extends ApplicationAdapter {
                 rectCenterX, rectCenterY, zoneLength, zoneWidth, rotation,
                 fishCenterX, fishCenterY, fishWidth, fishHeight, 0f
             );
-            float minRequiredPenetration = fishWidth * 0.05f;
+            float minRequiredPenetration = fishWidth * 0.10f;
             if (penetration > minRequiredPenetration) {
                 float sharkSize = sharkWidth * sharkHeight;
                 float fishSize = fishWidth * fishHeight;
