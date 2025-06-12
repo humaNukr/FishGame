@@ -701,8 +701,6 @@ public class BasicLevel extends ApplicationAdapter {
             return;
         }
         lives--;
-        bloodEffect.spawn(fishX, fishY);
-        fish.setActive(false);
         if (lives < 0) {
             triggerGameOver("Out of Lives!");
         } else {
