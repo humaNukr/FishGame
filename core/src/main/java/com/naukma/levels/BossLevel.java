@@ -34,12 +34,15 @@ public class BossLevel {
     private Array<OctopusInk> inkShots = new Array<>();
     private long lastInkTime = 0;
     private long lastMinionTime = 0;
+    private long lastTentacleTime = 0;
+    private long lastEnergyOrbTime = 0;
+
+    private Array<EnergyOrb> energyOrbs = new Array<>();
 
     private Texture backgroundTexture;
     private Texture whitePixel;
 
     private Array<TentacleStrike> tentacleStrikes = new Array<>();
-    private long lastTentacleTime = 0;
 
     // Внутрішній клас для атаки щупальцем
     private static class TentacleStrike {
@@ -87,7 +90,7 @@ public class BossLevel {
         pixmap.fill();
         whitePixel = new Texture(pixmap);
         pixmap.dispose();
-        sharkTexture = new Texture(Gdx.files.internal("shark\\frame_00.png"));
+        sharkTexture = new Texture(Gdx.files.internal("shark_level3\\frame_00.png"));
         sharkWidth = 120;
         sharkHeight = 60;
         sharkX = 80;
@@ -100,14 +103,27 @@ public class BossLevel {
     public void update(float deltaTime) {
         if (isGameOver || isVictory) return;
         handleInput(deltaTime);
-        boss.update(deltaTime);
+
+        // Оновлення боса та отримання нових снарядів
+        EnergyOrb newOrb = boss.update(deltaTime);
+        if (newOrb != null) {
+            energyOrbs.add(newOrb);
+        }
+
         for (BossMinion m : minions) m.update(deltaTime);
         for (OctopusInk ink : inkShots) ink.update(deltaTime);
+        for (EnergyOrb orb : energyOrbs) orb.update(deltaTime);
         // Tentacle strikes
         for (TentacleStrike t : tentacleStrikes) t.update(deltaTime);
         // Видалити завершені
         for (int i = tentacleStrikes.size - 1; i >= 0; i--) {
             if (tentacleStrikes.get(i).isFinished()) tentacleStrikes.removeIndex(i);
+        }
+        for (int i = energyOrbs.size - 1; i >= 0; i--) {
+            if (!energyOrbs.get(i).isActive()) {
+                energyOrbs.get(i).dispose();
+                energyOrbs.removeIndex(i);
+            }
         }
         checkCollisions();
         if (sharkInvulnerable) {
@@ -120,7 +136,10 @@ public class BossLevel {
         if (boss.getHealth() <= 0) isVictory = true;
         // Спавн чорнильних куль
         if (TimeUtils.nanoTime() - lastInkTime > 1_500_000_000L) {
-            inkShots.add(boss.shootInk(sharkY + sharkHeight/2));
+            OctopusInk newInk = boss.shootInk(sharkY + sharkHeight/2);
+            if (newInk != null) {
+                inkShots.add(newInk);
+            }
             lastInkTime = TimeUtils.nanoTime();
         }
         // Спавн міньйонів
@@ -129,7 +148,7 @@ public class BossLevel {
             lastMinionTime = TimeUtils.nanoTime();
         }
         // Спавн щупальця-променя
-        if (TimeUtils.nanoTime() - lastTentacleTime > 2_800_000_000L) {
+        if (TimeUtils.nanoTime() - lastTentacleTime > 4_000_000_000L) {
             float y = MathUtils.random(40, Gdx.graphics.getHeight() - 120);
             tentacleStrikes.add(new TentacleStrike(y));
             lastTentacleTime = TimeUtils.nanoTime();
@@ -153,8 +172,13 @@ public class BossLevel {
         sharkY = Math.max(0, Math.min(Gdx.graphics.getHeight() - sharkHeight, sharkY));
         // Атака по Space
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            if (boss.isVulnerable() && boss.isOnSameLine(sharkY, sharkHeight)) {
-                boss.takeDamage();
+            Rectangle sharkAttackRect = new Rectangle(sharkX + sharkWidth, sharkY, 50, sharkHeight);
+
+            // Відбиття снаряду
+            for (EnergyOrb orb : energyOrbs) {
+                if (orb.isActive() && !orb.isReflected() && sharkAttackRect.overlaps(orb.getBounds())) {
+                    orb.reflect();
+                }
             }
         }
     }
@@ -164,19 +188,26 @@ public class BossLevel {
 
         Rectangle sharkRect = new Rectangle(sharkX, sharkY, sharkWidth, sharkHeight);
 
-        // Перевірка на вразливе місце боса
-        if (boss.isTentacleActive() && boss.getTentacleRect().overlaps(sharkRect)) {
-            takeDamage();
-            boss.deactivateTentacle();
-            return;
-        }
-
         // Перевірка на чорнильні кулі
         for (OctopusInk ink : inkShots) {
             if (ink.isActive() && ink.getRect().overlaps(sharkRect)) {
                 takeDamage();
                 ink.setActive(false);
                 return;
+            }
+        }
+        
+        // Перевірка на енергетичні снаряди
+        for (EnergyOrb orb : energyOrbs) {
+            if (orb.isActive() && !orb.isReflected() && orb.getBounds().overlaps(sharkRect)) {
+                takeDamage();
+                orb.setActive(false);
+                return;
+            }
+            // Перевірка, чи відбитий снаряд влучив у боса
+            if (orb.isReflected() && orb.getBounds().overlaps(new Rectangle(boss.getX(), boss.getY(), boss.getWidth(), boss.getHeight()))) {
+                boss.takeDamage(2); // Відбитий снаряд наносить більше шкоди
+                orb.setActive(false);
             }
         }
 
@@ -212,6 +243,7 @@ public class BossLevel {
         boss.render(batch);
         for (BossMinion m : minions) if (m.isActive()) m.render(batch);
         for (OctopusInk ink : inkShots) if (ink.isActive()) ink.render(batch);
+        for (EnergyOrb orb : energyOrbs) orb.render(batch);
         // Рендер щупалець-променів
         for (TentacleStrike t : tentacleStrikes) {
             if (t.warning && t.isBlinking()) {

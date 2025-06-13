@@ -24,7 +24,7 @@ public class MainMenu {
     private Texture levelButtonTexture;
     private Texture levelButtonSelectedTexture;
 
-    private String[] menuItems = {"START GAME", "SETTINGS", "EXIT"};
+    private String[] menuItems = {"START GAME", "SETTINGS", "EXIT", "BOSS FIGHT"};
     private String[] levelItems = {"1 LEVEL", "2 LEVEL", "3 LEVEL"};
     private Rectangle[] buttonBounds;
     private Rectangle[] levelButtonBounds;
@@ -243,6 +243,11 @@ public class MainMenu {
             case 2: // EXIT
                 Gdx.app.exit();
                 break;
+            case 3: // BOSS FIGHT
+                // Спеціальний прапор для запуску боса
+                selectedLevel = 99; // 99 — умовний індекс для боса
+                isActive = false;
+                break;
         }
     }
 
@@ -310,6 +315,14 @@ public class MainMenu {
             Texture currentButtonTexture;
             if (i == 0 && selectedLevel < 0) { // START GAME відключена, якщо рівень не обрано
                 currentButtonTexture = buttonDisabledTexture;
+            } else if (i == 3) { // BOSS FIGHT — синя кнопка
+                Pixmap pixmap = new Pixmap(300, 60, Pixmap.Format.RGBA8888);
+                pixmap.setColor(0.2f, 0.4f, 1f, 0.9f);
+                pixmap.fill();
+                pixmap.setColor(0.3f, 0.5f, 1f, 1f);
+                pixmap.drawRectangle(0, 0, 300, 60);
+                currentButtonTexture = new Texture(pixmap);
+                pixmap.dispose();
             } else {
                 currentButtonTexture = (i == selectedItem) ? buttonHoverTexture : buttonTexture;
             }
@@ -323,6 +336,8 @@ public class MainMenu {
 
             if (i == 0 && selectedLevel < 0) { // START GAME відключена
                 menuFont.setColor(Color.GRAY);
+            } else if (i == 3) {
+                menuFont.setColor(Color.CYAN);
             } else if (i == selectedItem) {
                 menuFont.setColor(Color.YELLOW);
             } else {

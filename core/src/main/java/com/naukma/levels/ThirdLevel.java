@@ -41,8 +41,7 @@ public class ThirdLevel extends BasicLevel {
             case 1:
                 return 1;  // Після 8 других риб (fish_14/) розблоковується третій тип (fish_13/)
             case 2:
-                return 1
-                ;  // Після 4 третіх риб (fish_13/) - перемога
+                return 1;  // Після 4 третіх риб (fish_13/) - перемога
             default:
                 return 5;
         }

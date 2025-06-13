@@ -8,6 +8,7 @@ import com.naukma.levels.BasicLevel;
 import com.naukma.levels.LevelManager;
 import com.naukma.ui.MainMenu;
 import com.badlogic.gdx.audio.Music;
+import com.naukma.levels.BossLevel;
 
 public class Main extends ApplicationAdapter {
 
@@ -18,6 +19,7 @@ public class Main extends ApplicationAdapter {
     private SpriteBatch batch;
     private Music backgroundMusic;
     private String currentMusicFile = "";
+    private BossLevel bossLevel = null;
 
     @Override
     public void create() {
@@ -37,7 +39,23 @@ public class Main extends ApplicationAdapter {
             return;
         }
 
-        // ESC обробляється в currentLevel (для pause menu)
+        // Якщо активний BossLevel
+        if (bossLevel != null) {
+            bossLevel.update(Gdx.graphics.getDeltaTime());
+            Gdx.gl.glClearColor(0, 0, 0, 1);
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+            batch.begin();
+            bossLevel.render(batch);
+            batch.end();
+            // Повернення до меню після перемоги/поразки
+            if (isBossLevelFinished()) {
+                bossLevel = null;
+                showingMenu = true;
+                mainMenu.setActive(true);
+                setMusic("main_menu.mp3");
+            }
+            return;
+        }
 
         // Рендеримо поточний рівень
         if (currentLevel != null) {
@@ -87,6 +105,11 @@ public class Main extends ApplicationAdapter {
 
             // Отримуємо обраний рівень з головного меню
             int selectedLevel = mainMenu.getSelectedLevel();
+            if (selectedLevel == 99) {
+                bossLevel = new BossLevel();
+                setMusic("boss_fight.mp3");
+                return;
+            }
             if (selectedLevel >= 0) {
                 // Створюємо новий рівень через поліморфізм
                 switchToLevel(selectedLevel + 1); // +1 тому що рівні в меню починаються з 0
@@ -200,7 +223,7 @@ public class Main extends ApplicationAdapter {
         }
         backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal(musicFile));
         backgroundMusic.setLooping(true);
-        backgroundMusic.setVolume(0f);
+        backgroundMusic.setVolume(0.2f);
         backgroundMusic.play();
         currentMusicFile = musicFile;
     }
@@ -222,5 +245,22 @@ public class Main extends ApplicationAdapter {
     // Додаю допоміжний метод для перевірки чи грає музика головного меню
     private boolean isMusicMainMenu() {
         return "main_menu.mp3".equals(currentMusicFile);
+    }
+
+    private boolean isBossLevelFinished() {
+        // Повертає true, якщо рівень завершено (перемога або поразка)
+        if (bossLevel == null) return true;
+        // Доступ до полів через рефлексію або додати геттери
+        try {
+            java.lang.reflect.Field f1 = bossLevel.getClass().getDeclaredField("isGameOver");
+            java.lang.reflect.Field f2 = bossLevel.getClass().getDeclaredField("isVictory");
+            f1.setAccessible(true);
+            f2.setAccessible(true);
+            boolean isGameOver = f1.getBoolean(bossLevel);
+            boolean isVictory = f2.getBoolean(bossLevel);
+            return isGameOver || isVictory;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
