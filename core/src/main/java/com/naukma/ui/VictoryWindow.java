@@ -54,6 +54,9 @@ public class VictoryWindow {
 
     private Sound clickSound;
 
+    private boolean bossButtonVisible = false;
+    private int bossButtonIndex = -1;
+
     public VictoryWindow() {
         initializeFonts();
         createTextures();
@@ -203,6 +206,12 @@ public class VictoryWindow {
         nextLevelPressed = false;
         mainMenuPressed = false;
         shouldRestart = false;
+        bossButtonVisible = (levelNumber >= 3);
+        if (bossButtonVisible) {
+            bossButtonIndex = buttonItems.length;
+        } else {
+            bossButtonIndex = -1;
+        }
 
         // Оновлюємо межі кнопок
         initializeButtonBounds();
@@ -244,14 +253,15 @@ public class VictoryWindow {
         if (selectedItem != prevSelectedItem && clickSound != null) clickSound.play();
 
         if (!mouseHoverDetected) {
+            int totalButtons = buttonItems.length + (bossButtonVisible ? 1 : 0);
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
                 selectedItem--;
-                if (selectedItem < 0) selectedItem = buttonItems.length - 1;
+                if (selectedItem < 0) selectedItem = totalButtons - 1;
                 if (clickSound != null) clickSound.play();
             }
             if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
                 selectedItem++;
-                if (selectedItem >= buttonItems.length) selectedItem = 0;
+                if (selectedItem >= totalButtons) selectedItem = 0;
                 if (clickSound != null) clickSound.play();
             }
             if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
@@ -265,8 +275,18 @@ public class VictoryWindow {
         }
     }
 
-    private void handleSelection(int itemIndex) {
-        switch (itemIndex) {
+    private void handleSelection(int index) {
+        // Для останнього рівня перша кнопка — це перехід до боса
+        if (index == 0 && levelNumber >= 3) {
+            if (bossListener != null) bossListener.onBossButtonPressed();
+            return;
+        }
+        if (bossButtonVisible && index == bossButtonIndex) {
+            // Викликаємо перехід до боса (старий варіант, залишаю для сумісності)
+            if (bossListener != null) bossListener.onBossButtonPressed();
+            return;
+        }
+        switch (index) {
             case 0: // NEXT LEVEL
                 if (levelNumber < 3) {
                     nextLevelPressed = true;
@@ -339,8 +359,11 @@ public class VictoryWindow {
             Rectangle bounds = buttonBounds[i];
 
             Texture currentButtonTexture;
-            if (i == 0 && levelNumber >= 3) { // NEXT LEVEL відключена для останнього рівня
-                currentButtonTexture = buttonDisabledTexture;
+            // Для останнього рівня перша кнопка активна і з іншим текстом
+            if (i == 0 && levelNumber >= 3) {
+                currentButtonTexture = (i == selectedItem) ? buttonHoverTexture : buttonTexture;
+            } else if (i == 0 && levelNumber < 3) {
+                currentButtonTexture = (i == selectedItem) ? buttonHoverTexture : buttonTexture;
             } else {
                 currentButtonTexture = (i == selectedItem) ? buttonHoverTexture : buttonTexture;
             }
@@ -348,19 +371,27 @@ public class VictoryWindow {
             batch.draw(currentButtonTexture, bounds.x, bounds.y, bounds.width, bounds.height);
 
             String item = buttonItems[i];
+            // Заміна тексту для останнього рівня
+            if (i == 0 && levelNumber >= 3) {
+                item = "BOSS FIGHT";
+            }
             glyphLayout.setText(buttonFont, item);
             float textX = bounds.x + (bounds.width - glyphLayout.width) / 2;
             float textY = bounds.y + (bounds.height + glyphLayout.height) / 2;
 
-            if (i == 0 && levelNumber >= 3) { // NEXT LEVEL відключена
-                buttonFont.setColor(Color.GRAY);
-            } else if (i == selectedItem) {
+            if (i == selectedItem) {
                 buttonFont.setColor(Color.YELLOW);
             } else {
                 buttonFont.setColor(Color.WHITE);
             }
 
             buttonFont.draw(batch, item, textX, textY);
+        }
+
+        if (bossButtonVisible) {
+            // Рендеримо кнопку "Бій з босом"
+            // (Можна стилізувати окремо)
+            // ...
         }
     }
 
@@ -391,5 +422,14 @@ public class VictoryWindow {
         if (buttonHoverTexture != null) buttonHoverTexture.dispose();
         if (buttonDisabledTexture != null) buttonDisabledTexture.dispose();
         if (clickSound != null) clickSound.dispose();
+    }
+
+    // Додаю інтерфейс для обробки кнопки боса
+    public interface BossListener {
+        void onBossButtonPressed();
+    }
+    private BossListener bossListener;
+    public void setBossListener(BossListener listener) {
+        this.bossListener = listener;
     }
 }

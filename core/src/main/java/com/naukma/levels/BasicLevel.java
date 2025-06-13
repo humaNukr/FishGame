@@ -43,6 +43,12 @@ public class BasicLevel extends ApplicationAdapter {
         initializeLevel();
         this.lives = this.livesCount; // Ініціалізуємо життя з налаштувань рівня
         initializeUnlockedFishTypes();
+        victoryWindow.setBossListener(new VictoryWindow.BossListener() {
+            @Override
+            public void onBossButtonPressed() {
+                goToBossLevel = true;
+            }
+        });
     }
 
 
@@ -494,6 +500,11 @@ public class BasicLevel extends ApplicationAdapter {
                 victoryMusicPlayed = true;
             }
             victoryWindow.render(batch);
+            if (goToBossLevel) {
+                // Тут має бути логіка запуску рівня з босом
+                // Наприклад, завантаження BossLevel
+                // Можна викликати callback або змінити стан гри
+            }
         }
 
         batch.end();
@@ -1489,4 +1500,6 @@ public class BasicLevel extends ApplicationAdapter {
         }
         return null;
     }
+
+    private boolean goToBossLevel = false;
 }

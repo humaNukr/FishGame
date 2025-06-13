@@ -11,7 +11,7 @@ public class FirstLevel extends BasicLevel {
     @Override
     protected void initializeLevel() {
         availableFish.clear();
-        timeLimit = 2f; // Збільшуємо час оскільки треба з'їсти більше риб
+        timeLimit = 60f; // Збільшуємо час оскільки треба з'їсти більше риб
         targetScore = -1; // Відключаємо цільовий рахунок - рахунок може бути нескінченно великим
         targetFishCount = -1; // Не показуємо цільову кількість риб в HUD
         maxFishCount = 15; // 15 рибок на екрані
