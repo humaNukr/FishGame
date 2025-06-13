@@ -687,4 +687,39 @@ public class GameHUD {
     private static final float ICON_SPACING_RATIO = 0.015f;
     private static final float PROGRESS_BAR_HEIGHT_RATIO = 0.012f;
     private static final float BONUS_ICON_RATIO = 0.05f;
+
+    // Додаю метод для рендеру HUD у бою з босом
+    public void renderBossFight(SpriteBatch batch, int sharkHealth, int sharkMaxHealth, int bossHealth, int bossMaxHealth) {
+        // Смуга здоров'я акули (знизу)
+        float barWidth = screenWidth * 0.35f;
+        float barHeight = 32f;
+        float sharkBarX = screenWidth * 0.08f;
+        float sharkBarY = screenHeight * 0.08f;
+        batch.setColor(0.1f, 0.1f, 0.5f, 0.7f);
+        batch.draw(progressBarBg, sharkBarX, sharkBarY, barWidth, barHeight);
+        batch.setColor(0.2f, 0.7f, 1f, 1f);
+        float sharkFill = barWidth * ((float)sharkHealth / sharkMaxHealth);
+        batch.draw(progressBarFill, sharkBarX, sharkBarY, sharkFill, barHeight);
+        batch.setColor(1f, 1f, 1f, 1f);
+        String sharkText = "SHARK: " + sharkHealth + "/" + sharkMaxHealth;
+        glyphLayout.setText(scoreFont, sharkText);
+        scoreFont.setColor(Color.WHITE);
+        scoreFont.draw(batch, sharkText, sharkBarX + (barWidth - glyphLayout.width) / 2, sharkBarY + barHeight - 6);
+
+        // Смуга здоров'я боса (зверху)
+        float bossBarWidth = screenWidth * 0.5f;
+        float bossBarHeight = 36f;
+        float bossBarX = (screenWidth - bossBarWidth) / 2f;
+        float bossBarY = screenHeight - bossBarHeight - screenHeight * 0.04f;
+        batch.setColor(0.5f, 0.1f, 0.1f, 0.7f);
+        batch.draw(progressBarBg, bossBarX, bossBarY, bossBarWidth, bossBarHeight);
+        batch.setColor(1f, 0.2f, 0.2f, 1f);
+        float bossFill = bossBarWidth * ((float)bossHealth / bossMaxHealth);
+        batch.draw(progressBarFill, bossBarX, bossBarY, bossFill, bossBarHeight);
+        batch.setColor(1f, 1f, 1f, 1f);
+        String bossText = "BOSS: " + bossHealth + "/" + bossMaxHealth;
+        glyphLayout.setText(titleFont, bossText);
+        titleFont.setColor(Color.WHITE);
+        titleFont.draw(batch, bossText, bossBarX + (bossBarWidth - glyphLayout.width) / 2, bossBarY + bossBarHeight - 8);
+    }
 }

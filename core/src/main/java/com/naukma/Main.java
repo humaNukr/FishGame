@@ -200,7 +200,7 @@ public class Main extends ApplicationAdapter {
         }
         backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal(musicFile));
         backgroundMusic.setLooping(true);
-        backgroundMusic.setVolume(0.5f);
+        backgroundMusic.setVolume(0f);
         backgroundMusic.play();
         currentMusicFile = musicFile;
     }

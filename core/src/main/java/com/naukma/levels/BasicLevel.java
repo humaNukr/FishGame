@@ -279,6 +279,17 @@ public class BasicLevel extends ApplicationAdapter {
 
     @Override
     public void render() {
+        if (goToBossLevel) {
+            Gdx.gl.glClearColor(0, 0, 0, 1);
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+            batch.begin();
+            if (bossLevel == null) bossLevel = new BossLevel();
+            bossLevel.update(Gdx.graphics.getDeltaTime());
+            bossLevel.render(batch);
+            batch.end();
+            return;
+        }
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             if (!isGameOver && !showGameOverEffect) {
                 isPaused = !isPaused;
@@ -1502,4 +1513,5 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private boolean goToBossLevel = false;
+    private BossLevel bossLevel = null;
 }
