@@ -616,7 +616,7 @@ public class GameHUD {
 
     // Fonts
     private BitmapFont titleFont;
-    private BitmapFont scoreFont;
+    public BitmapFont scoreFont;
     private BitmapFont levelFont;
 
     // Game data - тільки базові дані без стану

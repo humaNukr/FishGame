@@ -60,7 +60,7 @@ public class OctopusBoss {
             if (shootTimer >= SHOOT_INTERVAL) {
                 shootTimer = 0;
                 // Створити та повернути новий енергетичний снаряд у випадковій точці по Y
-                float orbY = MathUtils.random(0, Gdx.graphics.getHeight() - 80); // 80 — висота сфери
+                float orbY = MathUtils.random(0, Gdx.graphics.getHeight() - Gdx.graphics.getHeight() * 0.03f); 
                 return new EnergyOrb(x, orbY);
             }
         }
@@ -74,9 +74,9 @@ public class OctopusBoss {
         // Відображення "ока", коли бос вразливий
         if (currentState == State.VULNERABLE) {
             float pulse = (float) Math.abs(Math.sin(stateTimer * 2.0f));
-            float eyeSize = 80 * (1.0f + pulse * 0.2f);
-            float eyeX = x + width * 0.4f - (eyeSize - 80) / 2;
-            float eyeY = y + height * 0.5f - (eyeSize - 80) / 2;
+            float eyeSize = Gdx.graphics.getHeight() * 0.1f * (1.0f + pulse * 0.2f);
+            float eyeX = x + width * 0.45f - (eyeSize - 80) / 2;
+            float eyeY = y + height * 0.74f - (eyeSize - 80) / 2;
             
             Color c = batch.getColor();
             batch.setColor(1, 1, 0, 0.7f + pulse * 0.3f); // Жовте світіння

@@ -41,8 +41,11 @@ public class BossLevel {
 
     private Texture backgroundTexture;
     private Texture whitePixel;
+    private Texture tentacleTexture;
 
     private Array<TentacleStrike> tentacleStrikes = new Array<>();
+
+    private int orbsCaught = 0;
 
     // Внутрішній клас для атаки щупальцем
     private static class TentacleStrike {
@@ -84,15 +87,15 @@ public class BossLevel {
 
     public BossLevel() {
         backgroundTexture = new Texture(Gdx.files.internal("background_boss.png"));
-        // Білий піксель для променів
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(Color.WHITE);
         pixmap.fill();
         whitePixel = new Texture(pixmap);
         pixmap.dispose();
-        sharkTexture = new Texture(Gdx.files.internal("shark_level3\\frame_00.png"));
+        tentacleTexture = new Texture(Gdx.files.internal("tentacle.png"));
+        sharkTexture = new Texture(Gdx.files.internal("shark\\frame_00.png"));
         sharkWidth = Gdx.graphics.getHeight() * 0.07f * 1.975609f;
-        sharkHeight = Gdx.graphics.getHeight() * 0.07f;
+        sharkHeight = Gdx.graphics.getHeight() * 0.07f; 
         sharkX = 80;
         sharkY = Gdx.graphics.getHeight() / 2 - sharkHeight / 2;
         boss = new OctopusBoss();
@@ -197,12 +200,14 @@ public class BossLevel {
             }
         }
         
-        // Перевірка на енергетичні снаряди
+        // Перевірка на енергетичні снаряди (ловимо на Space)
+        boolean spacePressed = Gdx.input.isKeyJustPressed(Input.Keys.SPACE);
         for (EnergyOrb orb : energyOrbs) {
             if (orb.isActive() && !orb.isReflected() && orb.getBounds().overlaps(sharkRect)) {
-                takeDamage();
-                orb.setActive(false);
-                return;
+                if (spacePressed) {
+                    orb.setActive(false);
+                    orbsCaught++;
+                }
             }
             // Перевірка, чи відбитий снаряд влучив у боса
             if (orb.isReflected() && orb.getBounds().overlaps(new Rectangle(boss.getX(), boss.getY(), boss.getWidth(), boss.getHeight()))) {
@@ -214,7 +219,8 @@ public class BossLevel {
         // Колізія з променем-щупальцем
         for (TentacleStrike t : tentacleStrikes) {
             if (t.isActive() && !t.damaged) {
-                Rectangle tentacleRect = new Rectangle(0, t.getY(), Gdx.graphics.getWidth(), t.getHeight());
+                // Колізія тільки по області текстури tentacle.png
+                Rectangle tentacleRect = new Rectangle(0, t.getY(), boss.getX(), t.getHeight());
                 if (sharkRect.overlaps(tentacleRect)) {
                     takeDamage();
                     t.damaged = true;
@@ -246,16 +252,21 @@ public class BossLevel {
         for (EnergyOrb orb : energyOrbs) orb.render(batch);
         // Рендер щупалець-променів
         for (TentacleStrike t : tentacleStrikes) {
-            if (t.warning && t.isBlinking()) {
-                batch.setColor(0.7f, 0.2f, 1f, 0.5f);
-                batch.draw(whitePixel, 0, t.getY(), Gdx.graphics.getWidth(), t.getHeight());
-                batch.setColor(1f, 1f, 1f, 1f);
-            } else if (t.isActive()) {
-                batch.setColor(0.7f, 0.2f, 1f, 0.9f);
-                batch.draw(whitePixel, 0, t.getY(), Gdx.graphics.getWidth(), t.getHeight());
+            if ((t.warning && t.isBlinking()) || t.isActive()) {
+                float tentacleWidth = tentacleTexture.getWidth();
+                float tentacleHeight = tentacleTexture.getHeight();
+                float scaleY = t.getHeight() / tentacleHeight;
+                float tentacleX = 0; // Початок зліва
+                float drawWidth = boss.getX(); // Від лівого краю екрану до лівого краю восьминога
+                batch.setColor(0.7f, 0.2f, 1f, t.isActive() ? 0.9f : 0.5f);
+                batch.draw(tentacleTexture,
+                    tentacleX, t.getY(),
+                    drawWidth, tentacleHeight * scaleY
+                );
                 batch.setColor(1f, 1f, 1f, 1f);
             }
         }
         hud.renderBossFight(batch, sharkHealth, sharkMaxHealth, boss.getHealth(), boss.getMaxHealth());
+    
     }
 } 

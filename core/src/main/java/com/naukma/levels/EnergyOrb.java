@@ -15,12 +15,12 @@ public class EnergyOrb {
     private Rectangle bounds;
     private boolean active = true;
     private boolean reflected = false;
-    private static final float SPEED = 300f;
+    private static final float SPEED = 600f;
     private float orbSize;
 
     public EnergyOrb(float startX, float startY) {
         texture = new Texture(Gdx.files.internal("energy_orb.png"));
-        this.orbSize = Gdx.graphics.getHeight() * 0.08f; // 8% від висоти екрану
+        this.orbSize = Gdx.graphics.getHeight() * 0.03f; 
         this.position = new Vector2(startX, startY);
         this.velocity = new Vector2(-SPEED, 0); // Спочатку летить вліво
         this.bounds = new Rectangle(position.x, position.y, orbSize, orbSize);
@@ -30,7 +30,6 @@ public class EnergyOrb {
         if (!active) return;
         position.add(velocity.x * delta, velocity.y * delta);
         bounds.setPosition(position);
-
         // Деактивувати, якщо вийшов за межі екрану
         if (position.x < -bounds.width || position.x > Gdx.graphics.getWidth()) {
             active = false;
