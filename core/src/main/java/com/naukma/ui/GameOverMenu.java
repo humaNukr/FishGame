@@ -156,10 +156,11 @@ public class GameOverMenu {
                 if (selectedItem >= menuItems.length) selectedItem = 0;
                 if (clickSound != null) clickSound.play();
             }
-        }
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) && selectedItem >= 0) {
-            handleSelection(selectedItem);
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+                handleSelection(selectedItem);
+                if (clickSound != null) clickSound.play();
+            }
         }
 
         // R для швидкого рестарту

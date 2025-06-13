@@ -1095,34 +1095,18 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void initializeUnlockedFishTypes() {
-        // На початку акула може їсти тільки перший тип рибок рівня
+        // Тепер завжди всі типи доступні
         unlockedFishTypes.clear();
-        if (availableFish.size > 0) {
-            unlockedFishTypes.add(availableFish.get(0).path);
+        for (FishSpawnData data : availableFish) {
+            unlockedFishTypes.add(data.path);
         }
     }
 
     private void updateUnlockedFishTypes() {
-        // Оновлюємо доступні типи рибок на основі завершених попередніх типів
+        // Тепер завжди всі типи доступні
         unlockedFishTypes.clear();
-
-        // Завжди додаємо перший тип (він доступний з початку)
-        if (availableFish.size > 0) {
-            unlockedFishTypes.add(availableFish.get(0).path);
-        }
-
-        // Додаємо наступні типи тільки якщо попередні завершені
-        for (int i = 1; i < availableFish.size; i++) {
-            String previousFishType = availableFish.get(i - 1).path;
-            int previousEaten = getEatenFishCount(previousFishType);
-            int previousRequired = getFishUnlockRequirement(i - 1);
-
-            // Якщо попередній тип завершений - розблоковуємо наступний
-            if (previousEaten >= previousRequired) {
-                unlockedFishTypes.add(availableFish.get(i).path);
-            } else {
-                break; // Зупиняємося якщо попередній тип не завершений
-            }
+        for (FishSpawnData data : availableFish) {
+            unlockedFishTypes.add(data.path);
         }
     }
 

@@ -1,4 +1,4 @@
-package com.naukma.bonuses;
+ package com.naukma.bonuses;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;

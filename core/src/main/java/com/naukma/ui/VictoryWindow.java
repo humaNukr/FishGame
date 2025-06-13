@@ -254,10 +254,10 @@ public class VictoryWindow {
                 if (selectedItem >= buttonItems.length) selectedItem = 0;
                 if (clickSound != null) clickSound.play();
             }
-        }
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) && selectedItem >= 0) {
-            handleSelection(selectedItem);
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+                handleSelection(selectedItem);
+                if (clickSound != null) clickSound.play();
+            }
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {

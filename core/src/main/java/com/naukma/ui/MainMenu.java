@@ -208,6 +208,11 @@ public class MainMenu {
                 if (selectedItem >= menuItems.length) selectedItem = 0;
                 if (clickSound != null) clickSound.play();
             }
+
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+                handleSelection(selectedItem);
+                if (clickSound != null) clickSound.play();
+            }
         }
 
         // Обробка вибору рівня клавіатурою
@@ -222,11 +227,6 @@ public class MainMenu {
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) {
             selectedLevel = 2;
             if (clickSound != null) clickSound.play();
-        }
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) && selectedItem >= 0) {
-            if (clickSound != null) clickSound.play();
-            handleSelection(selectedItem);
         }
     }
 
