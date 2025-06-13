@@ -18,10 +18,10 @@ public class OctopusBoss {
 
     public OctopusBoss() {
         bossTexture = new Texture(Gdx.files.internal("octopus.png"));
-        width = 220;
-        height = 220;
-        x = Gdx.graphics.getWidth() - width - 80;
-        y = Gdx.graphics.getHeight() / 2 - height / 2;
+        width = 220 * 2;
+        height = 220 * 2;
+        x = Gdx.graphics.getWidth() - width - 40;
+        y = (Gdx.graphics.getHeight() - height) / 2;
         tentacleRect = new Rectangle(x - 80, y + height / 2 - 30, 80, 60);
     }
 
