@@ -12,8 +12,8 @@ public class BossMinion {
 
     public BossMinion(float y) {
         minionTexture = new Texture(Gdx.files.internal("octopus.png"));
-        width = 60;
-        height = 60;
+        width = 70f;
+        height = 70f;
         x = Gdx.graphics.getWidth();
         this.y = y;
         speed = 250f;

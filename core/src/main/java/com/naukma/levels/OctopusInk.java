@@ -11,9 +11,9 @@ public class OctopusInk {
     private boolean active = true;
 
     public OctopusInk(float startX, float startY, float targetY) {
-        inkTexture = new Texture(Gdx.files.internal("ink.png")); // Додайте ink.png у assets
-        width = 40;
-        height = 40;
+        inkTexture = new Texture(Gdx.files.internal("ink2.png"));
+        width = 80;
+        height = 80;
         x = startX;
         y = targetY - height/2;
         speed = 400f;
@@ -26,10 +26,14 @@ public class OctopusInk {
     }
 
     public void render(SpriteBatch batch) {
-        if (active) batch.draw(inkTexture, x, y, width, height);
+        if (active) {
+            batch.setColor(1f, 1f, 1f, 1f); // Повністю білі
+            batch.draw(inkTexture, x, y, width, height);
+            batch.setColor(1f, 1f, 1f, 1f); // Повертаємо стандартний колір
+        }
     }
 
     public Rectangle getRect() { return new Rectangle(x, y, width, height); }
     public boolean isActive() { return active; }
     public void setActive(boolean a) { active = a; }
-} 
+}

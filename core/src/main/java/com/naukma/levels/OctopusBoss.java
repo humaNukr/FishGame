@@ -30,8 +30,8 @@ public class OctopusBoss {
     public OctopusBoss() {
         bossTexture = new Texture(Gdx.files.internal("octopus.png"));
         eyeTexture = new Texture(Gdx.files.internal("boss_eye.png"));
-        width = 220 * 2;
-        height = 220 * 2;
+        width = Gdx.graphics.getHeight() * 0.45f;
+        height = Gdx.graphics.getHeight() * 0.45f;
         x = Gdx.graphics.getWidth() - width - 40;
         y = (Gdx.graphics.getHeight() - height) / 2;
         
