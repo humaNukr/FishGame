@@ -16,13 +16,14 @@ public class EnergyOrb {
     private boolean active = true;
     private boolean reflected = false;
     private static final float SPEED = 300f;
+    private float orbSize;
 
     public EnergyOrb(float startX, float startY) {
-        // Повертаю стандартну текстуру (НЕ червону)
         texture = new Texture(Gdx.files.internal("energy_orb.png"));
+        this.orbSize = Gdx.graphics.getHeight() * 0.08f; // 8% від висоти екрану
         this.position = new Vector2(startX, startY);
         this.velocity = new Vector2(-SPEED, 0); // Спочатку летить вліво
-        this.bounds = new Rectangle(position.x, position.y, texture.getWidth(), texture.getHeight());
+        this.bounds = new Rectangle(position.x, position.y, orbSize, orbSize);
     }
 
     public void update(float delta) {
@@ -38,7 +39,7 @@ public class EnergyOrb {
 
     public void render(SpriteBatch batch) {
         if (active) {
-            batch.draw(texture, position.x, position.y);
+            batch.draw(texture, position.x, position.y, orbSize, orbSize);
         }
     }
 

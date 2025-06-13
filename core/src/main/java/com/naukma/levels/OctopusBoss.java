@@ -59,8 +59,8 @@ public class OctopusBoss {
             shootTimer += deltaTime;
             if (shootTimer >= SHOOT_INTERVAL) {
                 shootTimer = 0;
-                // Створити та повернути новий енергетичний снаряд
-                float orbY = y + height * 0.5f;
+                // Створити та повернути новий енергетичний снаряд у випадковій точці по Y
+                float orbY = MathUtils.random(0, Gdx.graphics.getHeight() - 80); // 80 — висота сфери
                 return new EnergyOrb(x, orbY);
             }
         }

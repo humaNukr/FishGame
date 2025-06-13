@@ -91,8 +91,8 @@ public class BossLevel {
         whitePixel = new Texture(pixmap);
         pixmap.dispose();
         sharkTexture = new Texture(Gdx.files.internal("shark_level3\\frame_00.png"));
-        sharkWidth = 120;
-        sharkHeight = 60;
+        sharkWidth = Gdx.graphics.getHeight() * 0.07f * 1.975609f;
+        sharkHeight = Gdx.graphics.getHeight() * 0.07f;
         sharkX = 80;
         sharkY = Gdx.graphics.getHeight() / 2 - sharkHeight / 2;
         boss = new OctopusBoss();
