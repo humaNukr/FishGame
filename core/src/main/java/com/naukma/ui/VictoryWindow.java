@@ -186,7 +186,7 @@ public class VictoryWindow {
         }
     }
 
-    private float loadBestBossTime() {
+    public float loadBestBossTime() {
         try {
             FileHandle file = Gdx.files.local(BOSS_TIME_FILE);
             if (file.exists()) {
@@ -197,7 +197,7 @@ public class VictoryWindow {
         return -1f;
     }
 
-    private void saveBestBossTime(float t) {
+    public void saveBestBossTime(float t) {
         try {
             FileHandle file = Gdx.files.local(BOSS_TIME_FILE);
             file.writeString(String.valueOf(t), false);

@@ -333,6 +333,37 @@ public class BossLevel {
             float text2X = (screenWidth - victoryWindow.glyphLayout.width) / 2;
             float text2Y = text1Y - 40;
             victoryWindow.textFont.draw(batch, customText2, text2X, text2Y);
+            // Час проходження боса
+            if (bossFightTimer > 0) {
+                float timeY = text2Y - 60;
+                victoryWindow.textFont.setColor(com.badlogic.gdx.graphics.Color.YELLOW);
+                String timeText = String.format("Boss Time: %d:%02d.%02d", (int)(bossFightTimer/60), (int)bossFightTimer%60, (int)((bossFightTimer%1)*100));
+                victoryWindow.glyphLayout.setText(victoryWindow.textFont, timeText);
+                float timeX = (screenWidth - victoryWindow.glyphLayout.width) / 2;
+                victoryWindow.textFont.draw(batch, timeText, timeX, timeY);
+                // Рекорд
+                float bestTime = victoryWindow.loadBestBossTime();
+                boolean isNew = false;
+                if (bestTime < 0 || bossFightTimer < bestTime) {
+                    isNew = true;
+                    victoryWindow.saveBestBossTime(bossFightTimer);
+                }
+                if (isNew) {
+                    victoryWindow.textFont.setColor(com.badlogic.gdx.graphics.Color.GREEN);
+                    String rec = "NEW RECORD!";
+                    victoryWindow.glyphLayout.setText(victoryWindow.textFont, rec);
+                    float recX = (screenWidth - victoryWindow.glyphLayout.width) / 2;
+                    float recY = timeY - 40;
+                    victoryWindow.textFont.draw(batch, rec, recX, recY);
+                } else if (bestTime > 0) {
+                    victoryWindow.textFont.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+                    String best = String.format("Best Boss Time: %d:%02d.%02d", (int)(bestTime/60), (int)bestTime%60, (int)((bestTime%1)*100));
+                    victoryWindow.glyphLayout.setText(victoryWindow.textFont, best);
+                    float bestX = (screenWidth - victoryWindow.glyphLayout.width) / 2;
+                    float bestY = timeY - 40;
+                    victoryWindow.textFont.draw(batch, best, bestX, bestY);
+                }
+            }
             // Кнопка MAIN MENU
             for (int i = 0; i < 1; i++) {
                 com.badlogic.gdx.math.Rectangle bounds = victoryWindow.buttonBounds[i];
