@@ -147,7 +147,6 @@ public class BossLevel {
         for (BossMinion m : minions) m.update(deltaTime);
         for (OctopusInk ink : inkShots) ink.update(deltaTime);
         for (EnergyOrb orb : energyOrbs) orb.update(deltaTime);
-        // Tentacle strikes
         for (TentacleStrike t : tentacleStrikes) t.update(deltaTime);
         // Видалити завершені
         for (int i = tentacleStrikes.size - 1; i >= 0; i--) {
@@ -175,7 +174,7 @@ public class BossLevel {
             if (!victoryWindow.isActive()) {
                 victoryWindow.setButtonItems(new String[]{"MAIN MENU"});
                 victoryWindow.reinitButtonBounds();
-                victoryWindow.show(99, 0); 
+                victoryWindow.show(99, 0);
             }
         }
         // Спавн чорнильних куль
@@ -188,12 +187,12 @@ public class BossLevel {
         }
         // Спавн міньйонів
         if (TimeUtils.nanoTime() - lastMinionTime > 3_000_000_000L) {
-            minions.add(new BossMinion(MathUtils.random(0, Gdx.graphics.getHeight() - 60)));
+            minions.add(new BossMinion(MathUtils.random(0, Gdx.graphics.getHeight() - 60 - hudBackground.getHeight())));
             lastMinionTime = TimeUtils.nanoTime();
         }
         // Спавн щупальця-променя
         if (TimeUtils.nanoTime() - lastTentacleTime > 4_000_000_000L) {
-            float y = MathUtils.random(40, Gdx.graphics.getHeight() - 120);
+            float y = MathUtils.random(40, Gdx.graphics.getHeight() - hudBackground.getHeight() - 120f);
             tentacleStrikes.add(new TentacleStrike(y));
             lastTentacleTime = TimeUtils.nanoTime();
         }
@@ -213,7 +212,7 @@ public class BossLevel {
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
             sharkY -= sharkSpeed * deltaTime;
         }
-        sharkY = Math.max(0, Math.min(Gdx.graphics.getHeight() - sharkHeight, sharkY));
+        sharkY = Math.max(0, Math.min(Gdx.graphics.getHeight() - hudBackground.getHeight(), sharkY));
         // Атака по Space
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             Rectangle sharkAttackRect = new Rectangle(sharkX + sharkWidth, sharkY, 50, sharkHeight);
@@ -318,7 +317,7 @@ public class BossLevel {
             float titleX = (screenWidth - victoryWindow.glyphLayout.width) / 2;
             float titleY = screenHeight - 100;
             victoryWindow.titleFont.draw(batch, titleText, titleX, titleY);
-            
+
             String customText1 = "This game was created by Artem Hrytsenko and Anastasia Zarovska.";
             String customText2 = "We hope you enjoy playing it!";
             victoryWindow.textFont.setColor(com.badlogic.gdx.graphics.Color.WHITE);

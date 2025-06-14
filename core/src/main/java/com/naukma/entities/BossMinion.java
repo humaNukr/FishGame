@@ -11,7 +11,7 @@ public class BossMinion extends Entity {
     private boolean active = true;
 
     public BossMinion(float y) {
-        super(Gdx.graphics.getWidth(), y);
+        super(Gdx.graphics.getWidth() - Gdx.graphics.getHeight() * 0.45f - 40, y);
         minionTexture = new Texture(Gdx.files.internal("octopus.png"));
         this.width = 70f;
         this.height = 70f;
