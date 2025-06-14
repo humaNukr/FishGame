@@ -1120,18 +1120,23 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void initializeUnlockedFishTypes() {
-        // Тепер завжди всі типи доступні
         unlockedFishTypes.clear();
-        for (FishSpawnData data : availableFish) {
-            unlockedFishTypes.add(data.path);
+        // Додаємо тільки ті типи риб, які дозволені для поточного рівня акули
+        int sharkLevel = calculateSharkLevel();
+        for (int i = 0; i < availableFish.size; i++) {
+            if (i < sharkLevel) {
+                unlockedFishTypes.add(availableFish.get(i).path);
+            }
         }
     }
 
     private void updateUnlockedFishTypes() {
-        // Тепер завжди всі типи доступні
         unlockedFishTypes.clear();
-        for (FishSpawnData data : availableFish) {
-            unlockedFishTypes.add(data.path);
+        int sharkLevel = calculateSharkLevel();
+        for (int i = 0; i < availableFish.size; i++) {
+            if (i < sharkLevel) {
+                unlockedFishTypes.add(availableFish.get(i).path);
+            }
         }
     }
 
