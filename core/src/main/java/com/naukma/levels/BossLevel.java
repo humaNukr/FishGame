@@ -168,6 +168,8 @@ public class BossLevel {
         if (sharkHealth <= 0) {
             isGameOver = true;
             gameOverMenu.setActive(true);
+            com.naukma.Main main = (com.naukma.Main) Gdx.app.getApplicationListener();
+            main.showGameOverMenu();
         }
         if (boss.getHealth() <= 0 && !isVictory) {
             isVictory = true;

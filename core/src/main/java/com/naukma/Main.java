@@ -249,28 +249,24 @@ public class Main extends ApplicationAdapter {
         showingMenu = false;
         setMusic("boss_fight.mp3");
     }
-    
+
     // Додаємо метод для повернення до головного меню
     public void returnToMainMenu() {
-        // Очищаем текущий уровень
         if (currentLevel != null) {
             currentLevel.dispose();
             currentLevel = levelManager.createLevel(1);
             currentLevel.create();
         }
-        
-        // Очищаем уровень с боссом
+
         if (bossLevel != null) {
             bossLevel.dispose();
             bossLevel = null;
         }
-        
-        // Активируем главное меню
+
         showingMenu = true;
         mainMenu.setActive(true);
         setMusic("main_menu.mp3");
-        
-        // Очищаем экран
+
         Gdx.gl.glClearColor(0, 0, 0.2f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
     }
