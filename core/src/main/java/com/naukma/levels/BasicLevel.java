@@ -526,7 +526,7 @@ public class BasicLevel extends ApplicationAdapter {
         // Оновлюємо логіку вікна перемоги поза рендерингом
         if (isVictory && !victoryAnimationActive) {
             if (!victoryWindow.isActive()) {
-                victoryWindow.show(levelNumber, score);
+                victoryWindow.show(levelNumber, gameHUD.getScore());
             }
         }
 
