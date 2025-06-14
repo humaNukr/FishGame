@@ -294,13 +294,13 @@ public class MainMenu {
         }
 
         // Повідомлення про обраний рівень
-        if (selectedLevel >= 0) {
+        if (selectedLevel >= 0 && selectedLevel != 99) {
             levelFont.setColor(Color.GREEN);
             String selectedText = "SELECTED: " + levelItems[selectedLevel];
             glyphLayout.setText(levelFont, selectedText);
             float selectedX = (Gdx.graphics.getWidth() - glyphLayout.width) / 2;
             levelFont.draw(batch, selectedText, selectedX, Gdx.graphics.getHeight() / 2 + 40);
-        } else {
+        } else if (selectedLevel < 0) {
             levelFont.setColor(Color.RED);
             String warningText = "CHOOSE LEVEL FIRST!";
             glyphLayout.setText(levelFont, warningText);

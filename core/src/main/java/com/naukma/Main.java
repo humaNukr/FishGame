@@ -47,12 +47,14 @@ public class Main extends ApplicationAdapter {
             batch.begin();
             bossLevel.render(batch);
             batch.end();
-            // Повернення до меню після перемоги/поразки
-            if (isBossLevelFinished()) {
+            // Повернення до меню тільки якщо гравець натиснув кнопку в GameOverBoss
+            if (bossLevel.shouldReturnToMainMenu()) {
+                bossLevel.dispose();
                 bossLevel = null;
                 showingMenu = true;
                 mainMenu.setActive(true);
                 setMusic("main_menu.mp3");
+                return;
             }
             return;
         }
@@ -245,22 +247,5 @@ public class Main extends ApplicationAdapter {
     // Додаю допоміжний метод для перевірки чи грає музика головного меню
     private boolean isMusicMainMenu() {
         return "main_menu.mp3".equals(currentMusicFile);
-    }
-
-    private boolean isBossLevelFinished() {
-        // Повертає true, якщо рівень завершено (перемога або поразка)
-        if (bossLevel == null) return true;
-        // Доступ до полів через рефлексію або додати геттери
-        try {
-            java.lang.reflect.Field f1 = bossLevel.getClass().getDeclaredField("isGameOver");
-            java.lang.reflect.Field f2 = bossLevel.getClass().getDeclaredField("isVictory");
-            f1.setAccessible(true);
-            f2.setAccessible(true);
-            boolean isGameOver = f1.getBoolean(bossLevel);
-            boolean isVictory = f2.getBoolean(bossLevel);
-            return isGameOver || isVictory;
-        } catch (Exception e) {
-            return false;
-        }
     }
 }

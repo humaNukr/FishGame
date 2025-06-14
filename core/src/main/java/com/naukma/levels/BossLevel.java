@@ -17,6 +17,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.naukma.ui.GameOverBoss;
 
 public class BossLevel {
     private Texture sharkTexture;
@@ -57,6 +58,7 @@ public class BossLevel {
     private Array<TentacleStrike> tentacleStrikes = new Array<>();
 
     private int orbsCaught = 0;
+    private GameOverBoss gameOverMenu;
 
     // Внутрішній клас для атаки щупальцем
     private static class TentacleStrike {
@@ -117,10 +119,15 @@ public class BossLevel {
         boss = new OctopusBoss();
         minions = new Array<>();
         hud = new GameHUD();
+        gameOverMenu = new GameOverBoss();
     }
 
     public void update(float deltaTime) {
-        if (isGameOver || isVictory) return;
+        if (isGameOver) {
+            gameOverMenu.handleInput();
+            return;
+        }
+        if (isVictory) return;
         handleInput(deltaTime);
         bossFightTimer += deltaTime;
 
@@ -152,7 +159,10 @@ public class BossLevel {
                 sharkInvulnerable = false;
             }
         }
-        if (sharkHealth <= 0) isGameOver = true;
+        if (sharkHealth <= 0) {
+            isGameOver = true;
+            gameOverMenu.setActive(true);
+        }
         if (boss.getHealth() <= 0) isVictory = true;
         // Спавн чорнильних куль
         if (TimeUtils.nanoTime() - lastInkTime > 1_500_000_000L) {
@@ -268,35 +278,47 @@ public class BossLevel {
     }
 
     public void render(SpriteBatch batch) {
-        // Фон
         batch.draw(backgroundTexture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+        if (isGameOver) {
+            gameOverMenu.render(batch);
+            return;
+        }
+
         // Дзеркальна акула
         boolean isSharkVisible = !sharkInvulnerable || ((int)(invulnerableTimer * 10) % 2 == 0);
         if (isSharkVisible) {
             batch.draw(sharkTexture, sharkX + sharkWidth, sharkY, -sharkWidth, sharkHeight);
         }
+
+        // Рендеримо боса, міньйонів і снаряди
         boss.render(batch);
-        for (BossMinion m : minions) if (m.isActive()) m.render(batch);
-        for (OctopusInk ink : inkShots) if (ink.isActive()) ink.render(batch);
-        for (EnergyOrb orb : energyOrbs) orb.render(batch);
+        for (BossMinion m : minions) {
+            if (m.isActive()) m.render(batch);
+        }
+        for (OctopusInk ink : inkShots) {
+            if (ink.isActive()) ink.render(batch);
+        }
+        for (EnergyOrb orb : energyOrbs) {
+            orb.render(batch);
+        }
+
         // Рендер щупалець-променів
         for (TentacleStrike t : tentacleStrikes) {
-            if ((t.warning && t.isBlinking()) || t.isActive()) {
-                float tentacleWidth = tentacleTexture.getWidth();
-                float tentacleHeight = tentacleTexture.getHeight();
-                float scaleY = t.getHeight() / tentacleHeight;
-                float tentacleX = 0; // Початок зліва
-                float drawWidth = boss.getX(); // Від лівого краю екрану до лівого краю восьминога
-                batch.setColor(0.7f, 0.2f, 1f, t.isActive() ? 0.9f : 0.5f);
-                batch.draw(tentacleTexture,
-                    tentacleX, t.getY(),
-                    drawWidth, tentacleHeight * scaleY
-                );
-                batch.setColor(1f, 1f, 1f, 1f);
+            if (t.isBlinking()) {
+                batch.setColor(1, 0, 0, 0.4f);
+                batch.draw(tentacleTexture, 0, t.getY(), boss.getX(), t.getHeight());
+                batch.setColor(Color.WHITE);
+            } else if (t.isActive()) {
+                batch.draw(tentacleTexture, 0, t.getY(), boss.getX(), t.getHeight());
             }
         }
 
         // Рендер HUD
+        renderHud(batch);
+    }
+
+    private void renderHud(SpriteBatch batch) {
         float screenWidth = Gdx.graphics.getWidth();
         float screenHeight = Gdx.graphics.getHeight();
         float hudHeight = screenHeight * 0.15f;
@@ -359,5 +381,21 @@ public class BossLevel {
         hud.titleFont.setColor(textColor);
         hud.titleFont.draw(batch, timeString, timeX, timeY);
         hud.titleFont.setColor(1f, 1f, 1f, 1f);
+    }
+
+    public boolean shouldReturnToMainMenu() {
+        return gameOverMenu.shouldReturnToMainMenu();
+    }
+
+    public void dispose() {
+        sharkTexture.dispose();
+        boss.dispose();
+        for (EnergyOrb orb : energyOrbs) orb.dispose();
+        hudBackground.dispose();
+        gameLogo.dispose();
+        font.dispose();
+        gameOverMenu.dispose();
+        whitePixel.dispose();
+        tentacleTexture.dispose();
     }
 }
