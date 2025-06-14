@@ -283,12 +283,16 @@ public class VictoryWindow {
         }
         // Для останнього рівня перша кнопка — це перехід до боса
         if (index == 0 && levelNumber >= 3) {
-            if (bossListener != null) bossListener.onBossButtonPressed();
+            com.naukma.Main main = (com.naukma.Main) Gdx.app.getApplicationListener();
+            main.startBossLevel();
+            active = false;
             return;
         }
         if (bossButtonVisible && index == bossButtonIndex) {
-            // Викликаємо перехід до боса (старий варіант, залишаю для сумісності)
-            if (bossListener != null) bossListener.onBossButtonPressed();
+            // Викликаємо перехід до боса
+            com.naukma.Main main = (com.naukma.Main) Gdx.app.getApplicationListener();
+            main.startBossLevel();
+            active = false;
             return;
         }
         switch (index) {

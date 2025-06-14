@@ -49,11 +49,7 @@ public class Main extends ApplicationAdapter {
             batch.end();
             // Повернення до меню тільки якщо гравець натиснув кнопку в GameOverBoss
             if (bossLevel.shouldReturnToMainMenu()) {
-                bossLevel.dispose();
-                bossLevel = null;
-                showingMenu = true;
-                mainMenu.setActive(true);
-                setMusic("main_menu.mp3");
+                returnToMainMenu();
                 return;
             }
             return;
@@ -107,11 +103,6 @@ public class Main extends ApplicationAdapter {
 
             // Отримуємо обраний рівень з головного меню
             int selectedLevel = mainMenu.getSelectedLevel();
-            if (selectedLevel == 99) {
-                bossLevel = new BossLevel();
-                setMusic("boss_fight.mp3");
-                return;
-            }
             if (selectedLevel >= 0) {
                 // Створюємо новий рівень через поліморфізм
                 switchToLevel(selectedLevel + 1); // +1 тому що рівні в меню починаються з 0
@@ -247,5 +238,40 @@ public class Main extends ApplicationAdapter {
     // Додаю допоміжний метод для перевірки чи грає музика головного меню
     private boolean isMusicMainMenu() {
         return "main_menu.mp3".equals(currentMusicFile);
+    }
+
+    // Додаємо метод для запуску рівня з босом
+    public void startBossLevel() {
+        if (bossLevel != null) {
+            bossLevel.dispose();
+        }
+        bossLevel = new BossLevel();
+        showingMenu = false;
+        setMusic("boss_fight.mp3");
+    }
+    
+    // Додаємо метод для повернення до головного меню
+    public void returnToMainMenu() {
+        // Очищаем текущий уровень
+        if (currentLevel != null) {
+            currentLevel.dispose();
+            currentLevel = levelManager.createLevel(1);
+            currentLevel.create();
+        }
+        
+        // Очищаем уровень с боссом
+        if (bossLevel != null) {
+            bossLevel.dispose();
+            bossLevel = null;
+        }
+        
+        // Активируем главное меню
+        showingMenu = true;
+        mainMenu.setActive(true);
+        setMusic("main_menu.mp3");
+        
+        // Очищаем экран
+        Gdx.gl.glClearColor(0, 0, 0.2f, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
     }
 }

@@ -24,7 +24,7 @@ public class MainMenu {
     private Texture levelButtonTexture;
     private Texture levelButtonSelectedTexture;
 
-    private String[] menuItems = {"START GAME", "SETTINGS", "EXIT", "BOSS FIGHT"};
+    private String[] menuItems = {"START GAME", "SETTINGS", "EXIT"};
     private String[] levelItems = {"1 LEVEL", "2 LEVEL", "3 LEVEL"};
     private Rectangle[] buttonBounds;
     private Rectangle[] levelButtonBounds;
@@ -242,11 +242,6 @@ public class MainMenu {
                 break;
             case 2: // EXIT
                 Gdx.app.exit();
-                break;
-            case 3: // BOSS FIGHT
-                // Спеціальний прапор для запуску боса
-                selectedLevel = 99; // 99 — умовний індекс для боса
-                isActive = false;
                 break;
         }
     }

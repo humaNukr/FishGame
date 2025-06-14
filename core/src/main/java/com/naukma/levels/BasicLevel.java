@@ -284,9 +284,8 @@ public class BasicLevel extends ApplicationAdapter {
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
             batch.begin();
             if (bossLevel == null) {
-                bossLevel = new BossLevel();
                 Main main = (Main) Gdx.app.getApplicationListener();
-                main.setMusic("boss_fight.mp3");
+                main.startBossLevel();
             }
             bossLevel.update(Gdx.graphics.getDeltaTime());
             bossLevel.render(batch);

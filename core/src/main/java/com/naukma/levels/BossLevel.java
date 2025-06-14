@@ -453,15 +453,39 @@ public class BossLevel {
     }
 
     public void dispose() {
-        sharkTexture.dispose();
-        boss.dispose();
-        for (EnergyOrb orb : energyOrbs) orb.dispose();
-        hudBackground.dispose();
-        gameLogo.dispose();
-        font.dispose();
-        gameOverMenu.dispose();
-        victoryWindow.dispose();
-        whitePixel.dispose();
-        tentacleTexture.dispose();
+        // Dispose all textures
+        if (sharkTexture != null) sharkTexture.dispose();
+        if (backgroundTexture != null) backgroundTexture.dispose();
+        if (whitePixel != null) whitePixel.dispose();
+        if (tentacleTexture != null) tentacleTexture.dispose();
+        if (hudBackground != null) hudBackground.dispose();
+        if (gameLogo != null) gameLogo.dispose();
+        
+        // Dispose fonts
+        if (font != null) font.dispose();
+        
+        // Dispose game objects
+        if (boss != null) boss.dispose();
+        
+        // Dispose all energy orbs
+        for (EnergyOrb orb : energyOrbs) {
+            if (orb != null) orb.dispose();
+        }
+        energyOrbs.clear();
+        
+        // Dispose UI elements
+        if (gameOverMenu != null) gameOverMenu.dispose();
+        if (victoryWindow != null) victoryWindow.dispose();
+        if (hud != null) hud.dispose();
+        
+        // Clear collections
+        minions.clear();
+        inkShots.clear();
+        tentacleStrikes.clear();
+        
+        // Reset state flags
+        isGameOver = false;
+        isVictory = false;
+        victoryMusicPlayed = false;
     }
 }
