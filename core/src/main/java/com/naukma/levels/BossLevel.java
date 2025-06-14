@@ -175,7 +175,7 @@ public class BossLevel {
             if (!victoryWindow.isActive()) {
                 victoryWindow.setButtonItems(new String[]{"MAIN MENU"});
                 victoryWindow.reinitButtonBounds();
-                victoryWindow.show(99, 0); // 99 - умовний номер рівня для боса
+                victoryWindow.show(99, 0); 
             }
         }
         // Спавн чорнильних куль
@@ -318,13 +318,20 @@ public class BossLevel {
             float titleX = (screenWidth - victoryWindow.glyphLayout.width) / 2;
             float titleY = screenHeight - 100;
             victoryWindow.titleFont.draw(batch, titleText, titleX, titleY);
-            // Кастомний текст
-            String customText = "This game was created by Artem Hrytsenko and Anastasia Zarovska.\nWe hope that you enjoy our game!";
+            
+            String customText1 = "This game was created by Artem Hrytsenko and Anastasia Zarovska.";
+            String customText2 = "We hope you enjoy playing it!";
             victoryWindow.textFont.setColor(com.badlogic.gdx.graphics.Color.WHITE);
-            victoryWindow.glyphLayout.setText(victoryWindow.textFont, customText);
-            float textX = (screenWidth - victoryWindow.glyphLayout.width) / 2;
-            float textY = screenHeight - 250;
-            victoryWindow.textFont.draw(batch, customText, textX, textY);
+            // Перший рядок
+            victoryWindow.glyphLayout.setText(victoryWindow.textFont, customText1);
+            float text1X = (screenWidth - victoryWindow.glyphLayout.width) / 2;
+            float text1Y = screenHeight - 250;
+            victoryWindow.textFont.draw(batch, customText1, text1X, text1Y);
+            // Другий рядок
+            victoryWindow.glyphLayout.setText(victoryWindow.textFont, customText2);
+            float text2X = (screenWidth - victoryWindow.glyphLayout.width) / 2;
+            float text2Y = text1Y - 40;
+            victoryWindow.textFont.draw(batch, customText2, text2X, text2Y);
             // Кнопка MAIN MENU
             for (int i = 0; i < 1; i++) {
                 com.badlogic.gdx.math.Rectangle bounds = victoryWindow.buttonBounds[i];

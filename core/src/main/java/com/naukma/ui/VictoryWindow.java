@@ -276,6 +276,11 @@ public class VictoryWindow {
     }
 
     private void handleSelection(int index) {
+        if (buttonItems.length == 1 && buttonItems[0].equalsIgnoreCase("MAIN MENU")) {
+            mainMenuPressed = true;
+            active = false;
+            return;
+        }
         // Для останнього рівня перша кнопка — це перехід до боса
         if (index == 0 && levelNumber >= 3) {
             if (bossListener != null) bossListener.onBossButtonPressed();
