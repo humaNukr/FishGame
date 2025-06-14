@@ -176,7 +176,7 @@ public class BossLevel {
             if (!victoryWindow.isActive()) {
                 victoryWindow.setButtonItems(new String[]{"MAIN MENU"});
                 victoryWindow.reinitButtonBounds();
-                victoryWindow.show(99, 0);
+                victoryWindow.show(99, 0, bossFightTimer);
             }
         }
         // Спавн чорнильних куль

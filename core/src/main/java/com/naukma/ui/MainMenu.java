@@ -38,6 +38,8 @@ public class MainMenu {
 
     private int prevSelectedItem = -1;
 
+    private boolean showSettings = false;
+
     public MainMenu() {
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/HennyPenny.ttf"));
@@ -238,7 +240,7 @@ public class MainMenu {
                 }
                 break;
             case 1: // SETTINGS
-                // Код для налаштувань
+                showSettings = true;
                 break;
             case 2: // EXIT
                 Gdx.app.exit();
@@ -390,5 +392,13 @@ public class MainMenu {
         if (levelButtonTexture != null) levelButtonTexture.dispose();
         if (levelButtonSelectedTexture != null) levelButtonSelectedTexture.dispose();
         if (clickSound != null) clickSound.dispose();
+    }
+
+    public void setShowSettings(boolean show) {
+        this.showSettings = show;
+    }
+
+    public boolean isShowSettings() {
+        return showSettings;
     }
 }

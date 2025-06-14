@@ -20,12 +20,15 @@ public class Main extends ApplicationAdapter {
     private Music backgroundMusic;
     private String currentMusicFile = "";
     private BossLevel bossLevel = null;
+    private com.naukma.ui.SettingsWindow settingsWindow;
+    private float musicVolume = 0.2f;
 
     @Override
     public void create() {
         batch = new SpriteBatch();
         levelManager = new LevelManager();
         mainMenu = new MainMenu();
+        settingsWindow = new com.naukma.ui.SettingsWindow();
         currentLevel = levelManager.createLevel(1);
         currentLevel.create();
         setMusic("main_menu.mp3");
@@ -97,6 +100,16 @@ public class Main extends ApplicationAdapter {
 
     private void handleMainMenu() {
         mainMenu.handleInput();
+
+        if (mainMenu.isShowSettings()) {
+            settingsWindow.handleInput();
+            Gdx.gl.glClearColor(0, 0, 0.2f, 1);
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+            batch.begin();
+            settingsWindow.render(batch);
+            batch.end();
+            return;
+        }
 
         if (!mainMenu.isActive()) {
             showingMenu = false;
@@ -216,7 +229,7 @@ public class Main extends ApplicationAdapter {
         }
         backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal(musicFile));
         backgroundMusic.setLooping(true);
-        backgroundMusic.setVolume(0.2f);
+        backgroundMusic.setVolume(musicVolume);
         backgroundMusic.play();
         currentMusicFile = musicFile;
     }
@@ -269,5 +282,18 @@ public class Main extends ApplicationAdapter {
 
         Gdx.gl.glClearColor(0, 0, 0.2f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+    }
+
+    public float getMusicVolume() {
+        return musicVolume;
+    }
+    public void setMusicVolume(float v) {
+        musicVolume = v;
+        if (backgroundMusic != null) {
+            backgroundMusic.setVolume(musicVolume);
+        }
+    }
+    public MainMenu getMainMenu() {
+        return mainMenu;
     }
 }

@@ -57,6 +57,11 @@ public class VictoryWindow {
     private boolean bossButtonVisible = false;
     private int bossButtonIndex = -1;
 
+    private float bossTime = -1f;
+    private float bestBossTime = -1f;
+    private boolean isNewBossTimeRecord = false;
+    private static final String BOSS_TIME_FILE = "boss_time_record.json";
+
     public VictoryWindow() {
         initializeFonts();
         createTextures();
@@ -181,14 +186,30 @@ public class VictoryWindow {
         }
     }
 
+    private float loadBestBossTime() {
+        try {
+            FileHandle file = Gdx.files.local(BOSS_TIME_FILE);
+            if (file.exists()) {
+                String s = file.readString();
+                return Float.parseFloat(s);
+            }
+        } catch (Exception e) { }
+        return -1f;
+    }
+
+    private void saveBestBossTime(float t) {
+        try {
+            FileHandle file = Gdx.files.local(BOSS_TIME_FILE);
+            file.writeString(String.valueOf(t), false);
+        } catch (Exception e) { }
+    }
+
     public void show(int levelNumber, int score) {
         this.levelNumber = levelNumber;
         this.currentScore = score;
-
         // Отримуємо попередній рекорд
         String levelKey = "level_" + levelNumber;
         this.bestScore = levelRecords.get(levelKey, 0);
-
         // Перевіряємо новий рекорд
         if (score > bestScore) {
             isNewRecord = true;
@@ -198,7 +219,9 @@ public class VictoryWindow {
         } else {
             isNewRecord = false;
         }
-
+        bossTime = -1f;
+        bestBossTime = -1f;
+        isNewBossTimeRecord = false;
         active = true;
         animationTimer = 0f;
         recordGlowTimer = 0f;
@@ -212,8 +235,35 @@ public class VictoryWindow {
         } else {
             bossButtonIndex = -1;
         }
+        initializeButtonBounds();
+    }
 
-        // Оновлюємо межі кнопок
+    // Для боса (з часом)
+    public void show(int levelNumber, int score, float bossTime) {
+        this.levelNumber = levelNumber;
+        this.currentScore = score;
+        this.bossTime = bossTime;
+        this.bestBossTime = loadBestBossTime();
+        if (bossTime > 0 && (bestBossTime < 0 || bossTime < bestBossTime)) {
+            isNewBossTimeRecord = true;
+            bestBossTime = bossTime;
+            saveBestBossTime(bossTime);
+        } else {
+            isNewBossTimeRecord = false;
+        }
+        active = true;
+        animationTimer = 0f;
+        recordGlowTimer = 0f;
+        selectedItem = 0;
+        nextLevelPressed = false;
+        mainMenuPressed = false;
+        shouldRestart = false;
+        bossButtonVisible = (levelNumber >= 3);
+        if (bossButtonVisible) {
+            bossButtonIndex = buttonItems.length;
+        } else {
+            bossButtonIndex = -1;
+        }
         initializeButtonBounds();
     }
 
@@ -362,6 +412,47 @@ public class VictoryWindow {
         float recordX = (screenWidth - glyphLayout.width) / 2;
         float recordY = isNewRecord ? scoreY - 100 : scoreY - 50;
         textFont.draw(batch, recordText, recordX, recordY);
+
+        if (levelNumber == 99 && bossTime > 0) {
+            textFont.setColor(Color.YELLOW);
+            String timeText = String.format("Boss Time: %d:%02d.%02d", (int)(bossTime/60), (int)bossTime%60, (int)((bossTime%1)*100));
+            glyphLayout.setText(textFont, timeText);
+            float timeX = (screenWidth - glyphLayout.width) / 2;
+            float timeY = scoreY - 50;
+            textFont.draw(batch, timeText, timeX, timeY);
+            timeY = scoreY - 100;
+            if (isNewBossTimeRecord) {
+                textFont.setColor(Color.GREEN);
+                String rec = "NEW RECORD!";
+                glyphLayout.setText(textFont, rec);
+                float recX = (screenWidth - glyphLayout.width) / 2;
+                float recY = timeY - 50;
+                textFont.draw(batch, rec, recX, recY);
+                timeY = recY;
+            }
+            if (bestBossTime > 0 && !isNewBossTimeRecord) {
+                textFont.setColor(Color.WHITE);
+                String best = String.format("Best Boss Time: %d:%02d.%02d", (int)(bestBossTime/60), (int)bestBossTime%60, (int)((bestBossTime%1)*100));
+                glyphLayout.setText(textFont, best);
+                float bestX = (screenWidth - glyphLayout.width) / 2;
+                float bestY = timeY - 50;
+                textFont.draw(batch, best, bestX, bestY);
+                timeY = bestY;
+            }
+        }
+        if (levelNumber == 99) {
+            textFont.setColor(Color.WHITE);
+            String customText1 = "This game was created by Artem Hrytsenko and Anastasia Zarovska.";
+            String customText2 = "We hope you enjoy playing it!";
+            glyphLayout.setText(textFont, customText1);
+            float text1X = (screenWidth - glyphLayout.width) / 2;
+            float text1Y = scoreY - 100;
+            textFont.draw(batch, customText1, text1X, text1Y);
+            glyphLayout.setText(textFont, customText2);
+            float text2X = (screenWidth - glyphLayout.width) / 2;
+            float text2Y = text1Y - 40;
+            textFont.draw(batch, customText2, text2X, text2Y);
+        }
 
         // Кнопки (стиль MainMenu)
         for (int i = 0; i < buttonItems.length; i++) {
