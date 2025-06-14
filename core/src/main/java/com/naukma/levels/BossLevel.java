@@ -11,6 +11,8 @@ import com.badlogic.gdx.utils.TimeUtils;
 import com.naukma.ui.GameHUD;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 
 public class BossLevel {
     private Texture sharkTexture;
@@ -42,6 +44,11 @@ public class BossLevel {
     private Texture backgroundTexture;
     private Texture whitePixel;
     private Texture tentacleTexture;
+
+    private Texture hudBackground;
+    private Texture gameLogo;
+    private BitmapFont font;
+    private float bossFightTimer = 0f;
 
     private Array<TentacleStrike> tentacleStrikes = new Array<>();
 
@@ -94,6 +101,11 @@ public class BossLevel {
         pixmap.dispose();
         tentacleTexture = new Texture(Gdx.files.internal("tentacle.png"));
         sharkTexture = new Texture(Gdx.files.internal("shark\\frame_00.png"));
+
+        hudBackground = new Texture(Gdx.files.internal("hud_background.png"));
+        gameLogo = new Texture(Gdx.files.internal("game_logo.png"));
+        font = new BitmapFont();
+
         sharkWidth = Gdx.graphics.getHeight() * 0.07f * 1.975609f;
         sharkHeight = Gdx.graphics.getHeight() * 0.07f; 
         sharkX = 80;
@@ -106,6 +118,7 @@ public class BossLevel {
     public void update(float deltaTime) {
         if (isGameOver || isVictory) return;
         handleInput(deltaTime);
+        bossFightTimer += deltaTime;
 
         // Оновлення боса та отримання нових снарядів
         EnergyOrb newOrb = boss.update(deltaTime);
@@ -278,7 +291,69 @@ public class BossLevel {
                 batch.setColor(1f, 1f, 1f, 1f);
             }
         }
-        hud.renderBossFight(batch, sharkHealth, sharkMaxHealth, boss.getHealth(), boss.getMaxHealth());
-    
+
+        // Рендер HUD
+        float screenWidth = Gdx.graphics.getWidth();
+        float screenHeight = Gdx.graphics.getHeight();
+        float hudHeight = screenHeight * 0.15f;
+        float padding = Math.max(20f, Math.min(screenWidth, screenHeight) * 0.02f);
+        float logoSize = hudHeight - padding;
+        float hudY = screenHeight - hudHeight;
+        batch.draw(hudBackground, -screenWidth * 0.02f, hudY, screenWidth * 1.04f, hudHeight);
+
+        // HP акули (зліва, як у GameHUD)
+        float hpBarWidth = screenWidth * 0.22f;
+        float hpBarHeight = hudHeight * 0.32f;
+        float sharkBarX = padding * 2f + screenWidth * 0.05f;
+        float sharkBarY = hudY + hudHeight / 2f - hpBarHeight / 2f;
+        batch.setColor(0.1f, 0.1f, 0.5f, 0.7f);
+        batch.draw(hud.progressBarBg, sharkBarX, sharkBarY, hpBarWidth, hpBarHeight);
+        batch.setColor(0.2f, 0.7f, 1f, 1f);
+        float sharkFill = hpBarWidth * ((float)sharkHealth / sharkMaxHealth);
+        batch.draw(hud.progressBarFill, sharkBarX, sharkBarY, sharkFill, hpBarHeight);
+        batch.setColor(1f, 1f, 1f, 1f);
+        String sharkText = "SHARK: " + sharkHealth + "/" + sharkMaxHealth;
+        GlyphLayout sharkLayout = new GlyphLayout(hud.scoreFont, sharkText);
+        hud.scoreFont.setColor(1f, 1f, 1f, 1f);
+        hud.scoreFont.draw(batch, sharkText, sharkBarX + (hpBarWidth - sharkLayout.width) / 2f, sharkBarY + hpBarHeight - 8f);
+
+        // HP восьминога (справа, як у GameHUD)
+        float bossBarWidth = screenWidth * 0.28f;
+        float bossBarHeight = hudHeight * 0.36f;
+        float bossBarX = screenWidth - bossBarWidth - padding * 2f - screenWidth * 0.05f;
+        float bossBarY = hudY + hudHeight / 2f - bossBarHeight / 2f;
+        batch.setColor(0.5f, 0.1f, 0.1f, 0.7f);
+        batch.draw(hud.progressBarBg, bossBarX, bossBarY, bossBarWidth, bossBarHeight);
+        batch.setColor(1f, 0.2f, 0.2f, 1f);
+        float bossFill = bossBarWidth * ((float)boss.getHealth() / boss.getMaxHealth());
+        batch.draw(hud.progressBarFill, bossBarX, bossBarY, bossFill, bossBarHeight);
+        batch.setColor(1f, 1f, 1f, 1f);
+        String bossText = "BOSS: " + boss.getHealth() + "/" + boss.getMaxHealth();
+        GlyphLayout bossLayout = new GlyphLayout(hud.titleFont, bossText);
+        hud.titleFont.setColor(1f, 1f, 1f, 1f);
+        hud.titleFont.draw(batch, bossText, bossBarX + (bossBarWidth - bossLayout.width) / 2f, bossBarY + bossBarHeight - 8f);
+
+        // Логотип по центру HUD, зменшений
+        float logoX = (screenWidth - logoSize) / 2f;
+        float logoY = hudY + padding / 2f;
+        batch.draw(gameLogo, logoX, logoY, logoSize, logoSize);
+        
+        // Таймер справа у HUD, жовтий з чорним контуром, великий
+        int minutes = (int) (bossFightTimer / 60);
+        int seconds = (int) (bossFightTimer % 60);
+        String timeString = String.format("Timer: %02d:%02d", minutes, seconds);
+        GlyphLayout layout = new GlyphLayout(hud.titleFont, timeString);
+        float timeX = bossBarX + (bossBarWidth - layout.width) / 2f;
+        float timeY = bossBarY + bossBarHeight + layout.height + padding * 0.5f;
+        // Жовтий з чорним контуром
+        Color textColor = new Color(1f, 1f, 0f, 1f);
+        Color outlineColor = new Color(0f, 0f, 0f, 1f);
+        // Малюємо контур
+        for (int dx = -2; dx <= 2; dx++) for (int dy = -2; dy <= 2; dy++) if (dx != 0 || dy != 0)
+            { hud.titleFont.setColor(outlineColor); hud.titleFont.draw(batch, timeString, timeX + dx, timeY + dy); }
+        // Малюємо основний текст
+        hud.titleFont.setColor(textColor);
+        hud.titleFont.draw(batch, timeString, timeX, timeY);
+        hud.titleFont.setColor(1f, 1f, 1f, 1f);
     }
 } 

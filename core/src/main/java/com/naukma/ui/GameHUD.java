@@ -615,7 +615,7 @@ public class GameHUD {
     }
 
     // Fonts
-    private BitmapFont titleFont;
+    public BitmapFont titleFont;
     public BitmapFont scoreFont;
     private BitmapFont levelFont;
 
@@ -648,8 +648,8 @@ public class GameHUD {
     private Texture heartIcon;
     private GlyphLayout glyphLayout;
     private Texture hudBackground;
-    private Texture progressBarBg;
-    private Texture progressBarFill;
+    public Texture progressBarBg;
+    public Texture progressBarFill;
     private Texture gameLogo;
 
     // Layout variables - all adaptive to screen size
