@@ -131,4 +131,20 @@ public class OctopusBoss {
         }
         return null;
     }
+
+    public boolean checkCollision(Rectangle sharkRect, float sharkY, float sharkHeight) {
+        Rectangle tentacleRect = new Rectangle(x, y, width, height);
+        float overlapTop = (sharkY + sharkHeight) - y;
+        if (overlapTop >= height * 0.2f) {
+            takeDamage(1); // Припустимо, що колізія знизу завдає 1 одиниці шкоди
+            return true;
+        }
+        float tentacleBottom = y + height;
+        float sharkTop = sharkY + sharkHeight;
+        if (sharkTop >= tentacleBottom && sharkTop <= tentacleBottom + sharkHeight * 0.1f) {
+            takeDamage(1); // Припустимо, що колізія зверху завдає 1 одиниці шкоди
+            return true;
+        }
+        return false;
+    }
 } 

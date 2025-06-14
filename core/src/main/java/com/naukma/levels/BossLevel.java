@@ -219,12 +219,24 @@ public class BossLevel {
         // Колізія з променем-щупальцем
         for (TentacleStrike t : tentacleStrikes) {
             if (t.isActive() && !t.damaged) {
-                // Колізія тільки по області текстури tentacle.png
                 Rectangle tentacleRect = new Rectangle(0, t.getY(), boss.getX(), t.getHeight());
                 if (sharkRect.overlaps(tentacleRect)) {
-                    takeDamage();
-                    t.damaged = true;
-                    return;
+                    // Випадок 1: Акула підходить до променя знизу (її Y < Y променя)
+                    // Колізія спрацьовує одразу при торканні.
+                    if (sharkY < t.getY()) {
+                        takeDamage();
+                        t.damaged = true;
+                        return;
+                    }
+
+                    // Випадок 2: Акула підходить до променя зверху.
+                    // Колізія спрацьовує тільки при зануренні на 50% висоти променя.
+                    float penetrationDepth = (t.getY() + t.getHeight()) - sharkY;
+                    if (penetrationDepth >= t.getHeight() * 0.5f) {
+                        takeDamage();
+                        t.damaged = true;
+                        return;
+                    }
                 }
             }
         }
