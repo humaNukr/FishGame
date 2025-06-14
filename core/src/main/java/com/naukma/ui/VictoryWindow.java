@@ -17,14 +17,14 @@ import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.audio.Sound;
 
 public class VictoryWindow {
-    private BitmapFont titleFont;
-    private BitmapFont textFont;
-    private BitmapFont buttonFont;
-    private GlyphLayout glyphLayout;
+    public BitmapFont titleFont;
+    public BitmapFont textFont;
+    public BitmapFont buttonFont;
+    public GlyphLayout glyphLayout;
 
     private Texture backgroundTexture;
-    private Texture buttonTexture;
-    private Texture buttonHoverTexture;
+    public Texture buttonTexture;
+    public Texture buttonHoverTexture;
     private Texture buttonDisabledTexture;
 
     private boolean active = false;
@@ -40,8 +40,8 @@ public class VictoryWindow {
 
     // Кнопки (як у MainMenu)
     private String[] buttonItems = {"NEXT LEVEL", "RESTART", "MAIN MENU"};
-    private Rectangle[] buttonBounds;
-    private int selectedItem = 0;
+    public Rectangle[] buttonBounds;
+    public int selectedItem = 0;
     private int prevSelectedItem = -1;
 
     // Анімація
@@ -431,5 +431,12 @@ public class VictoryWindow {
     private BossListener bossListener;
     public void setBossListener(BossListener listener) {
         this.bossListener = listener;
+    }
+
+    public void setButtonItems(String[] items) {
+        this.buttonItems = items;
+    }
+    public void reinitButtonBounds() {
+        initializeButtonBounds();
     }
 }

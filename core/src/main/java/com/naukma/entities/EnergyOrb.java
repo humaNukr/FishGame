@@ -66,4 +66,8 @@ public class EnergyOrb extends Entity {
     public void dispose() {
         texture.dispose();
     }
+
+    public float getX() {
+        return x;
+    }
 }

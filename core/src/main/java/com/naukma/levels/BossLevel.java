@@ -18,6 +18,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.naukma.ui.GameOverBoss;
+import com.naukma.ui.VictoryWindow;
 
 public class BossLevel {
     private Texture sharkTexture;
@@ -59,6 +60,8 @@ public class BossLevel {
 
     private int orbsCaught = 0;
     private GameOverBoss gameOverMenu;
+    private VictoryWindow victoryWindow;
+    private boolean victoryMusicPlayed = false;
 
     // Внутрішній клас для атаки щупальцем
     private static class TentacleStrike {
@@ -120,6 +123,7 @@ public class BossLevel {
         minions = new Array<>();
         hud = new GameHUD();
         gameOverMenu = new GameOverBoss();
+        victoryWindow = new VictoryWindow();
     }
 
     public void update(float deltaTime) {
@@ -127,7 +131,10 @@ public class BossLevel {
             gameOverMenu.handleInput();
             return;
         }
-        if (isVictory) return;
+        if (isVictory) {
+            victoryWindow.handleInput();
+            return;
+        }
         handleInput(deltaTime);
         bossFightTimer += deltaTime;
 
@@ -163,7 +170,14 @@ public class BossLevel {
             isGameOver = true;
             gameOverMenu.setActive(true);
         }
-        if (boss.getHealth() <= 0) isVictory = true;
+        if (boss.getHealth() <= 0 && !isVictory) {
+            isVictory = true;
+            if (!victoryWindow.isActive()) {
+                victoryWindow.setButtonItems(new String[]{"MAIN MENU"});
+                victoryWindow.reinitButtonBounds();
+                victoryWindow.show(99, 0); // 99 - умовний номер рівня для боса
+            }
+        }
         // Спавн чорнильних куль
         if (TimeUtils.nanoTime() - lastInkTime > 1_500_000_000L) {
             OctopusInk newInk = boss.shootInk(sharkY + sharkHeight/2);
@@ -236,8 +250,8 @@ public class BossLevel {
                     orbsCaught++;
                 }
             }
-            // Перевірка, чи відбитий снаряд влучив у боса
-            if (orb.isReflected() && orb.getBounds().overlaps(new Rectangle(boss.getX(), boss.getY(), boss.getWidth(), boss.getHeight()))) {
+            // Перевірка, чи відбитий снаряд перетнув лівий край восьминога
+            if (orb.isReflected() && orb.isActive() && (orb.getX() + orb.getBounds().width >= boss.getX())) {
                 boss.takeDamage(2); // Відбитий снаряд наносить більше шкоди
                 orb.setActive(false);
             }
@@ -282,6 +296,51 @@ public class BossLevel {
 
         if (isGameOver) {
             gameOverMenu.render(batch);
+            return;
+        }
+        if (isVictory) {
+            if (!victoryMusicPlayed) {
+                com.naukma.Main main = (com.naukma.Main) Gdx.app.getApplicationListener();
+                main.showVictoryWindow();
+                victoryMusicPlayed = true;
+            }
+            // Кастомний рендер для перемоги над босом
+            float screenWidth = Gdx.graphics.getWidth();
+            float screenHeight = Gdx.graphics.getHeight();
+            // Фон
+            batch.setColor(0.3f, 0.3f, 0.3f, 1f);
+            batch.draw(backgroundTexture, 0, 0, screenWidth, screenHeight);
+            batch.setColor(1f, 1f, 1f, 1f);
+            // Заголовок
+            String titleText = "BOSS DEFEATED!";
+            victoryWindow.titleFont.setColor(com.badlogic.gdx.graphics.Color.CYAN);
+            victoryWindow.glyphLayout.setText(victoryWindow.titleFont, titleText);
+            float titleX = (screenWidth - victoryWindow.glyphLayout.width) / 2;
+            float titleY = screenHeight - 100;
+            victoryWindow.titleFont.draw(batch, titleText, titleX, titleY);
+            // Кастомний текст
+            String customText = "This game was created by Artem Hrytsenko and Anastasia Zarovska.\nWe hope that you enjoy our game!";
+            victoryWindow.textFont.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+            victoryWindow.glyphLayout.setText(victoryWindow.textFont, customText);
+            float textX = (screenWidth - victoryWindow.glyphLayout.width) / 2;
+            float textY = screenHeight - 250;
+            victoryWindow.textFont.draw(batch, customText, textX, textY);
+            // Кнопка MAIN MENU
+            for (int i = 0; i < 1; i++) {
+                com.badlogic.gdx.math.Rectangle bounds = victoryWindow.buttonBounds[i];
+                com.badlogic.gdx.graphics.Texture currentButtonTexture = (i == victoryWindow.selectedItem) ? victoryWindow.buttonHoverTexture : victoryWindow.buttonTexture;
+                batch.draw(currentButtonTexture, bounds.x, bounds.y, bounds.width, bounds.height);
+                String item = "MAIN MENU";
+                victoryWindow.glyphLayout.setText(victoryWindow.buttonFont, item);
+                float btnTextX = bounds.x + (bounds.width - victoryWindow.glyphLayout.width) / 2;
+                float btnTextY = bounds.y + (bounds.height + victoryWindow.glyphLayout.height) / 2;
+                if (i == victoryWindow.selectedItem) {
+                    victoryWindow.buttonFont.setColor(com.badlogic.gdx.graphics.Color.YELLOW);
+                } else {
+                    victoryWindow.buttonFont.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+                }
+                victoryWindow.buttonFont.draw(batch, item, btnTextX, btnTextY);
+            }
             return;
         }
 
@@ -384,7 +443,7 @@ public class BossLevel {
     }
 
     public boolean shouldReturnToMainMenu() {
-        return gameOverMenu.shouldReturnToMainMenu();
+        return gameOverMenu.shouldReturnToMainMenu() || (isVictory && victoryWindow.isMenuRequested());
     }
 
     public void dispose() {
@@ -395,6 +454,7 @@ public class BossLevel {
         gameLogo.dispose();
         font.dispose();
         gameOverMenu.dispose();
+        victoryWindow.dispose();
         whitePixel.dispose();
         tentacleTexture.dispose();
     }
