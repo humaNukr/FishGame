@@ -1,16 +1,13 @@
-package com.naukma.levels;
+package com.naukma.entities;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Color;
 
-public class EnergyOrb {
+public class EnergyOrb extends Entity {
     private Texture texture;
-    private Vector2 position;
     private Vector2 velocity;
     private Rectangle bounds;
     private boolean active = true;
@@ -19,29 +16,31 @@ public class EnergyOrb {
     private float orbSize;
 
     public EnergyOrb(float startX, float startY) {
+        super(startX, startY);
         texture = new Texture(Gdx.files.internal("energy_orb.png"));
-        this.orbSize = Gdx.graphics.getHeight() * 0.03f; 
-        this.position = new Vector2(startX, startY);
+        this.orbSize = Gdx.graphics.getHeight() * 0.03f;
+        this.width = orbSize;
+        this.height = orbSize;
         this.velocity = new Vector2(-SPEED, 0); // Спочатку летить вліво
-        this.bounds = new Rectangle(position.x, position.y, orbSize, orbSize);
+        this.bounds = new Rectangle(x, y, orbSize, orbSize);
     }
 
     public void update(float delta) {
         if (!active) return;
-        position.add(velocity.x * delta, velocity.y * delta);
-        bounds.setPosition(position);
+        x += velocity.x * delta;
+        y += velocity.y * delta;
+        bounds.setPosition(x, y);
         // Деактивувати, якщо вийшов за межі екрану
-        if (position.x < -bounds.width || position.x > Gdx.graphics.getWidth()) {
+        if (x < -bounds.width || x > Gdx.graphics.getWidth()) {
             active = false;
         }
     }
 
     public void render(SpriteBatch batch) {
         if (active) {
-            batch.draw(texture, position.x, position.y, orbSize, orbSize);
+            batch.draw(texture, x, y, orbSize, orbSize);
         }
     }
-
 
     public void reflect() {
         velocity.x *= -1.5f; // Повертається назад швидше
@@ -63,8 +62,8 @@ public class EnergyOrb {
     public boolean isReflected() {
         return reflected;
     }
-    
+
     public void dispose() {
         texture.dispose();
     }
-} 
+}

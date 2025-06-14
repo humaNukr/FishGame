@@ -1,22 +1,21 @@
-package com.naukma.levels;
+package com.naukma.entities;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 
-public class OctopusInk {
+public class OctopusInk extends Entity {
     private Texture inkTexture;
-    private float x, y, width, height, speed;
+    private float speed;
     private boolean active = true;
 
     public OctopusInk(float startX, float startY, float targetY) {
+        super(startX, targetY - 80/2f);
         inkTexture = new Texture(Gdx.files.internal("ink2.png"));
-        width = 80;
-        height = 80;
-        x = startX;
-        y = targetY - height/2;
-        speed = 400f;
+        this.width = 80;
+        this.height = 80;
+        this.speed = 400f;
     }
 
     public void update(float deltaTime) {

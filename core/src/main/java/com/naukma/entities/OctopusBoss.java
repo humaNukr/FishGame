@@ -1,4 +1,4 @@
-package com.naukma.levels;
+package com.naukma.entities;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
@@ -7,10 +7,9 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.graphics.Color;
 
-public class OctopusBoss {
+public class OctopusBoss extends Entity {
     private Texture bossTexture;
     private Texture eyeTexture;
-    private float x, y, width, height;
     private int health;
     private int maxHealth;
 
@@ -28,13 +27,11 @@ public class OctopusBoss {
     private static final float SHOOT_INTERVAL = 2.0f; // Стріляти кожні 2 секунди у фазі атаки
 
     public OctopusBoss() {
+        super(Gdx.graphics.getWidth() - Gdx.graphics.getHeight() * 0.45f - 40, (Gdx.graphics.getHeight() - Gdx.graphics.getHeight() * 0.45f) / 2);
         bossTexture = new Texture(Gdx.files.internal("octopus.png"));
         eyeTexture = new Texture(Gdx.files.internal("boss_eye.png"));
-        width = Gdx.graphics.getHeight() * 0.45f;
-        height = Gdx.graphics.getHeight() * 0.45f;
-        x = Gdx.graphics.getWidth() - width - 40;
-        y = (Gdx.graphics.getHeight() - height) / 2;
-        
+        this.width = Gdx.graphics.getHeight() * 0.45f;
+        this.height = Gdx.graphics.getHeight() * 0.45f;
         // Початкові налаштування
         health = 10;
         maxHealth = 10;
@@ -53,14 +50,14 @@ public class OctopusBoss {
             currentState = State.IDLE;
             stateTimer = 0;
         }
-        
+
         // Логіка для стану VULNERABLE
         if (currentState == State.VULNERABLE) {
             shootTimer += deltaTime;
             if (shootTimer >= SHOOT_INTERVAL) {
                 shootTimer = 0;
                 // Створити та повернути новий енергетичний снаряд у випадковій точці по Y
-                float orbY = MathUtils.random(0, Gdx.graphics.getHeight() - Gdx.graphics.getHeight() * 0.03f); 
+                float orbY = MathUtils.random(0, Gdx.graphics.getHeight() - Gdx.graphics.getHeight() * 0.03f);
                 return new EnergyOrb(x, orbY);
             }
         }
@@ -77,7 +74,7 @@ public class OctopusBoss {
             float eyeSize = Gdx.graphics.getHeight() * 0.1f * (1.0f + pulse * 0.2f);
             float eyeX = x + width * 0.45f - (eyeSize - 80) / 2;
             float eyeY = y + height * 0.74f - (eyeSize - 80) / 2;
-            
+
             Color c = batch.getColor();
             batch.setColor(1, 1, 0, 0.7f + pulse * 0.3f); // Жовте світіння
             batch.draw(eyeTexture, eyeX, eyeY, eyeSize, eyeSize);
@@ -93,34 +90,13 @@ public class OctopusBoss {
             health = 0;
         }
     }
-    
+
     public int getHealth() {
         return health;
     }
-    
+
     public int getMaxHealth() {
         return maxHealth;
-    }
-
-    public float getX() {
-        return x;
-    }
-
-    public float getY() {
-        return y;
-    }
-
-    public float getWidth() {
-        return width;
-    }
-
-    public float getHeight() {
-        return height;
-    }
-
-    public void dispose() {
-        bossTexture.dispose();
-        eyeTexture.dispose();
     }
 
     public OctopusInk shootInk(float targetY) {
@@ -147,4 +123,9 @@ public class OctopusBoss {
         }
         return false;
     }
-} 
+
+    public void dispose() {
+        bossTexture.dispose();
+        eyeTexture.dispose();
+    }
+}

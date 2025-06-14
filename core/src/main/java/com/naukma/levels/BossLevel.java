@@ -8,6 +8,10 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.naukma.entities.BossMinion;
+import com.naukma.entities.EnergyOrb;
+import com.naukma.entities.OctopusBoss;
+import com.naukma.entities.OctopusInk;
 import com.naukma.ui.GameHUD;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Color;
@@ -107,7 +111,7 @@ public class BossLevel {
         font = new BitmapFont();
 
         sharkWidth = Gdx.graphics.getHeight() * 0.07f * 1.975609f;
-        sharkHeight = Gdx.graphics.getHeight() * 0.07f; 
+        sharkHeight = Gdx.graphics.getHeight() * 0.07f;
         sharkX = 80;
         sharkY = Gdx.graphics.getHeight() / 2 - sharkHeight / 2;
         boss = new OctopusBoss();
@@ -212,7 +216,7 @@ public class BossLevel {
                 return;
             }
         }
-        
+
         // Перевірка на енергетичні снаряди (ловимо на Space)
         boolean spacePressed = Gdx.input.isKeyJustPressed(Input.Keys.SPACE);
         for (EnergyOrb orb : energyOrbs) {
@@ -337,7 +341,7 @@ public class BossLevel {
         float logoX = (screenWidth - logoSize) / 2f;
         float logoY = hudY + padding / 2f;
         batch.draw(gameLogo, logoX, logoY, logoSize, logoSize);
-        
+
         // Таймер справа у HUD, жовтий з чорним контуром, великий
         int minutes = (int) (bossFightTimer / 60);
         int seconds = (int) (bossFightTimer % 60);
@@ -356,4 +360,4 @@ public class BossLevel {
         hud.titleFont.draw(batch, timeString, timeX, timeY);
         hud.titleFont.setColor(1f, 1f, 1f, 1f);
     }
-} 
+}

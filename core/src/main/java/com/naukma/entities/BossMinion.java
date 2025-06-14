@@ -1,21 +1,20 @@
-package com.naukma.levels;
+package com.naukma.entities;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 
-public class BossMinion {
+public class BossMinion extends Entity {
     private Texture minionTexture;
-    private float x, y, width, height, speed;
+    private float speed;
     private boolean active = true;
 
     public BossMinion(float y) {
+        super(Gdx.graphics.getWidth(), y);
         minionTexture = new Texture(Gdx.files.internal("octopus.png"));
-        width = 70f;
-        height = 70f;
-        x = Gdx.graphics.getWidth();
-        this.y = y;
+        this.width = 70f;
+        this.height = 70f;
         speed = 250f;
     }
 
@@ -32,4 +31,4 @@ public class BossMinion {
     public Rectangle getRect() { return new Rectangle(x, y, width, height); }
     public boolean isActive() { return active; }
     public void setActive(boolean a) { active = a; }
-} 
+}
