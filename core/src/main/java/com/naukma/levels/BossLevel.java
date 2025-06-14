@@ -62,6 +62,7 @@ public class BossLevel {
     private GameOverBoss gameOverMenu;
     private VictoryWindow victoryWindow;
     private boolean victoryMusicPlayed = false;
+    private boolean isRecord = false;
 
     // Внутрішній клас для атаки щупальцем
     private static class TentacleStrike {
@@ -343,12 +344,11 @@ public class BossLevel {
                 victoryWindow.textFont.draw(batch, timeText, timeX, timeY);
                 // Рекорд
                 float bestTime = victoryWindow.loadBestBossTime();
-                boolean isNew = false;
                 if (bestTime < 0 || bossFightTimer < bestTime) {
-                    isNew = true;
-                    victoryWindow.saveBestBossTime(bossFightTimer);
+                    isRecord = true;
+                    if(!victoryMusicPlayed) victoryWindow.saveBestBossTime(bossFightTimer);
                 }
-                if (isNew) {
+                if (isRecord) {
                     victoryWindow.textFont.setColor(com.badlogic.gdx.graphics.Color.GREEN);
                     String rec = "NEW RECORD!";
                     victoryWindow.glyphLayout.setText(victoryWindow.textFont, rec);
