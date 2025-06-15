@@ -636,7 +636,7 @@ public class BasicLevel extends ApplicationAdapter {
                 float sizeRatio = fishSize / sharkSize;
                 if (sizeRatio < 0.3f && canEatFishType(fish.getFishType())) {
                     eatFish(fish, fishX + fishWidth / 2, fishY + fishHeight / 2);
-                } else if (sizeRatio > 0.7f) {
+                } else if (sizeRatio > 0.4f) {
                     takeDamage(fish, fishX + fishWidth / 2, fishY + fishHeight / 2);
                 }
             }
@@ -1375,10 +1375,10 @@ public class BasicLevel extends ApplicationAdapter {
                 newScale = 0.5f;
                 break;
             case 2:
-                newScale = 1.3f;
+                newScale = 0.8f;
                 break;
             case 3:
-                newScale = 1.7f;
+                newScale = 1.3f;
                 break;
             default:
                 newScale = 0.6f;

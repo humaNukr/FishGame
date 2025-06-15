@@ -26,10 +26,10 @@ public class ThirdLevel extends BasicLevel {
         availableFish.add(new FishSpawnData("fish_15/", 15, 0.05f, 6, 0.2f, 25, 250f, 0.2f));
 
         // Великі швидкі рибки - треба з'їсти 8
-        availableFish.add(new FishSpawnData("fish_14/", 15, 0.05f, 25, 0.1f, 10, 160f, 0.5f));
+        availableFish.add(new FishSpawnData("fish_14/", 15, 0.05f, 25, 0.1f, 10, 160f, 0.2f));
 
         // Гігантські рибки - треба з'їсти 4
-        availableFish.add(new FishSpawnData("fish_13/", 15, 0.16f, 35, 0.1f, 6, 120f, 0.8f));
+        availableFish.add(new FishSpawnData("fish_13/", 15, 0.16f, 35, 0.1f, 6, 120f, 0.2f));
     }
 
     @Override
