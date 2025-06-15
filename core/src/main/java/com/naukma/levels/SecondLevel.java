@@ -23,13 +23,13 @@ public class SecondLevel extends BasicLevel {
         maxFishScale = 0.9f;
 
         // Перші малі швидкі рибки - треба з'їсти 15
-        availableFish.add(new FishSpawnData("fish_07/", 15, 0.05f, 12, 0.2f, 20, 250f, 0.2f));
+        availableFish.add(new FishSpawnData("fish_07/", 15, 0.05f, 12, 0.1f, 20, 250f, 0.2f));
 
         // Середні рибки - треба з'їсти 8
         availableFish.add(new FishSpawnData("fish_10/", 15, 0.05f, 10, 0.1f, 10, 160f, 0.3f));
 
         // Великі рибки - треба з'їсти 4
-        availableFish.add(new FishSpawnData("fish_08/", 15, 0.05f, 20, 0.5f, 6, 120f, 0.8f));
+        availableFish.add(new FishSpawnData("fish_08/", 15, 0.05f, 20, 0.1f, 6, 120f, 0.8f));
     }
 
     @Override
