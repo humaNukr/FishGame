@@ -13,10 +13,11 @@ public class BossHitEffect {
     private Array<EffectParticle> activeParticles;
     private Animation<TextureRegion> animation;
     private float frameDuration;
+    private Texture effectTexture; // Додаємо поле для зберігання текстури
 
     public BossHitEffect(String texturePath, int frameCount, float frameDuration) {
         this.frameDuration = frameDuration;
-        Texture effectTexture = new Texture(texturePath);
+        effectTexture = new Texture(texturePath); // Зберігаємо текстуру
         TextureRegion[][] tmp = TextureRegion.split(effectTexture, effectTexture.getWidth() / frameCount, effectTexture.getHeight());
         
         Array<TextureRegion> frames = new Array<>();
@@ -49,8 +50,9 @@ public class BossHitEffect {
     }
 
     public void dispose() {
-        if (animation != null && animation.getKeyFrames().length > 0) {
-            animation.getKeyFrames()[0].getTexture().dispose();
+        // Просто вивільняємо збережену текстуру
+        if (effectTexture != null) {
+            effectTexture.dispose();
         }
     }
 
