@@ -1,33 +1,41 @@
-# FishGame
+# Жуй&Живи
 
-A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
+## Опис гри
+'Жуй&Живи' - це захоплююча гра, в якій гравець керує акулою, що повинна вижити, поїдаючи різні види риб. Гра включає різні рівні складності, включаючи бос-рівень, де гравець стикається з потужним ворогом.
 
-This project was generated with a template including simple application launchers and an `ApplicationAdapter` extension that draws libGDX logo.
+## Розробники
+- [Заровська Анастасія](https://github.com/stasyzar)
+- [Гриценко Артем](https://github.com/humaNukr)
 
-## Platforms
+## Освітня програма
+1 курс, Інженерія програмного забезпечення
 
-- `core`: Main module with the application logic shared by all platforms.
-- `lwjgl3`: Primary desktop platform using LWJGL3; was called 'desktop' in older docs.
+## Особливості гри
+- Динамічний спавн риб, що залежить від рівня акули
+- Бос-рівень з унікальними викликами
+- Музичний супровід для різних ігрових подій
+- Кастомний курсор для покращення ігрового досвіду
 
-## Gradle
+## Встановлення та запуск
+1. Клонуйте репозиторій: `git clone <URL>`
+2. Перейдіть до директорії проекту: `cd FishGame`
+3. Запустіть гру за допомогою вашого улюбленого IDE або командного рядка.
 
-This project uses [Gradle](https://gradle.org/) to manage dependencies.
-The Gradle wrapper was included, so you can run Gradle tasks using `gradlew.bat` or `./gradlew` commands.
-Useful Gradle tasks and flags:
+## Ліцензія
+Цей проект ліцензовано під MIT License.
 
-- `--continue`: when using this flag, errors will not stop the tasks from running.
-- `--daemon`: thanks to this flag, Gradle daemon will be used to run chosen tasks.
-- `--offline`: when using this flag, cached dependency archives will be used.
-- `--refresh-dependencies`: this flag forces validation of all dependencies. Useful for snapshot versions.
-- `build`: builds sources and archives of every project.
-- `cleanEclipse`: removes Eclipse project data.
-- `cleanIdea`: removes IntelliJ project data.
-- `clean`: removes `build` folders, which store compiled classes and built archives.
-- `eclipse`: generates Eclipse project data.
-- `idea`: generates IntelliJ project data.
-- `lwjgl3:jar`: builds application's runnable jar, which can be found at `lwjgl3/build/libs`.
-- `lwjgl3:run`: starts the application.
-- `test`: runs unit tests (if any).
+## Ігровий рушій та засоби розробки
 
-Note that most tasks that are not specific to a single project can be run with `name:` prefix, where the `name` should be replaced with the ID of a specific project.
-For example, `core:clean` removes `build` folder only from the `core` project.
+### Ігровий рушій: LibGDX
+- **Кросплатформенність**: LibGDX дозволяє розробляти ігри, які можуть працювати на різних платформах, включаючи Windows, macOS, Linux, Android та iOS.
+- **Висока продуктивність**: Завдяки використанню OpenGL, LibGDX забезпечує високу продуктивність графіки, що є важливим для динамічних ігор.
+- **Гнучкість**: Рушій надає широкий набір інструментів для роботи з графікою, звуком, фізикою та іншими аспектами гри, що дозволяє створювати різноманітні ігрові механіки.
+
+### Засоби розробки
+- **Java**: Основна мова програмування для LibGDX, що забезпечує об'єктно-орієнтований підхід до розробки.
+- **IntelliJ IDEA**: Потужне середовище розробки, яке підтримує Java та надає інструменти для налагодження, тестування та управління проектами.
+- **Gradle**: Система автоматизації збірки, яка спрощує управління залежностями та процесом збірки проекту.
+
+### Інтеграція з іншими інструментами
+- **Git**: Система контролю версій, яка дозволяє відстежувати зміни в коді та співпрацювати з іншими розробниками.
+- **TexturePacker**: Інструмент для оптимізації текстур, що допомагає зменшити розмір гри та покращити продуктивність.
