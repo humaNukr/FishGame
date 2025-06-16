@@ -158,9 +158,17 @@ public class BasicLevel extends ApplicationAdapter {
             // Якщо немає налаштованих рибок, створюємо стандартні
             createStandardFishes();
         } else {
-            // Створюємо рибок з налаштувань рівня (тільки доступні типи)
-            for (int i = 0; i < maxFishCount; i++) {
+            // Створюємо цільові рибки для поточного рівня акули
+            int sharkLevel = calculateSharkLevel();
+            int targetFishCount = MathUtils.random(3, 6);
+            for (int i = 0; i < targetFishCount; i++) {
                 createRandomLevelFish();
+            }
+
+            // Створюємо інші рибки, щоб загальна кількість була 20
+            int otherFishCount = 20 - targetFishCount;
+            for (int i = 0; i < otherFishCount; i++) {
+                createRandomFishExcludingLevel(sharkLevel);
             }
         }
 
@@ -206,13 +214,15 @@ public class BasicLevel extends ApplicationAdapter {
     private void createRandomLevelFish() {
         if (availableFish.size == 0) return;
 
-        // Створюємо список доступних типів з урахуванням обмежень
+        // Створюємо список доступних типів з урахуванням рівня акули
         Array<FishSpawnData> availableForSpawn = new Array<>();
-        for (FishSpawnData fishData : availableFish) {
-            if (canSpawnFish(fishData)) {
+        int sharkLevel = calculateSharkLevel();
+        for (int i = 0; i < availableFish.size; i++) {
+            FishSpawnData fishData = availableFish.get(i);
+            if (i <= sharkLevel && canSpawnFish(fishData)) {
                 // Додаємо тип кілька разів відповідно до його ймовірності
                 int probability = Math.max(1, (int) (fishData.spawnWeight * 100));
-                for (int i = 0; i < probability; i++) {
+                for (int j = 0; j < probability; j++) {
                     availableForSpawn.add(fishData);
                 }
             }
@@ -1522,4 +1532,31 @@ public class BasicLevel extends ApplicationAdapter {
 
     private boolean goToBossLevel = false;
     private BossLevel bossLevel = null;
+
+    private void createRandomFishExcludingLevel(int excludeLevel) {
+        if (availableFish.size == 0) return;
+
+        // Створюємо список доступних типів, виключаючи поточний рівень акули
+        Array<FishSpawnData> availableForSpawn = new Array<>();
+        for (int i = 0; i < availableFish.size; i++) {
+            if (i != excludeLevel) {
+                FishSpawnData fishData = availableFish.get(i);
+                if (canSpawnFish(fishData)) {
+                    // Додаємо тип кілька разів відповідно до його ймовірності
+                    int probability = Math.max(1, (int) (fishData.spawnWeight * 100));
+                    for (int j = 0; j < probability; j++) {
+                        availableForSpawn.add(fishData);
+                    }
+                }
+            }
+        }
+
+        // Створюємо рибку якщо є доступні типи
+        if (availableForSpawn.size > 0) {
+            FishSpawnData fishData = availableForSpawn.random();
+            if (fishData != null) {
+                createFishFromDataWithBounds(fishData);
+            }
+        }
+    }
 }
