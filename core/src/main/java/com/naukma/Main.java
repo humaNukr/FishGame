@@ -8,6 +8,8 @@ import com.naukma.levels.BasicLevel;
 import com.naukma.levels.LevelManager;
 import com.naukma.ui.MainMenu;
 import com.badlogic.gdx.audio.Music;
+import com.naukma.levels.BossLevel;
+import com.naukma.utils.CursorManager;
 
 public class Main extends ApplicationAdapter {
 
@@ -18,15 +20,30 @@ public class Main extends ApplicationAdapter {
     private SpriteBatch batch;
     private Music backgroundMusic;
     private String currentMusicFile = "";
+    private BossLevel bossLevel = null;
+    private com.naukma.ui.SettingsWindow settingsWindow;
+    private float musicVolume = 0.2f;
 
     @Override
     public void create() {
         batch = new SpriteBatch();
         levelManager = new LevelManager();
         mainMenu = new MainMenu();
+        settingsWindow = new com.naukma.ui.SettingsWindow();
         currentLevel = levelManager.createLevel(1);
         currentLevel.create();
         setMusic("main_menu.mp3");
+
+        CursorManager.initialize();
+
+        // Додаємо обробник помилок для відстеження проблем
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                System.err.println("Необроблена помилка: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
     }
 
     @Override
@@ -37,7 +54,21 @@ public class Main extends ApplicationAdapter {
             return;
         }
 
-        // ESC обробляється в currentLevel (для pause menu)
+        // Якщо активний BossLevel
+        if (bossLevel != null) {
+            bossLevel.update(Gdx.graphics.getDeltaTime());
+            Gdx.gl.glClearColor(0, 0, 0, 1);
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+            batch.begin();
+            bossLevel.render(batch);
+            batch.end();
+            // Повернення до меню тільки якщо гравець натиснув кнопку в GameOverBoss
+            if (bossLevel.shouldReturnToMainMenu()) {
+                returnToMainMenu();
+                return;
+            }
+            return;
+        }
 
         // Рендеримо поточний рівень
         if (currentLevel != null) {
@@ -81,6 +112,16 @@ public class Main extends ApplicationAdapter {
 
     private void handleMainMenu() {
         mainMenu.handleInput();
+
+        if (mainMenu.isShowSettings()) {
+            settingsWindow.handleInput();
+            Gdx.gl.glClearColor(0, 0, 0.2f, 1);
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+            batch.begin();
+            settingsWindow.render(batch);
+            batch.end();
+            return;
+        }
 
         if (!mainMenu.isActive()) {
             showingMenu = false;
@@ -178,6 +219,7 @@ public class Main extends ApplicationAdapter {
             backgroundMusic.dispose();
         }
 
+        CursorManager.disposeInstance();
     }
 
     // Геттери для доступу до поточного стану
@@ -200,7 +242,7 @@ public class Main extends ApplicationAdapter {
         }
         backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal(musicFile));
         backgroundMusic.setLooping(true);
-        backgroundMusic.setVolume(0.5f);
+        backgroundMusic.setVolume(musicVolume);
         backgroundMusic.play();
         currentMusicFile = musicFile;
     }
@@ -222,5 +264,49 @@ public class Main extends ApplicationAdapter {
     // Додаю допоміжний метод для перевірки чи грає музика головного меню
     private boolean isMusicMainMenu() {
         return "main_menu.mp3".equals(currentMusicFile);
+    }
+
+    // Додаємо метод для запуску рівня з босом
+    public void startBossLevel() {
+        if (bossLevel != null) {
+            bossLevel.dispose();
+        }
+        bossLevel = new BossLevel();
+        showingMenu = false;
+        setMusic("boss_fight.mp3");
+    }
+
+    // Додаємо метод для повернення до головного меню
+    public void returnToMainMenu() {
+        if (currentLevel != null) {
+            currentLevel.dispose();
+            currentLevel = levelManager.createLevel(1);
+            currentLevel.create();
+        }
+
+        if (bossLevel != null) {
+            bossLevel.dispose();
+            bossLevel = null;
+        }
+
+        showingMenu = true;
+        mainMenu.setActive(true);
+        setMusic("main_menu.mp3");
+
+        Gdx.gl.glClearColor(0, 0, 0.2f, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+    }
+
+    public float getMusicVolume() {
+        return musicVolume;
+    }
+    public void setMusicVolume(float v) {
+        musicVolume = v;
+        if (backgroundMusic != null) {
+            backgroundMusic.setVolume(musicVolume);
+        }
+    }
+    public MainMenu getMainMenu() {
+        return mainMenu;
     }
 }

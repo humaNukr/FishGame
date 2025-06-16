@@ -574,14 +574,13 @@ public class GameHUD {
     }
 
     public void dispose() {
-        titleFont.dispose();
-        scoreFont.dispose();
-        levelFont.dispose();
-        hudBackground.dispose();
-        progressBarBg.dispose();
-        progressBarFill.dispose();
-        gameLogo.dispose();
-        heartIcon.dispose();
+        if (titleFont != null) titleFont.dispose();
+        if (scoreFont != null) scoreFont.dispose();
+        if (progressBarBg != null) progressBarBg.dispose();
+        if (progressBarFill != null) progressBarFill.dispose();
+        if (hudBackground != null) hudBackground.dispose();
+        if (gameLogo != null) gameLogo.dispose();
+        if (heartIcon != null) heartIcon.dispose();
 
         for (Texture icon : fishIcons) {
             icon.dispose();
@@ -615,8 +614,8 @@ public class GameHUD {
     }
 
     // Fonts
-    private BitmapFont titleFont;
-    private BitmapFont scoreFont;
+    public BitmapFont titleFont;
+    public BitmapFont scoreFont;
     private BitmapFont levelFont;
 
     // Game data - тільки базові дані без стану
@@ -648,8 +647,8 @@ public class GameHUD {
     private Texture heartIcon;
     private GlyphLayout glyphLayout;
     private Texture hudBackground;
-    private Texture progressBarBg;
-    private Texture progressBarFill;
+    public Texture progressBarBg;
+    public Texture progressBarFill;
     private Texture gameLogo;
 
     // Layout variables - all adaptive to screen size

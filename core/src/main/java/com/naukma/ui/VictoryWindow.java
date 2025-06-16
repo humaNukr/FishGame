@@ -17,14 +17,14 @@ import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.audio.Sound;
 
 public class VictoryWindow {
-    private BitmapFont titleFont;
-    private BitmapFont textFont;
-    private BitmapFont buttonFont;
-    private GlyphLayout glyphLayout;
+    public BitmapFont titleFont;
+    public BitmapFont textFont;
+    public BitmapFont buttonFont;
+    public GlyphLayout glyphLayout;
 
     private Texture backgroundTexture;
-    private Texture buttonTexture;
-    private Texture buttonHoverTexture;
+    public Texture buttonTexture;
+    public Texture buttonHoverTexture;
     private Texture buttonDisabledTexture;
 
     private boolean active = false;
@@ -40,8 +40,8 @@ public class VictoryWindow {
 
     // Кнопки (як у MainMenu)
     private String[] buttonItems = {"NEXT LEVEL", "RESTART", "MAIN MENU"};
-    private Rectangle[] buttonBounds;
-    private int selectedItem = 0;
+    public Rectangle[] buttonBounds;
+    public int selectedItem = 0;
     private int prevSelectedItem = -1;
 
     // Анімація
@@ -53,6 +53,14 @@ public class VictoryWindow {
     private ObjectMap<String, Integer> levelRecords;
 
     private Sound clickSound;
+
+    private boolean bossButtonVisible = false;
+    private int bossButtonIndex = -1;
+
+    private float bossTime = -1f;
+    private float bestBossTime = -1f;
+    private boolean isNewBossTimeRecord = false;
+    private static final String BOSS_TIME_FILE = "boss_time_record.json";
 
     public VictoryWindow() {
         initializeFonts();
@@ -178,14 +186,30 @@ public class VictoryWindow {
         }
     }
 
+    public float loadBestBossTime() {
+        try {
+            FileHandle file = Gdx.files.local(BOSS_TIME_FILE);
+            if (file.exists()) {
+                String s = file.readString();
+                return Float.parseFloat(s);
+            }
+        } catch (Exception e) { }
+        return -1f;
+    }
+
+    public void saveBestBossTime(float t) {
+        try {
+            FileHandle file = Gdx.files.local(BOSS_TIME_FILE);
+            file.writeString(String.valueOf(t), false);
+        } catch (Exception e) { }
+    }
+
     public void show(int levelNumber, int score) {
         this.levelNumber = levelNumber;
         this.currentScore = score;
-
         // Отримуємо попередній рекорд
         String levelKey = "level_" + levelNumber;
         this.bestScore = levelRecords.get(levelKey, 0);
-
         // Перевіряємо новий рекорд
         if (score > bestScore) {
             isNewRecord = true;
@@ -195,7 +219,9 @@ public class VictoryWindow {
         } else {
             isNewRecord = false;
         }
-
+        bossTime = -1f;
+        bestBossTime = -1f;
+        isNewBossTimeRecord = false;
         active = true;
         animationTimer = 0f;
         recordGlowTimer = 0f;
@@ -203,8 +229,41 @@ public class VictoryWindow {
         nextLevelPressed = false;
         mainMenuPressed = false;
         shouldRestart = false;
+        bossButtonVisible = (levelNumber >= 3);
+        if (bossButtonVisible) {
+            bossButtonIndex = buttonItems.length;
+        } else {
+            bossButtonIndex = -1;
+        }
+        initializeButtonBounds();
+    }
 
-        // Оновлюємо межі кнопок
+    // Для боса (з часом)
+    public void show(int levelNumber, int score, float bossTime) {
+        this.levelNumber = levelNumber;
+        this.currentScore = score;
+        this.bossTime = bossTime;
+        this.bestBossTime = loadBestBossTime();
+        if (bossTime > 0 && (bestBossTime < 0 || bossTime < bestBossTime)) {
+            isNewBossTimeRecord = true;
+            bestBossTime = bossTime;
+            saveBestBossTime(bossTime);
+        } else {
+            isNewBossTimeRecord = false;
+        }
+        active = true;
+        animationTimer = 0f;
+        recordGlowTimer = 0f;
+        selectedItem = 0;
+        nextLevelPressed = false;
+        mainMenuPressed = false;
+        shouldRestart = false;
+        bossButtonVisible = (levelNumber >= 3);
+        if (bossButtonVisible) {
+            bossButtonIndex = buttonItems.length;
+        } else {
+            bossButtonIndex = -1;
+        }
         initializeButtonBounds();
     }
 
@@ -244,14 +303,15 @@ public class VictoryWindow {
         if (selectedItem != prevSelectedItem && clickSound != null) clickSound.play();
 
         if (!mouseHoverDetected) {
+            int totalButtons = buttonItems.length + (bossButtonVisible ? 1 : 0);
             if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
                 selectedItem--;
-                if (selectedItem < 0) selectedItem = buttonItems.length - 1;
+                if (selectedItem < 0) selectedItem = totalButtons - 1;
                 if (clickSound != null) clickSound.play();
             }
             if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
                 selectedItem++;
-                if (selectedItem >= buttonItems.length) selectedItem = 0;
+                if (selectedItem >= totalButtons) selectedItem = 0;
                 if (clickSound != null) clickSound.play();
             }
             if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
@@ -265,8 +325,27 @@ public class VictoryWindow {
         }
     }
 
-    private void handleSelection(int itemIndex) {
-        switch (itemIndex) {
+    private void handleSelection(int index) {
+        if (buttonItems.length == 1 && buttonItems[0].equalsIgnoreCase("MAIN MENU")) {
+            mainMenuPressed = true;
+            active = false;
+            return;
+        }
+        // Для останнього рівня перша кнопка — це перехід до боса
+        if (index == 0 && levelNumber >= 3) {
+            com.naukma.Main main = (com.naukma.Main) Gdx.app.getApplicationListener();
+            main.startBossLevel();
+            active = false;
+            return;
+        }
+        if (bossButtonVisible && index == bossButtonIndex) {
+            // Викликаємо перехід до боса
+            com.naukma.Main main = (com.naukma.Main) Gdx.app.getApplicationListener();
+            main.startBossLevel();
+            active = false;
+            return;
+        }
+        switch (index) {
             case 0: // NEXT LEVEL
                 if (levelNumber < 3) {
                     nextLevelPressed = true;
@@ -334,13 +413,57 @@ public class VictoryWindow {
         float recordY = isNewRecord ? scoreY - 100 : scoreY - 50;
         textFont.draw(batch, recordText, recordX, recordY);
 
+        if (levelNumber == 99 && bossTime > 0) {
+            textFont.setColor(Color.YELLOW);
+            String timeText = String.format("Boss Time: %d:%02d.%02d", (int)(bossTime/60), (int)bossTime%60, (int)((bossTime%1)*100));
+            glyphLayout.setText(textFont, timeText);
+            float timeX = (screenWidth - glyphLayout.width) / 2;
+            float timeY = scoreY - 50;
+            textFont.draw(batch, timeText, timeX, timeY);
+            timeY = scoreY - 100;
+            if (isNewBossTimeRecord) {
+                textFont.setColor(Color.GREEN);
+                String rec = "NEW RECORD!";
+                glyphLayout.setText(textFont, rec);
+                float recX = (screenWidth - glyphLayout.width) / 2;
+                float recY = timeY - 50;
+                textFont.draw(batch, rec, recX, recY);
+                timeY = recY;
+            }
+            if (bestBossTime > 0 && !isNewBossTimeRecord) {
+                textFont.setColor(Color.WHITE);
+                String best = String.format("Best Boss Time: %d:%02d.%02d", (int)(bestBossTime/60), (int)bestBossTime%60, (int)((bestBossTime%1)*100));
+                glyphLayout.setText(textFont, best);
+                float bestX = (screenWidth - glyphLayout.width) / 2;
+                float bestY = timeY - 50;
+                textFont.draw(batch, best, bestX, bestY);
+                timeY = bestY;
+            }
+        }
+        if (levelNumber == 99) {
+            textFont.setColor(Color.WHITE);
+            String customText1 = "This game was created by Artem Hrytsenko and Anastasia Zarovska.";
+            String customText2 = "We hope you enjoy playing it!";
+            glyphLayout.setText(textFont, customText1);
+            float text1X = (screenWidth - glyphLayout.width) / 2;
+            float text1Y = scoreY - 100;
+            textFont.draw(batch, customText1, text1X, text1Y);
+            glyphLayout.setText(textFont, customText2);
+            float text2X = (screenWidth - glyphLayout.width) / 2;
+            float text2Y = text1Y - 40;
+            textFont.draw(batch, customText2, text2X, text2Y);
+        }
+
         // Кнопки (стиль MainMenu)
         for (int i = 0; i < buttonItems.length; i++) {
             Rectangle bounds = buttonBounds[i];
 
             Texture currentButtonTexture;
-            if (i == 0 && levelNumber >= 3) { // NEXT LEVEL відключена для останнього рівня
-                currentButtonTexture = buttonDisabledTexture;
+            // Для останнього рівня перша кнопка активна і з іншим текстом
+            if (i == 0 && levelNumber >= 3) {
+                currentButtonTexture = (i == selectedItem) ? buttonHoverTexture : buttonTexture;
+            } else if (i == 0 && levelNumber < 3) {
+                currentButtonTexture = (i == selectedItem) ? buttonHoverTexture : buttonTexture;
             } else {
                 currentButtonTexture = (i == selectedItem) ? buttonHoverTexture : buttonTexture;
             }
@@ -348,19 +471,27 @@ public class VictoryWindow {
             batch.draw(currentButtonTexture, bounds.x, bounds.y, bounds.width, bounds.height);
 
             String item = buttonItems[i];
+            // Заміна тексту для останнього рівня
+            if (i == 0 && levelNumber >= 3) {
+                item = "BOSS FIGHT";
+            }
             glyphLayout.setText(buttonFont, item);
             float textX = bounds.x + (bounds.width - glyphLayout.width) / 2;
             float textY = bounds.y + (bounds.height + glyphLayout.height) / 2;
 
-            if (i == 0 && levelNumber >= 3) { // NEXT LEVEL відключена
-                buttonFont.setColor(Color.GRAY);
-            } else if (i == selectedItem) {
+            if (i == selectedItem) {
                 buttonFont.setColor(Color.YELLOW);
             } else {
                 buttonFont.setColor(Color.WHITE);
             }
 
             buttonFont.draw(batch, item, textX, textY);
+        }
+
+        if (bossButtonVisible) {
+            // Рендеримо кнопку "Бій з босом"
+            // (Можна стилізувати окремо)
+            // ...
         }
     }
 
@@ -391,5 +522,21 @@ public class VictoryWindow {
         if (buttonHoverTexture != null) buttonHoverTexture.dispose();
         if (buttonDisabledTexture != null) buttonDisabledTexture.dispose();
         if (clickSound != null) clickSound.dispose();
+    }
+
+    // Додаю інтерфейс для обробки кнопки боса
+    public interface BossListener {
+        void onBossButtonPressed();
+    }
+    private BossListener bossListener;
+    public void setBossListener(BossListener listener) {
+        this.bossListener = listener;
+    }
+
+    public void setButtonItems(String[] items) {
+        this.buttonItems = items;
+    }
+    public void reinitButtonBounds() {
+        initializeButtonBounds();
     }
 }

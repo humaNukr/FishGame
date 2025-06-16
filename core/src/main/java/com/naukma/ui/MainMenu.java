@@ -38,6 +38,8 @@ public class MainMenu {
 
     private int prevSelectedItem = -1;
 
+    private boolean showSettings = false;
+
     public MainMenu() {
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/HennyPenny.ttf"));
@@ -238,7 +240,7 @@ public class MainMenu {
                 }
                 break;
             case 1: // SETTINGS
-                // Код для налаштувань
+                showSettings = true;
                 break;
             case 2: // EXIT
                 Gdx.app.exit();
@@ -289,13 +291,13 @@ public class MainMenu {
         }
 
         // Повідомлення про обраний рівень
-        if (selectedLevel >= 0) {
+        if (selectedLevel >= 0 && selectedLevel != 99) {
             levelFont.setColor(Color.GREEN);
             String selectedText = "SELECTED: " + levelItems[selectedLevel];
             glyphLayout.setText(levelFont, selectedText);
             float selectedX = (Gdx.graphics.getWidth() - glyphLayout.width) / 2;
             levelFont.draw(batch, selectedText, selectedX, Gdx.graphics.getHeight() / 2 + 40);
-        } else {
+        } else if (selectedLevel < 0) {
             levelFont.setColor(Color.RED);
             String warningText = "CHOOSE LEVEL FIRST!";
             glyphLayout.setText(levelFont, warningText);
@@ -310,6 +312,14 @@ public class MainMenu {
             Texture currentButtonTexture;
             if (i == 0 && selectedLevel < 0) { // START GAME відключена, якщо рівень не обрано
                 currentButtonTexture = buttonDisabledTexture;
+            } else if (i == 3) { // BOSS FIGHT — синя кнопка
+                Pixmap pixmap = new Pixmap(300, 60, Pixmap.Format.RGBA8888);
+                pixmap.setColor(0.2f, 0.4f, 1f, 0.9f);
+                pixmap.fill();
+                pixmap.setColor(0.3f, 0.5f, 1f, 1f);
+                pixmap.drawRectangle(0, 0, 300, 60);
+                currentButtonTexture = new Texture(pixmap);
+                pixmap.dispose();
             } else {
                 currentButtonTexture = (i == selectedItem) ? buttonHoverTexture : buttonTexture;
             }
@@ -323,6 +333,8 @@ public class MainMenu {
 
             if (i == 0 && selectedLevel < 0) { // START GAME відключена
                 menuFont.setColor(Color.GRAY);
+            } else if (i == 3) {
+                menuFont.setColor(Color.CYAN);
             } else if (i == selectedItem) {
                 menuFont.setColor(Color.YELLOW);
             } else {
@@ -380,5 +392,13 @@ public class MainMenu {
         if (levelButtonTexture != null) levelButtonTexture.dispose();
         if (levelButtonSelectedTexture != null) levelButtonSelectedTexture.dispose();
         if (clickSound != null) clickSound.dispose();
+    }
+
+    public void setShowSettings(boolean show) {
+        this.showSettings = show;
+    }
+
+    public boolean isShowSettings() {
+        return showSettings;
     }
 }

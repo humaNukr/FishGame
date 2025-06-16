@@ -13,27 +13,27 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.audio.Sound;
 
 public class GameOverMenu {
-    private BitmapFont titleFont;
-    private BitmapFont menuFont;
-    private BitmapFont reasonFont;
-    private Texture menuBackground;
-    private Texture buttonTexture;
-    private Texture buttonHoverTexture;
-    private Texture overlayTexture;
+    protected BitmapFont titleFont;
+    protected BitmapFont menuFont;
+    protected BitmapFont reasonFont;
+    protected Texture menuBackground;
+    protected Texture buttonTexture;
+    protected Texture buttonHoverTexture;
+    protected Texture overlayTexture;
 
-    private String[] menuItems = {"Restart", "Main Menu", "Exit Game"};
-    private Rectangle[] buttonBounds;
-    private int selectedItem = 0;
-    private boolean isActive = false;
-    private boolean shouldReturnToMainMenu = false;
-    private boolean shouldRestart = false;
-    private boolean shouldExitGame = false;
+    protected String[] menuItems = {"Restart", "Main Menu", "Exit Game"};
+    protected Rectangle[] buttonBounds;
+    protected int selectedItem = 0;
+    protected boolean isActive = false;
+    protected boolean shouldReturnToMainMenu = false;
+    protected boolean shouldRestart = false;
+    protected boolean shouldExitGame = false;
 
-    private String gameOverReason = "Game Over!";
+    protected String gameOverReason = "Game Over!";
 
-    private float menuX, menuY;
-    private float menuWidth, menuHeight;
-    private GlyphLayout glyphLayout;
+    protected float menuX, menuY;
+    protected float menuWidth, menuHeight;
+    protected GlyphLayout glyphLayout;
 
     private Sound clickSound;
 
@@ -112,7 +112,7 @@ public class GameOverMenu {
         pixmap.dispose();
     }
 
-    private void initializeButtonBounds() {
+    protected void initializeButtonBounds() {
         buttonBounds = new Rectangle[menuItems.length];
         float buttonWidth = 250;
         float buttonHeight = 50;
@@ -179,7 +179,7 @@ public class GameOverMenu {
         }
     }
 
-    private void handleSelection(int itemIndex) {
+    protected void handleSelection(int itemIndex) {
         switch (itemIndex) {
             case 0: // Restart
                 shouldRestart = true;

@@ -43,6 +43,12 @@ public class BasicLevel extends ApplicationAdapter {
         initializeLevel();
         this.lives = this.livesCount; // Ініціалізуємо життя з налаштувань рівня
         initializeUnlockedFishTypes();
+        victoryWindow.setBossListener(new VictoryWindow.BossListener() {
+            @Override
+            public void onBossButtonPressed() {
+                goToBossLevel = true;
+            }
+        });
     }
 
 
@@ -152,9 +158,17 @@ public class BasicLevel extends ApplicationAdapter {
             // Якщо немає налаштованих рибок, створюємо стандартні
             createStandardFishes();
         } else {
-            // Створюємо рибок з налаштувань рівня (тільки доступні типи)
-            for (int i = 0; i < maxFishCount; i++) {
+            // Створюємо цільові рибки для поточного рівня акули
+            int sharkLevel = calculateSharkLevel();
+            int targetFishCount = MathUtils.random(3, 6);
+            for (int i = 0; i < targetFishCount; i++) {
                 createRandomLevelFish();
+            }
+
+            // Створюємо інші рибки, щоб загальна кількість була 20
+            int otherFishCount = 20 - targetFishCount;
+            for (int i = 0; i < otherFishCount; i++) {
+                createRandomFishExcludingLevel(sharkLevel);
             }
         }
 
@@ -200,13 +214,15 @@ public class BasicLevel extends ApplicationAdapter {
     private void createRandomLevelFish() {
         if (availableFish.size == 0) return;
 
-        // Створюємо список доступних типів з урахуванням обмежень
+        // Створюємо список доступних типів з урахуванням рівня акули
         Array<FishSpawnData> availableForSpawn = new Array<>();
-        for (FishSpawnData fishData : availableFish) {
-            if (canSpawnFish(fishData)) {
+        int sharkLevel = calculateSharkLevel();
+        for (int i = 0; i < availableFish.size; i++) {
+            FishSpawnData fishData = availableFish.get(i);
+            if (i <= sharkLevel && canSpawnFish(fishData)) {
                 // Додаємо тип кілька разів відповідно до його ймовірності
                 int probability = Math.max(1, (int) (fishData.spawnWeight * 100));
-                for (int i = 0; i < probability; i++) {
+                for (int j = 0; j < probability; j++) {
                     availableForSpawn.add(fishData);
                 }
             }
@@ -273,6 +289,20 @@ public class BasicLevel extends ApplicationAdapter {
 
     @Override
     public void render() {
+        if (goToBossLevel) {
+            Gdx.gl.glClearColor(0, 0, 0, 1);
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+            batch.begin();
+            if (bossLevel == null) {
+                Main main = (Main) Gdx.app.getApplicationListener();
+                main.startBossLevel();
+            }
+            bossLevel.update(Gdx.graphics.getDeltaTime());
+            bossLevel.render(batch);
+            batch.end();
+            return;
+        }
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             if (!isGameOver && !showGameOverEffect) {
                 isPaused = !isPaused;
@@ -494,6 +524,11 @@ public class BasicLevel extends ApplicationAdapter {
                 victoryMusicPlayed = true;
             }
             victoryWindow.render(batch);
+            if (goToBossLevel) {
+                // Тут має бути логіка запуску рівня з босом
+                // Наприклад, завантаження BossLevel
+                // Можна викликати callback або змінити стан гри
+            }
         }
 
         batch.end();
@@ -501,7 +536,7 @@ public class BasicLevel extends ApplicationAdapter {
         // Оновлюємо логіку вікна перемоги поза рендерингом
         if (isVictory && !victoryAnimationActive) {
             if (!victoryWindow.isActive()) {
-                victoryWindow.show(levelNumber, score);
+                victoryWindow.show(levelNumber, gameHUD.getScore());
             }
         }
 
@@ -611,7 +646,7 @@ public class BasicLevel extends ApplicationAdapter {
                 float sizeRatio = fishSize / sharkSize;
                 if (sizeRatio < 0.3f && canEatFishType(fish.getFishType())) {
                     eatFish(fish, fishX + fishWidth / 2, fishY + fishHeight / 2);
-                } else if (sizeRatio > 0.7f) {
+                } else if (sizeRatio > 0.4f) {
                     takeDamage(fish, fishX + fishWidth / 2, fishY + fishHeight / 2);
                 }
             }
@@ -1095,18 +1130,23 @@ public class BasicLevel extends ApplicationAdapter {
     }
 
     private void initializeUnlockedFishTypes() {
-        // Тепер завжди всі типи доступні
         unlockedFishTypes.clear();
-        for (FishSpawnData data : availableFish) {
-            unlockedFishTypes.add(data.path);
+        // Додаємо тільки ті типи риб, які дозволені для поточного рівня акули
+        int sharkLevel = calculateSharkLevel();
+        for (int i = 0; i < availableFish.size; i++) {
+            if (i < sharkLevel) {
+                unlockedFishTypes.add(availableFish.get(i).path);
+            }
         }
     }
 
     private void updateUnlockedFishTypes() {
-        // Тепер завжди всі типи доступні
         unlockedFishTypes.clear();
-        for (FishSpawnData data : availableFish) {
-            unlockedFishTypes.add(data.path);
+        int sharkLevel = calculateSharkLevel();
+        for (int i = 0; i < availableFish.size; i++) {
+            if (i < sharkLevel) {
+                unlockedFishTypes.add(availableFish.get(i).path);
+            }
         }
     }
 
@@ -1345,10 +1385,10 @@ public class BasicLevel extends ApplicationAdapter {
                 newScale = 0.5f;
                 break;
             case 2:
-                newScale = 1.3f;
+                newScale = 0.8f;
                 break;
             case 3:
-                newScale = 1.7f;
+                newScale = 1.3f;
                 break;
             default:
                 newScale = 0.6f;
@@ -1488,5 +1528,35 @@ public class BasicLevel extends ApplicationAdapter {
             if (d.path.equals(fishType)) return d;
         }
         return null;
+    }
+
+    private boolean goToBossLevel = false;
+    private BossLevel bossLevel = null;
+
+    private void createRandomFishExcludingLevel(int excludeLevel) {
+        if (availableFish.size == 0) return;
+
+        // Створюємо список доступних типів, виключаючи поточний рівень акули
+        Array<FishSpawnData> availableForSpawn = new Array<>();
+        for (int i = 0; i < availableFish.size; i++) {
+            if (i != excludeLevel) {
+                FishSpawnData fishData = availableFish.get(i);
+                if (canSpawnFish(fishData)) {
+                    // Додаємо тип кілька разів відповідно до його ймовірності
+                    int probability = Math.max(1, (int) (fishData.spawnWeight * 100));
+                    for (int j = 0; j < probability; j++) {
+                        availableForSpawn.add(fishData);
+                    }
+                }
+            }
+        }
+
+        // Створюємо рибку якщо є доступні типи
+        if (availableForSpawn.size > 0) {
+            FishSpawnData fishData = availableForSpawn.random();
+            if (fishData != null) {
+                createFishFromDataWithBounds(fishData);
+            }
+        }
     }
 }
