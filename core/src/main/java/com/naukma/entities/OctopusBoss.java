@@ -33,8 +33,8 @@ public class OctopusBoss extends Entity {
         this.width = Gdx.graphics.getHeight() * 0.45f;
         this.height = Gdx.graphics.getHeight() * 0.45f;
         // Початкові налаштування
-        health = 10;
-        maxHealth = 10;
+        health = 40;
+        maxHealth = 40;
         currentState = State.IDLE;
         stateTimer = 0f;
     }

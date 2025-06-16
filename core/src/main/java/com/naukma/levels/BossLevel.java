@@ -27,8 +27,8 @@ public class BossLevel {
     private float sharkX, sharkY;
     private float sharkWidth, sharkHeight;
     private float sharkSpeed = 400f;
-    private int sharkHealth = 3;
-    private int sharkMaxHealth = 3;
+    private int sharkHealth = 2;
+    private int sharkMaxHealth = 2;
 
     private OctopusBoss boss;
     private Array<BossMinion> minions;
@@ -39,7 +39,7 @@ public class BossLevel {
 
     private boolean sharkInvulnerable = false;
     private float invulnerableTimer = 0f;
-    private float invulnerableDuration = 1.5f;
+    private float invulnerableDuration = 0.75f;
 
     private Array<OctopusInk> inkShots = new Array<>();
     private long lastInkTime = 0;
@@ -75,8 +75,8 @@ public class BossLevel {
         boolean active;  // удар
         boolean finished;
         boolean damaged = false;
-        float warningDuration = 1.5f;
-        float strikeDuration = 3.0f;
+        float warningDuration = 0.9f;
+        float strikeDuration = 2.0f;
         float beamHeight = 120f;
         public TentacleStrike(float y) {
             this.y = y;
@@ -186,7 +186,7 @@ public class BossLevel {
             }
         }
         // Спавн чорнильних куль
-        if (TimeUtils.nanoTime() - lastInkTime > 1_500_000_000L) {
+        if (TimeUtils.nanoTime() - lastInkTime > 800_000_000L) {
             OctopusInk newInk = boss.shootInk(sharkY + sharkHeight/2);
             if (newInk != null) {
                 inkShots.add(newInk);
@@ -194,12 +194,12 @@ public class BossLevel {
             lastInkTime = TimeUtils.nanoTime();
         }
         // Спавн міньйонів
-        if (TimeUtils.nanoTime() - lastMinionTime > 3_000_000_000L) {
+        if (TimeUtils.nanoTime() - lastMinionTime > 8_000_000_000L) {
             minions.add(new BossMinion(MathUtils.random(0, Gdx.graphics.getHeight() - 60 - hudBackground.getHeight())));
             lastMinionTime = TimeUtils.nanoTime();
         }
         // Спавн щупальця-променя
-        if (TimeUtils.nanoTime() - lastTentacleTime > 4_000_000_000L) {
+        if (TimeUtils.nanoTime() - lastTentacleTime > 2_500_000_000L) {
             float y = MathUtils.random(40, Gdx.graphics.getHeight() - hudBackground.getHeight() - 120f);
             tentacleStrikes.add(new TentacleStrike(y));
             lastTentacleTime = TimeUtils.nanoTime();
@@ -220,7 +220,7 @@ public class BossLevel {
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
             sharkY -= sharkSpeed * deltaTime;
         }
-        sharkY = Math.max(0, Math.min(Gdx.graphics.getHeight() - hudBackground.getHeight(), sharkY));
+        sharkY = Math.max(0, Math.min(Gdx.graphics.getHeight() - hudBackground.getHeight() я, sharkY));
         // Атака по Space
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             Rectangle sharkAttackRect = new Rectangle(sharkX + sharkWidth, sharkY, 50, sharkHeight);

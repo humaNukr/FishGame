@@ -15,7 +15,7 @@ public class OctopusInk extends Entity {
         inkTexture = new Texture(Gdx.files.internal("ink2.png"));
         this.width = 80;
         this.height = 80;
-        this.speed = 400f;
+        this.speed = 650f;
     }
 
     public void update(float deltaTime) {

@@ -12,7 +12,7 @@ public class EnergyOrb extends Entity {
     private Rectangle bounds;
     private boolean active = true;
     private boolean reflected = false;
-    private static final float SPEED = 600f;
+    private static final float SPEED = 800f;
     private float orbSize;
 
     public EnergyOrb(float startX, float startY) {

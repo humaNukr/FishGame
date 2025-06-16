@@ -15,7 +15,7 @@ public class BossMinion extends Entity {
         minionTexture = new Texture(Gdx.files.internal("octopus.png"));
         this.width = 70f;
         this.height = 70f;
-        speed = 250f;
+        speed = 400f;
     }
 
     public void update(float deltaTime) {
