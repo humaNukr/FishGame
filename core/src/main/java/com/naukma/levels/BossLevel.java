@@ -19,6 +19,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.naukma.ui.GameOverBoss;
 import com.naukma.ui.VictoryWindow;
+import com.naukma.Main;
+import com.naukma.effects.BossHitEffect;
 
 public class BossLevel {
     private Texture sharkTexture;
@@ -63,6 +65,7 @@ public class BossLevel {
     private VictoryWindow victoryWindow;
     private boolean victoryMusicPlayed = false;
     private boolean isRecord = false;
+    private BossHitEffect hitEffect;
 
     // Внутрішній клас для атаки щупальцем
     private static class TentacleStrike {
@@ -125,6 +128,7 @@ public class BossLevel {
         hud = new GameHUD();
         gameOverMenu = new GameOverBoss();
         victoryWindow = new VictoryWindow();
+        hitEffect = new BossHitEffect("bonus_effect.png", 1, 0.3f);
     }
 
     public void update(float deltaTime) {
@@ -149,6 +153,7 @@ public class BossLevel {
         for (OctopusInk ink : inkShots) ink.update(deltaTime);
         for (EnergyOrb orb : energyOrbs) orb.update(deltaTime);
         for (TentacleStrike t : tentacleStrikes) t.update(deltaTime);
+        hitEffect.update(deltaTime);
         // Видалити завершені
         for (int i = tentacleStrikes.size - 1; i >= 0; i--) {
             if (tentacleStrikes.get(i).isFinished()) tentacleStrikes.removeIndex(i);
@@ -255,6 +260,7 @@ public class BossLevel {
             // Перевірка, чи відбитий снаряд перетнув лівий край восьминога
             if (orb.isReflected() && orb.isActive() && (orb.getX() + orb.getBounds().width >= boss.getX())) {
                 boss.takeDamage(2); // Відбитий снаряд наносить більше шкоди
+                hitEffect.spawn(boss.getX(), orb.getY() + orb.getBounds().height / 2);
                 orb.setActive(false);
             }
         }
@@ -401,6 +407,8 @@ public class BossLevel {
             orb.render(batch);
         }
 
+        hitEffect.render(batch);
+
         // Рендер щупалець-променів
         for (TentacleStrike t : tentacleStrikes) {
             if (t.isBlinking()) {
@@ -510,6 +518,7 @@ public class BossLevel {
         if (gameOverMenu != null) gameOverMenu.dispose();
         if (victoryWindow != null) victoryWindow.dispose();
         if (hud != null) hud.dispose();
+        if (hitEffect != null) hitEffect.dispose();
         
         // Clear collections
         minions.clear();
