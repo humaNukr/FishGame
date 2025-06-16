@@ -9,6 +9,7 @@ import com.naukma.levels.LevelManager;
 import com.naukma.ui.MainMenu;
 import com.badlogic.gdx.audio.Music;
 import com.naukma.levels.BossLevel;
+import com.naukma.utils.CursorManager;
 
 public class Main extends ApplicationAdapter {
 
@@ -32,6 +33,17 @@ public class Main extends ApplicationAdapter {
         currentLevel = levelManager.createLevel(1);
         currentLevel.create();
         setMusic("main_menu.mp3");
+
+        CursorManager.initialize();
+
+        // Додаємо обробник помилок для відстеження проблем
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                System.err.println("Необроблена помилка: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
     }
 
     @Override
@@ -207,6 +219,7 @@ public class Main extends ApplicationAdapter {
             backgroundMusic.dispose();
         }
 
+        CursorManager.disposeInstance();
     }
 
     // Геттери для доступу до поточного стану

@@ -37,11 +37,11 @@ public class ThirdLevel extends BasicLevel {
         // Переозначаємо вимоги для третього рівня
         switch (fishTypeIndex) {
             case 0:
-                return 12;
+                return 1;
             case 1:
-                return 12;
+                return 1;
             case 2:
-                return 10;
+                return 1;
             default:
                 return 5;
         }
