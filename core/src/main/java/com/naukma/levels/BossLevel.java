@@ -220,7 +220,7 @@ public class BossLevel {
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
             sharkY -= sharkSpeed * deltaTime;
         }
-        sharkY = Math.max(0, Math.min(Gdx.graphics.getHeight() - hudBackground.getHeight() я, sharkY));
+        sharkY = Math.max(0, Math.min(Gdx.graphics.getHeight() - hudBackground.getHeight() , sharkY));
         // Атака по Space
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             Rectangle sharkAttackRect = new Rectangle(sharkX + sharkWidth, sharkY, 50, sharkHeight);
@@ -501,30 +501,30 @@ public class BossLevel {
         if (tentacleTexture != null) tentacleTexture.dispose();
         if (hudBackground != null) hudBackground.dispose();
         if (gameLogo != null) gameLogo.dispose();
-        
+
         // Dispose fonts
         if (font != null) font.dispose();
-        
+
         // Dispose game objects
         if (boss != null) boss.dispose();
-        
+
         // Dispose all energy orbs
         for (EnergyOrb orb : energyOrbs) {
             if (orb != null) orb.dispose();
         }
         energyOrbs.clear();
-        
+
         // Dispose UI elements
         if (gameOverMenu != null) gameOverMenu.dispose();
         if (victoryWindow != null) victoryWindow.dispose();
         if (hud != null) hud.dispose();
         if (hitEffect != null) hitEffect.dispose();
-        
+
         // Clear collections
         minions.clear();
         inkShots.clear();
         tentacleStrikes.clear();
-        
+
         // Reset state flags
         isGameOver = false;
         isVictory = false;

@@ -14,8 +14,8 @@ public class CursorManager implements Disposable {
     private CursorManager() {
         // Private constructor for singleton
         try {
-            cursorPixmap = new Pixmap(Gdx.files.internal("cursor (8).png"));
-            
+            cursorPixmap = new Pixmap(Gdx.files.internal("cursor.png"));
+
             int width = cursorPixmap.getWidth();
             int height = cursorPixmap.getHeight();
 
@@ -23,18 +23,18 @@ public class CursorManager implements Disposable {
             if (!isPowerOfTwo(width) || !isPowerOfTwo(height)) {
                 int newWidth = nextPowerOfTwo(width);
                 int newHeight = nextPowerOfTwo(height);
-                
+
                 Pixmap resizedPixmap = new Pixmap(newWidth, newHeight, cursorPixmap.getFormat());
                 // Draw the original pixmap onto the new resized one
                 resizedPixmap.drawPixmap(cursorPixmap, 0, 0, width, height, 0, 0, newWidth, newHeight);
-                
+
                 // Dispose the original pixmap and replace it with the resized one
                 cursorPixmap.dispose();
                 cursorPixmap = resizedPixmap;
-                
+
                 Gdx.app.log("CursorManager", "Cursor image resized to " + newWidth + "x" + newHeight);
             }
-            
+
             customCursor = Gdx.graphics.newCursor(cursorPixmap, 0, 0);
             Gdx.graphics.setCursor(customCursor);
             Gdx.app.log("CursorManager", "Custom cursor has been set successfully.");
@@ -75,11 +75,11 @@ public class CursorManager implements Disposable {
             instance.dispose();
         }
     }
-    
+
     private static boolean isPowerOfTwo(int n) {
         return n > 0 && (n & (n - 1)) == 0;
     }
-    
+
     private static int nextPowerOfTwo(int n) {
         if (n <= 0) return 1;
         n--;
@@ -90,4 +90,4 @@ public class CursorManager implements Disposable {
         n |= n >> 16;
         return n + 1;
     }
-} 
+}
