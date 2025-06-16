@@ -870,6 +870,7 @@ public class BasicLevel extends ApplicationAdapter {
         if (bonusManager != null) {
             bonusManager.reset();
         }
+        gameHUD.resetBonuses();
 
         // Скидаємо витривалість
         if (sprintHandler != null) {
@@ -1509,15 +1510,28 @@ public class BasicLevel extends ApplicationAdapter {
             }
         }
         int minEdible = 3;
+
+        // Визначаємо, яку рибу потрібно спавнити
+        String requiredFishType = getCurrentActiveFishType();
+
         while (edibleCount < minEdible) {
-            if (unlockedFishTypes.size == 0) break;
-            String fishType = unlockedFishTypes.random();
-            FishSpawnData data = getFishDataForType(fishType);
-            if (data != null) {
-                createFishFromDataWithBounds(data);
+            FishSpawnData dataToSpawn = null;
+            if (requiredFishType != null) {
+                // Пріоритетно спавнимо рибу, яка потрібна для проходження
+                dataToSpawn = getFishDataForType(requiredFishType);
+            }
+
+            // Якщо потрібної риби немає або її не знайдено, спавнимо будь-яку доступну
+            if (dataToSpawn == null && unlockedFishTypes.size > 0) {
+                String randomFishType = unlockedFishTypes.random();
+                dataToSpawn = getFishDataForType(randomFishType);
+            }
+
+            if (dataToSpawn != null) {
+                createFishFromDataWithBounds(dataToSpawn);
                 edibleCount++;
             } else {
-                break;
+                break; // Немає доступних риб для спавну
             }
         }
     }

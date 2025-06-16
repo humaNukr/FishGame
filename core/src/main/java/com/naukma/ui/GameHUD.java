@@ -547,12 +547,24 @@ public class GameHUD {
     }
 
     public void resetTimer() {
-        this.gameTimer = maxLevelTime;
+        gameTimer = maxLevelTime;
+        timerActive = true;
+    }
+
+    public void resetBonuses() {
+        if (bonusCounts != null) {
+            for (int i = 0; i < bonusCounts.size; i++) {
+                bonusCounts.set(i, 0);
+            }
+        }
+        scoreBonusActive = false;
+        scoreBonusMultiplier = 1f;
+        scoreBonusTimer = 0f;
     }
 
     // Sprint methods
     public void startSprint() {
-        if (canSprint && stamina > 0) {
+        if (canSprint) {
             isSprintActive = true;
         }
     }
